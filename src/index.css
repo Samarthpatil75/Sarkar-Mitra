@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px; /* High legibility baseline for elderly & rural users */
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply font-devanagari min-h-screen bg-warmbg-light dark:bg-warmbg-dark text-slate-800 dark:text-slate-100 transition-colors duration-200 antialiased;
+  }
+
+  /* Accessible focus indicators */
+  *:focus-visible {
+    @apply outline-none ring-4 ring-saffron-400 dark:ring-saffron-500 ring-offset-2 dark:ring-offset-slate-900;
+  }
+
+  /* Minimum 48px touch targets for buttons and interactive elements */
+  button, a, input, select, textarea {
+    @apply min-h-[48px] touch-manipulation;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Print Styles for PDF & Hardcopy Citizen Summary */
+@media print {
+  header, aside, nav, button, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

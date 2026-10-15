@@ -1,0 +1,341 @@
+{
+  "notice": "VERIFY AGAINST OFFICIAL SOURCE: सर्व आकडेवारी व निकष सरकारी परिपत्रकानुसार वेळोवेळी बदलू शकतात. कृपया प्रत्यक्ष अर्जापूर्वी अधिकृत संकेतस्थळावर खात्री करा.",
+  "schemes": [
+    {
+      "id": "ladki-bahin",
+      "name_mr": "मुख्यमंत्री माझी लाडकी बहीण योजना",
+      "name_en": "Mukhyamantri Majhi Ladki Bahin Yojana",
+      "category_mr": "महिला कल्याण व आर्थिक साहाय्य",
+      "short_description_mr": "महाराष्ट्रातील पात्र महिलांना दरमहा ₹१,५०० थेट बँक खात्यात आर्थिक साहाय्य देणारी योजना.",
+      "benefit_summary_mr": "दरमहा ₹१,५०० (वर्षाला ₹१८,०००) थेट DBT द्वारे.",
+      "official_link": "https://ladakibahin.maharashtra.gov.in",
+      "last_verified_date": "2026-09-15",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२)",
+      "eligibility_rules": {
+        "gender": "महिला",
+        "min_age": 21,
+        "max_age": 65,
+        "max_annual_income": 250000,
+        "maharashtra_resident": true,
+        "govt_employee_allowed": false,
+        "tax_payer_allowed": false,
+        "four_wheeler_allowed": false
+      },
+      "eligibility_questions": [
+        {
+          "id": "gender",
+          "field": "gender",
+          "question_mr": "तुम्ही महिला आहात का?",
+          "spoken_prompt_mr": "तुम्ही महिला आहात का? हो किंवा नाही सांगा.",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, मी महिला आहे", "value": true },
+            { "label_mr": "नाही", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "ही योजना केवळ महिलांसाठी आहे."
+        },
+        {
+          "id": "age",
+          "field": "age",
+          "question_mr": "तुमचे सध्याचे वय किती वर्षे आहे?",
+          "spoken_prompt_mr": "तुमचे सध्याचे वय किती वर्षे आहे? आकडा सांगा.",
+          "type": "number",
+          "placeholder_mr": "उदा. २८ किंवा 45",
+          "min": 18,
+          "max": 100,
+          "rule_check": "value >= 21 && value <= 65",
+          "fail_reason_mr": "अर्जदाराचे वय २१ ते ६५ वर्षांच्या दरम्यान असणे आवश्यक आहे."
+        },
+        {
+          "id": "maharashtra_resident",
+          "field": "maharashtra_resident",
+          "question_mr": "तुम्ही महाराष्ट्र राज्याचे रहिवासी आहात का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्र राज्याचे रहिवासी आहात का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, महाराष्ट्राचे रहिवासी", "value": true },
+            { "label_mr": "नाही, इतर राज्य", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "अर्जदार महिला महाराष्ट्राची मूळ रहिवासी असणे अनिवार्य आहे."
+        },
+        {
+          "id": "annual_income",
+          "field": "annual_income",
+          "question_mr": "तुमच्या कुटुंबाचे वार्षिक उत्पन्न २.५ लाखांपेक्षा कमी आहे का?",
+          "spoken_prompt_mr": "तुमच्या कुटुंबाचे वार्षिक उत्पन्न अडीच लाखांपेक्षा कमी आहे का?",
+          "type": "select",
+          "options": [
+            { "label_mr": "होय, ₹२.५ लाखांपेक्षा कमी", "value": "below_2_5" },
+            { "label_mr": "नाही, ₹२.५ लाखांपेक्षा जास्त", "value": "above_2_5" },
+            { "label_mr": "माहिती नाही / पिवळे-केशरी रेशन कार्ड आहे", "value": "has_ration_card" }
+          ],
+          "rule_check": "value === 'below_2_5' || value === 'has_ration_card'",
+          "fail_reason_mr": "कुटुंबाचे वार्षिक उत्पन्न ₹२,५०,००० पेक्षा कमी असणे आवश्यक आहे (पिवळे किंवा केशरी रेशन कार्ड असल्यास उत्पन्न दाखल्याची सूट)."
+        },
+        {
+          "id": "govt_job_or_tax",
+          "field": "govt_job_or_tax",
+          "question_mr": "कुटुंबात कोणी सरकारी नोकरदार किंवा आयकर भरणारे आहे का?",
+          "spoken_prompt_mr": "तुमच्या कुटुंबात कोणी नियमित सरकारी नोकरदार किंवा आयकरदाता आहे का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "नाही, कोणीही नाही", "value": false },
+            { "label_mr": "होय, सरकारी नोकरदार/करदाता आहे", "value": true }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "कुटुंबात सरकारी नियमित नोकरदार किंवा आयकरदाता असल्यास या योजनेचा लाभ मिळत नाही."
+        }
+      ],
+      "documents_mr": [
+        { "id": "aadhaar", "name": "आधार कार्ड (Aadhaar Card)", "required": true, "note": "बँकेशी आधार लिंक (DBT Active) असणे आवश्यक" },
+        { "id": "domicile", "name": "अधिवास / रहिवासी प्रमाणपत्र किंवा जन्म दाखला किंवा शाळा सोडल्याचा दाखला", "required": true, "note": "महाराष्ट्रातील रहिवासी असल्याचा पुरावा" },
+        { "id": "income_cert", "name": "उत्पन्न प्रमाणपत्र (वार्षिक ₹२.५ लाखांपर्यंत) किंवा पिवळे/केशरी रेशन कार्ड", "required": true, "note": "रेशन कार्ड असल्यास वेगळा दाखला नको" },
+        { "id": "bank_passbook", "name": "बँक पासबुक झेरॉक्स", "required": true, "note": "स्वतःचे वैयक्तिक बँक खाते व IFSC कोड" },
+        { "id": "photo_undertaking", "name": "हमीपत्र व पासपोर्ट फोटो", "required": true, "note": "मोबाईलवरून ऑनलाईन फोटोही चालतो" }
+      ],
+      "how_to_apply_mr": "१. 'नारीशक्ती दूत' ॲप किंवा अधिकृत पोर्टलवर नोंदणी करा.\n२. आधार क्रमांक व मोबाईल OTP ने लॉगिन करा.\n३. बँक खाते माहिती भरा व रेशन कार्ड अपलोड करा.\n४. अंगणवाडी केंद्र किंवा सेतू केंद्रावर विनामूल्य अर्ज करता येतो.",
+      "form_fields": [
+        { "key": "full_name", "label_mr": "पूर्ण नाव", "spoken_prompt": "तुमचे पूर्ण नाव सांगा.", "placeholder": "उदा. सुवर्णा गणेश पाटील", "type": "text" },
+        { "key": "mobile_number", "label_mr": "मोबाईल नंबर", "spoken_prompt": "तुमचा दहा आकडी मोबाईल नंबर सांगा.", "placeholder": "उदा. 9876543210", "type": "tel" },
+        { "key": "district", "label_mr": "जिल्हा", "spoken_prompt": "तुमचा जिल्हा कोणता आहे?", "placeholder": "उदा. कोल्हापूर, पुणे, नाशिक", "type": "text" },
+        { "key": "taluka_village", "label_mr": "तालुका किंवा गाव", "spoken_prompt": "तुमचा तालुका किंवा गाव सांगा.", "placeholder": "उदा. करवीर / वडगाव", "type": "text" },
+        { "key": "bank_status", "label_mr": "बँक खाते आधार लिंक आहे का?", "spoken_prompt": "तुमचे बँक खाते आधार लिंक आहे का? होय किंवा नाही म्हणा.", "placeholder": "होय / नाही", "type": "select", "options": ["होय (Aadhaar Seeded)", "नाही (करावे लागेल)"] }
+      ]
+    },
+    {
+      "id": "pm-kisan",
+      "name_mr": "पीएम किसान सन्मान निधी योजना",
+      "name_en": "PM Kisan Samman Nidhi",
+      "category_mr": "शेतकरी कल्याण",
+      "short_description_mr": "शेतकरी कुटुंबांना शेती खर्चासाठी वर्षाला ₹६,००० (तीन समान हप्त्यांत) थेट मदत.",
+      "benefit_summary_mr": "वर्षाला ₹६,००० (दर ४ महिन्यांनी ₹२,०००) + महाराष्ट्र सरकारचे नमो शेतकरी ₹६,००० अतिरिक्त.",
+      "official_link": "https://pmkisan.gov.in",
+      "last_verified_date": "2026-09-10",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे)",
+      "eligibility_rules": {
+        "is_farmer": true,
+        "has_land_record_7_12": true,
+        "govt_employee_allowed": false,
+        "tax_payer_allowed": false,
+        "pension_above_10k_allowed": false
+      },
+      "eligibility_questions": [
+        {
+          "id": "is_farmer",
+          "field": "is_farmer",
+          "question_mr": "तुमच्या किंवा कुटुंबाच्या नावावर लागवडीयोग्य शेतजमीन (७/१२) आहे का?",
+          "spoken_prompt_mr": "तुमच्या किंवा कुटुंबाच्या नावावर लागवडीयोग्य शेतजमीन आहे का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, शेतजमीन आहे", "value": true },
+            { "label_mr": "नाही, जमीन नाही", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "ही योजना स्वतःच्या नावे शेतजमीन असणाऱ्या शेतकऱ्यांसाठी आहे."
+        },
+        {
+          "id": "ekyc_status",
+          "field": "ekyc_status",
+          "question_mr": "तुमची आधार ई-केवायसी (e-KYC) पूर्ण झाली आहे का?",
+          "spoken_prompt_mr": "तुमची आधार ई-केवायसी पूर्ण झाली आहे का?",
+          "type": "select",
+          "options": [
+            { "label_mr": "होय, e-KYC पूर्ण आहे", "value": "done" },
+            { "label_mr": "अजून झालेली नाही", "value": "pending" },
+            { "label_mr": "माहिती नाही", "value": "unknown" }
+          ],
+          "rule_check": "value === 'done' || value === 'pending' || value === 'unknown'",
+          "fail_reason_mr": "हप्ता मिळण्यासाठी e-KYC बंधनकारक आहे, तुम्ही सेतू केंद्रावर करू शकता."
+        },
+        {
+          "id": "govt_job",
+          "field": "govt_job",
+          "question_mr": "कुटुंबात कोणी क्लास १, २, ३ सरकारी नोकरदार किंवा लोकप्रतिनिधी आहे का?",
+          "spoken_prompt_mr": "कुटुंबात कोणी सरकारी अधिकारी किंवा लोकप्रतिनिधी आहे का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "नाही, कोणीही नाही", "value": false },
+            { "label_mr": "होय, सरकारी नोकरदार आहेत", "value": true }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "संवैधानिक पद भूषविणारे, सरकारी अधिकारी किंवा चतुर्थ श्रेणी वगळता नोकरदार अपात्र ठरतात."
+        },
+        {
+          "id": "income_tax",
+          "field": "income_tax",
+          "question_mr": "कुटुंबातील कोणीही मागील वर्षात इन्कम टॅक्स (आयकर) भरला आहे का?",
+          "spoken_prompt_mr": "कुटुंबातील कोणी मागील वर्षात आयकर भरला आहे का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "नाही, आयकर भरत नाही", "value": false },
+            { "label_mr": "होय, आयकर भरतो", "value": true }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "आयकर भरणाऱ्या व्यक्ती पीएम किसान योजनेसाठी पात्र नाहीत."
+        }
+      ],
+      "documents_mr": [
+        { "id": "land_7_12", "name": "जमिनीचा ७/१२ उतारा व ८-अ (डिजिटल स्वाक्षरीसह)", "required": true, "note": "स्वतःच्या नावावरील नोंद" },
+        { "id": "aadhaar", "name": "आधार कार्ड (मोबाईल लिंकसह)", "required": true, "note": "OTP साठी मोबाईल चालू असावा" },
+        { "id": "bank_account", "name": "बँक पासबुक (NPCI / आधार मॅप्ड खात्यासह)", "required": true, "note": "डीबीटी सक्रिय खाते" },
+        { "id": "declaration", "name": "स्वयंघोषणा पत्र", "required": true, "note": "इतर शासकीय लाभांबाबत हमी" }
+      ],
+      "how_to_apply_mr": "१. pmkisan.gov.in वर 'Farmer Registration' पर्यायावर जा.\n२. आधार क्रमांक व राज्य 'महाराष्ट्र' निवडून पुढे जा.\n३. ७/१२ खाते क्रमांक व जमिनीचे क्षेत्र नमूद करा.\n४. गावपातळीवर तलाठी किंवा कृषी सहाय्यक यांच्याकडे कागदपत्रे जमा करा.",
+      "form_fields": [
+        { "key": "farmer_name", "label_mr": "शेतकऱ्याचे नाव", "spoken_prompt": "तुमचे पूर्ण नाव सांगा.", "placeholder": "उदा. रमेश तुकाराम शिंदे", "type": "text" },
+        { "key": "mobile_number", "label_mr": "मोबाईल नंबर", "spoken_prompt": "तुमचा मोबाईल नंबर सांगा.", "placeholder": "उदा. 9422334455", "type": "tel" },
+        { "key": "district_taluka", "label_mr": "जिल्हा व तालुका", "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.", "placeholder": "उदा. सोलापूर - पंढरपूर", "type": "text" },
+        { "key": "land_khata_no", "label_mr": "खाते / गट नंबर (७/१२)", "spoken_prompt": "तुमचा जमिनीचा गट क्रमांक किंवा खाते क्रमांक सांगा.", "placeholder": "उदा. गट क्र. १४२", "type": "text" },
+        { "key": "approx_land", "label_mr": "शेतजमीन (एकर / हेक्टर)", "spoken_prompt": "तुमची जमीन किती एकर आहे?", "placeholder": "उदा. २ एकर", "type": "text" }
+      ]
+    },
+    {
+      "id": "ayushman-mjpjay",
+      "name_mr": "आयुष्यमान भारत - म.ज्यो.फु. जन आरोग्य योजना (MJPJAY)",
+      "name_en": "Ayushman Bharat - MJPJAY",
+      "category_mr": "आरोग्य व वैद्यकीय उपचार",
+      "short_description_mr": "गंभीर आजार व शस्त्रक्रियांसाठी प्रति कुटुंब दरवर्षी ₹५ लाखांपर्यंत मोफत कॅशलेस उपचार.",
+      "benefit_summary_mr": "प्रति कुटुंब दरवर्षी ₹५,००,००० पर्यंत मोफत उपचार, औषधे व शस्त्रक्रिया.",
+      "official_link": "https://www.jeevandayee.gov.in",
+      "last_verified_date": "2026-08-20",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (सार्वजनिक आरोग्य विभाग शासन निर्णय)",
+      "eligibility_rules": {
+        "maharashtra_resident": true,
+        "eligible_ration_card": true,
+        "family_coverage": true
+      },
+      "eligibility_questions": [
+        {
+          "id": "residence",
+          "field": "residence",
+          "question_mr": "तुम्ही महाराष्ट्र राज्याचे नागरिक आहात का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्र राज्याचे नागरिक आहात का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, महाराष्ट्राचे नागरिक", "value": true },
+            { "label_mr": "नाही", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "MJPJAY योजना महाराष्ट्रातील रहिवाशांसाठी लागू आहे."
+        },
+        {
+          "id": "ration_card_color",
+          "field": "ration_card_color",
+          "question_mr": "तुमच्याकडे कोणते रेशन कार्ड आहे?",
+          "spoken_prompt_mr": "तुमच्याकडे पिवळे, केशरी की पांढरे रेशन कार्ड आहे?",
+          "type": "select",
+          "options": [
+            { "label_mr": "पिवळे (Yellow BPL) किंवा अंत्योदय", "value": "yellow" },
+            { "label_mr": "केशरी (Orange)", "value": "orange" },
+            { "label_mr": "पांढरे (White) किंवा नवीन", "value": "white" }
+          ],
+          "rule_check": "['yellow', 'orange', 'white'].includes(value)",
+          "fail_reason_mr": "महाराष्ट्र शासनाने सर्व रेशन कार्ड धारकांना योजनेचा विस्तार केला आहे."
+        },
+        {
+          "id": "has_ayushman_card",
+          "field": "has_ayushman_card",
+          "question_mr": "कुटुंबातील सदस्यांचे आभा कार्ड (ABHA) किंवा आयुष्यमान कार्ड काढले आहे का?",
+          "spoken_prompt_mr": "तुमचे आभा कार्ड किंवा आयुष्यमान कार्ड काढलेले आहे का?",
+          "type": "select",
+          "options": [
+            { "label_mr": "होय, आभा/आयुष्यमान कार्ड आहे", "value": "yes" },
+            { "label_mr": "नाही, अजून काढलेले नाही", "value": "no" },
+            { "label_mr": "माहिती नाही", "value": "unknown" }
+          ],
+          "rule_check": "true",
+          "fail_reason_mr": ""
+        }
+      ],
+      "documents_mr": [
+        { "id": "ration_card", "name": "रेशन कार्ड (पिवळे, केशरी किंवा पांढरे)", "required": true, "note": "कुटुंबातील सर्व सदस्यांची नावे असलेले" },
+        { "id": "aadhaar", "name": "कुटुंबातील आजारी व्यक्तीचे आधार कार्ड", "required": true, "note": "ओळख पडताळणीसाठी" },
+        { "id": "abha_card", "name": "आभा आयडी (ABHA ID) / आयुष्यमान कार्ड", "required": false, "note": "हॉस्पिटलमध्ये जागेवरही काढता येते" },
+        { "id": "doctor_paper", "name": "डॉक्टरांचे निदान पत्र किंवा केसपेपर", "required": true, "note": "रुग्णालयातील आरोग्य मित्राकडे द्यावे" }
+      ],
+      "how_to_apply_mr": "१. कोणत्याही शासकीय किंवा नोंदणीकृत खाजगी अंगीकृत रुग्णालयात जा.\n२. तेथील 'आरोग्य मित्र' कक्षात आधार व रेशन कार्ड दाखवा.\n३. आजाराचे पॅकेज मंजूर झाल्यावर रुग्णाला एकही रुपया न देता उपचार मिळतात.\n४. अधिक माहितीसाठी १०४ किंवा १५५३८८ टोल-फ्री नंबरवर संपर्क करा.",
+      "form_fields": [
+        { "key": "patient_name", "label_mr": "रुग्णाचे / कुटुंबप्रमुखाचे नाव", "spoken_prompt": "तुमचे पूर्ण नाव सांगा.", "placeholder": "उदा. विठ्ठल हरी जाधव", "type": "text" },
+        { "key": "mobile_number", "label_mr": "मोबाईल नंबर", "spoken_prompt": "तुमचा मोबाईल नंबर सांगा.", "placeholder": "उदा. 9822114477", "type": "tel" },
+        { "key": "district", "label_mr": "जिल्हा", "spoken_prompt": "तुमचा जिल्हा कोणता?", "placeholder": "उदा. छत्रपती संभाजीनगर", "type": "text" },
+        { "key": "ration_card_type", "label_mr": "रेशन कार्ड रंग", "spoken_prompt": "तुमचे रेशन कार्ड पिवळे आहे की केशरी?", "placeholder": "उदा. पिवळे / केशरी", "type": "text" },
+        { "key": "treatment_needed", "label_mr": "कोणत्या आजारासाठी उपचार हवेत?", "spoken_prompt": "कोणत्या आजारावर उपचार हवे आहेत ते सांगा.", "placeholder": "उदा. हृदय शस्त्रक्रिया / मोतीबिंदू / हाडांची दुखापत", "type": "text" }
+      ]
+    },
+    {
+      "id": "ration-card",
+      "name_mr": "रेशन कार्ड - अंत्योदय व प्राधान्य कुटुंब अन्न योजना",
+      "name_en": "Maharashtra Ration Card Food Security",
+      "category_mr": "अन्नधान्य व सार्वजनिक वितरण",
+      "short_description_mr": "सवलतीच्या किंवा मोफत दरात गहू, तांदूळ व धान्य मिळवण्यासाठी अधिकृत रेशन कार्ड.",
+      "benefit_summary_mr": "मोफत / सवलतीच्या दरात गहू व तांदूळ थेट रास्त भाव दुकानातून (Fair Price Shop).",
+      "official_link": "https://rcms.mahafood.gov.in",
+      "last_verified_date": "2026-07-15",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग)",
+      "eligibility_rules": {
+        "maharashtra_resident": true,
+        "antyodaya_income_limit": 59000,
+        "priority_household_income_limit": 100000
+      },
+      "eligibility_questions": [
+        {
+          "id": "resident",
+          "field": "resident",
+          "question_mr": "तुम्ही महाराष्ट्रात कायमस्वरूपी राहता का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्रात कायमस्वरूपी राहता का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, कायमस्वरूपी रहिवासी", "value": true },
+            { "label_mr": "नाही", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "रेशन कार्ड मिळण्यासाठी महाराष्ट्रातील रहिवासी असणे आवश्यक आहे."
+        },
+        {
+          "id": "existing_card",
+          "field": "existing_card",
+          "question_mr": "तुमचे नाव इतर कोणत्याही अस्तित्वातील रेशन कार्डातून वगळले आहे का?",
+          "spoken_prompt_mr": "तुमचे नाव जुन्या रेशन कार्डातून कमी केले आहे का?",
+          "type": "boolean",
+          "options": [
+            { "label_mr": "होय, नाव कमी केले आहे किंवा नवीन कुटुंब आहे", "value": true },
+            { "label_mr": "नाही, अजून जुन्या कार्डात नाव आहे", "value": false }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "एकाच व्यक्तीचे नाव दोन रेशन कार्डमध्ये असणे कायदेशीर गुन्हा आहे. आधी नाव कमी करण्याचा दाखला घ्या."
+        },
+        {
+          "id": "annual_income_level",
+          "field": "annual_income_level",
+          "question_mr": "तुमचे वार्षिक कौटुंबिक उत्पन्न किती आहे?",
+          "spoken_prompt_mr": "तुमचे वार्षिक उत्पन्न ५९ हजारांच्या आत आहे, एक लाखाच्या आत आहे की जास्त?",
+          "type": "select",
+          "options": [
+            { "label_mr": "₹५९,००० पर्यंत (अंत्योदय BPL)", "value": "antyodaya" },
+            { "label_mr": "₹१,००,००० पर्यंत (प्राधान्य कुटुंब)", "value": "priority" },
+            { "label_mr": "₹१,००,००० पेक्षा जास्त (शुभ्र / केशरी)", "value": "above_1lakh" }
+          ],
+          "rule_check": "['antyodaya', 'priority', 'above_1lakh'].includes(value)",
+          "fail_reason_mr": ""
+        }
+      ],
+      "documents_mr": [
+        { "id": "aadhaar_all", "name": "कुटुंबातील सर्व सदस्यांची आधार कार्डे", "required": true, "note": "नावे अचूक असावीत" },
+        { "id": "residence_proof", "name": "रहिवासी पुरावा (लाईट बिल किंवा घरपट्टी पावती)", "required": true, "note": "सध्याच्या पत्त्याचा पुरावा" },
+        { "id": "income_cert", "name": "तहसीलदार किंवा अधिकृत उत्पन्नाचा दाखला", "required": true, "note": "सवलतीचे धान्य मिळण्यासाठी" },
+        { "id": "surrender_cert", "name": "नाव वगळल्याचा दाखला (Surrender Certificate)", "required": false, "note": "विवाह किंवा स्थलांतर झाले असल्यास" },
+        { "id": "family_photo", "name": "कुटुंब प्रमुखासह एकत्र फोटो", "required": true, "note": "पासपोर्ट आकार" }
+      ],
+      "how_to_apply_mr": "१. rcms.mahafood.gov.in किंवा तहसील कार्यालयातील पुरवठा शाखेत नमुना अर्ज 'अ' भरा.\n२. कुटुंबातील सर्वांचे आधार व रहिवासी पुरावा जोडा.\n३. कागदपत्रांची पडताळणी झाल्यावर रेशन कार्ड पुरवठा निरीक्षकांकडून वितरित केले जाते.",
+      "form_fields": [
+        { "key": "head_name", "label_mr": "कुटुंबप्रमुखाचे नाव", "spoken_prompt": "कुटुंब प्रमुखाचे पूर्ण नाव सांगा.", "placeholder": "उदा. पार्वतीबाई लक्ष्मण कांबळे", "type": "text" },
+        { "key": "mobile_number", "label_mr": "मोबाईल नंबर", "spoken_prompt": "मोबाईल नंबर सांगा.", "placeholder": "उदा. 9765432100", "type": "tel" },
+        { "key": "district_taluka", "label_mr": "जिल्हा व तालुका", "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.", "placeholder": "उदा. नांदेड - लोहा", "type": "text" },
+        { "key": "members_count", "label_mr": "कुटुंबातील एकूण सदस्य संख्या", "spoken_prompt": "कुटुंबात एकूण किती सदस्य आहेत?", "placeholder": "उदा. 4", "type": "number" },
+        { "key": "address", "label_mr": "पूर्ण घरचा पत्ता", "spoken_prompt": "घरचा पत्ता सांगा.", "placeholder": "उदा. घर क्र. १२, मुख्य गल्ली", "type": "text" }
+      ]
+    }
+  ]
+}
