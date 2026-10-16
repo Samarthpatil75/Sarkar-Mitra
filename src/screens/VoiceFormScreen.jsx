@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Mic, 
   Check, 
@@ -11,15 +11,23 @@ import {
   ArrowRight, 
   RotateCcw,
   Sparkles,
-  ShieldCheck
+  HelpCircle,
+  AlertCircle
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { generateApplicationPDF } from '../services/pdfGenerator';
+import { 
+  isYesIntent, 
+  isNoIntent, 
+  extractNumberFromMarathi, 
+  normalizeMarathiSpeech,
+  isCancelOrBackIntent 
+} from '../services/marathiVoiceMatcher';
 
 export default function VoiceFormScreen() {
-  const { selectedScheme, setSelectedScheme, schemes, showToast, t } = useApp();
+  const { selectedScheme, setSelectedScheme, schemes, showToast, t, setActiveScreen } = useApp();
   const { 
     isListening, 
     isSpeaking, 
@@ -38,8 +46,11 @@ export default function VoiceFormScreen() {
   const [stage, setStage] = useState('asking'); // 'asking' | 'confirming' | 'completed'
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [pdfGenerated, setPdfGenerated] = useState(null);
+  const [speechFeedback, setSpeechFeedback] = useState(null); // { text, type: 'info'|'warning'|'success' }
 
   const currentField = formFields[currentFieldIndex];
+  const stageRef = useRef(stage);
+  stageRef.current = stage;
 
   // Speak prompt when entering a field in asking stage
   useEffect(() => {
@@ -51,13 +62,26 @@ export default function VoiceFormScreen() {
   // When answer is captured, read it back and confirm
   const handleAnswerCaptured = useCallback((answerText) => {
     if (!answerText || !answerText.trim()) return;
-    const cleanAnswer = answerText.trim();
+    let cleanAnswer = answerText.trim();
+
+    // If mobile number field, normalize digits
+    if (currentField && currentField.type === 'tel') {
+      const extracted = extractNumberFromMarathi(cleanAnswer);
+      if (extracted) {
+        cleanAnswer = String(extracted);
+      }
+    }
+
     setPendingAnswer(cleanAnswer);
+    setSpeechFeedback({
+      text: `समजलेले उत्तर: "${cleanAnswer}"`,
+      type: 'info'
+    });
     setStage('confirming');
 
     const confirmationText = `तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`;
     speak(confirmationText);
-  }, [speak]);
+  }, [speak, currentField]);
 
   // Confirm answer as YES
   const handleConfirmYes = useCallback(() => {
@@ -68,6 +92,10 @@ export default function VoiceFormScreen() {
     };
     setFormData(updatedData);
     setPendingAnswer('');
+    setSpeechFeedback({
+      text: 'उत्तर नोंदवले गेले (Saved)!',
+      type: 'success'
+    });
     setIsEditingManually(false);
 
     if (currentFieldIndex < formFields.length - 1) {
@@ -80,11 +108,15 @@ export default function VoiceFormScreen() {
     }
   }, [currentField, formData, pendingAnswer, currentFieldIndex, formFields.length, speak]);
 
-  // Reject answer as NO (retry)
+  // Reject answer as NO (retry / "i dont want" / cancel)
   const handleConfirmNo = useCallback(() => {
     setPendingAnswer('');
+    setSpeechFeedback({
+      text: 'उत्तर रद्द केले (Cancelled). कृपया तुमचे उत्तर पुन्हा सांगा.',
+      type: 'warning'
+    });
     setStage('asking');
-    speak('ठीक आहे, पुन्हा सांगा.');
+    speak('ठीक आहे, उत्तर रद्द केले. कृपया पुन्हा सांगा.');
   }, [speak]);
 
   // Voice handler for answering and confirming
@@ -92,29 +124,61 @@ export default function VoiceFormScreen() {
     if (stage === 'completed' || !currentField) return;
 
     const unregister = registerVoiceHandler((speechText) => {
-      const norm = speechText.toLowerCase().trim();
+      const raw = speechText.trim();
+      if (!raw) return true;
 
-      if (stage === 'asking') {
-        handleAnswerCaptured(speechText);
+      // Check if user wants to cancel or go back
+      if (isCancelOrBackIntent(raw)) {
+        speak('फॉर्म थांबवला आहे. मुख्य पानावर जात आहोत.');
+        setActiveScreen('home');
         return true;
       }
 
-      if (stage === 'confirming') {
-        if (norm.includes('हो') || norm.includes('होय') || norm.includes('बरोबर') || norm.includes('yes') || norm.includes('करेक्ट')) {
-          handleConfirmYes();
+      // 1. In 'asking' stage: capture the field's value
+      if (stageRef.current === 'asking') {
+        // If user says "नको" or "cancel" right away
+        if (isNoIntent(raw)) {
+          setSpeechFeedback({
+            text: 'कृपया या प्रश्नाचे उत्तर सांगा, किंवा माहिती नसेल तर "माहिती नाही" म्हणा.',
+            type: 'warning'
+          });
+          speak('कृपया तुमचे उत्तर सांगा.');
           return true;
         }
-        if (norm.includes('नाही') || norm.includes('चूक') || norm.includes('नो') || norm.includes('no') || norm.includes('बदला')) {
+
+        handleAnswerCaptured(raw);
+        return true;
+      }
+
+      // 2. In 'confirming' stage: strictly evaluate YES vs NO (including 'नको' / 'मला नको आहे' / 'no')
+      if (stageRef.current === 'confirming') {
+        // Negation / Reject / "I don't want" / "No"
+        if (isNoIntent(raw)) {
           handleConfirmNo();
           return true;
         }
+
+        // Affirmation / Accept / "Yes" / "Correct"
+        if (isYesIntent(raw)) {
+          handleConfirmYes();
+          return true;
+        }
+
+        // Ambiguous speech during confirmation:
+        // NEVER leak to global intent parser! Handle gracefully within the screen.
+        setSpeechFeedback({
+          text: `तुमचा आवाज: "${raw}". कृपया 'होय' (बरोबर आहे) किंवा 'नाही' (नको / बदला) म्हणा.`,
+          type: 'warning'
+        });
+        speak('कृपया होय किंवा नाही म्हणा.');
+        return true;
       }
 
-      return false;
+      return true; // Always handle within form screen to prevent leaks
     });
 
     return () => unregister();
-  }, [stage, currentField, handleAnswerCaptured, handleConfirmYes, handleConfirmNo, registerVoiceHandler]);
+  }, [currentField, handleAnswerCaptured, handleConfirmYes, handleConfirmNo, registerVoiceHandler, speak, setActiveScreen]);
 
   // Download PDF handler
   const handleDownloadPDF = () => {
@@ -139,6 +203,7 @@ export default function VoiceFormScreen() {
     setPendingAnswer('');
     setStage('asking');
     setPdfGenerated(null);
+    setSpeechFeedback(null);
   };
 
   return (
@@ -178,6 +243,24 @@ export default function VoiceFormScreen() {
         isSpeaking={isSpeaking} 
         interimText={interimTranscript} 
       />
+
+      {/* Synchronized Feedback Notice Banner */}
+      {speechFeedback && (
+        <div className={`p-3.5 rounded-2xl border-2 flex items-center gap-2 text-sm font-bold animate-fadeIn ${
+          speechFeedback.type === 'warning'
+            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 text-amber-900 dark:text-amber-200'
+            : speechFeedback.type === 'success'
+            ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200'
+            : 'bg-civic-50 dark:bg-civic-950/50 border-civic-400 text-civic-900 dark:text-civic-200'
+        }`}>
+          {speechFeedback.type === 'warning' ? (
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+          ) : (
+            <Sparkles className="w-5 h-5 flex-shrink-0 text-emerald-600" />
+          )}
+          <span>{speechFeedback.text}</span>
+        </div>
+      )}
 
       {/* Stage 1: Asking / Speaking Step */}
       {stage === 'asking' && currentField && (
@@ -286,8 +369,12 @@ export default function VoiceFormScreen() {
               className="py-4 px-6 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-white font-black text-xl rounded-2xl transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[58px]"
             >
               <X className="w-6 h-6" />
-              <span>नाही, पुन्हा सांगा (No)</span>
+              <span>नाही, नको / बदला (No / Reject)</span>
             </button>
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400">
+            🗣️ तुम्ही थेट माईकमध्ये "होय" किंवा "नाही" / "नको" बोलू शकता.
           </div>
         </div>
       )}

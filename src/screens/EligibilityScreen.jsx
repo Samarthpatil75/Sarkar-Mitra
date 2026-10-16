@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   CheckCircle2, 
@@ -10,11 +10,19 @@ import {
   ArrowLeft, 
   Sparkles,
   ShieldAlert,
-  FileCheck
+  FileCheck,
+  AlertCircle
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
+import { 
+  isYesIntent, 
+  isNoIntent, 
+  extractNumberFromMarathi, 
+  isCancelOrBackIntent,
+  normalizeMarathiSpeech 
+} from '../services/marathiVoiceMatcher';
 
 export default function EligibilityScreen() {
   const { 
@@ -38,9 +46,12 @@ export default function EligibilityScreen() {
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null); // null | { status: 'eligible'|'not_eligible'|'inconclusive', reasons: [] }
   const [numberInputValue, setNumberInputValue] = useState('');
+  const [feedbackHint, setFeedbackHint] = useState(null);
 
   const questions = selectedScheme?.eligibility_questions || [];
   const currentQuestion = questions[currentStep];
+  const currentQuestionRef = useRef(currentQuestion);
+  currentQuestionRef.current = currentQuestion;
 
   // Reset when scheme changes
   const handleSchemeChange = (scheme) => {
@@ -49,6 +60,7 @@ export default function EligibilityScreen() {
     setAnswers({});
     setResult(null);
     setNumberInputValue('');
+    setFeedbackHint(null);
   };
 
   // Speak question prompt whenever step advances
@@ -56,6 +68,7 @@ export default function EligibilityScreen() {
     if (!result && currentQuestion) {
       const promptToSpeak = currentQuestion.spoken_prompt_mr || currentQuestion.question_mr;
       speak(promptToSpeak);
+      setFeedbackHint(null);
     }
   }, [currentStep, selectedScheme, result, speak, currentQuestion]);
 
@@ -139,70 +152,135 @@ export default function EligibilityScreen() {
 
   // Answer handler
   const handleAnswer = useCallback((value) => {
+    const q = currentQuestionRef.current;
+    if (!q) return;
+
     const updated = {
       ...answers,
-      [currentQuestion.field]: value
+      [q.field]: value
     };
     setAnswers(updated);
     setNumberInputValue('');
+    setFeedbackHint(null);
 
     if (currentStep < questions.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
       evaluateEligibility(updated);
     }
-  }, [answers, currentQuestion, currentStep, questions.length, evaluateEligibility]);
+  }, [answers, currentStep, questions.length, evaluateEligibility]);
 
-  // Listen to spoken answers (e.g. "होय", "नाही", "पंचवीस", "28")
+  // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
     if (result || !currentQuestion) return;
 
     const unregister = registerVoiceHandler((speechText) => {
-      const norm = speechText.toLowerCase().trim();
+      const raw = speechText.trim();
+      if (!raw) return true;
 
-      if (currentQuestion.type === 'boolean') {
-        if (norm.includes('हो') || norm.includes('होय') || norm.includes('yes') || norm.includes('आहे')) {
-          handleAnswer(true);
-          return true;
-        }
-        if (norm.includes('नाही') || norm.includes('नो') || norm.includes('no') || norm.includes('ना')) {
+      // Handle cancel / go back
+      if (isCancelOrBackIntent(raw)) {
+        speak('पात्रता तपासणी थांबवली आहे.');
+        setActiveScreen('home');
+        return true;
+      }
+
+      const q = currentQuestionRef.current;
+      if (!q) return true;
+
+      // 1. Boolean Questions (e.g. Yes/No, Female/Male, Farmer/Not)
+      if (q.type === 'boolean') {
+        // ALWAYS check negative first so 'नाही आहे' or 'नको आहे' is NOT treated as YES!
+        if (isNoIntent(raw)) {
+          setFeedbackHint({ text: 'नोंदवले: "नाही"', type: 'info' });
           handleAnswer(false);
           return true;
         }
+
+        if (isYesIntent(raw)) {
+          setFeedbackHint({ text: 'नोंदवले: "होय"', type: 'info' });
+          handleAnswer(true);
+          return true;
+        }
+
+        // Unclear boolean utterance: prompt clearly and keep user on the same question
+        setFeedbackHint({
+          text: `समजलेला आवाज: "${raw}". कृपया "होय" (Yes) किंवा "नाही" (No) म्हणा.`,
+          type: 'warning'
+        });
+        speak('कृपया होय किंवा नाही म्हणा.');
+        return true;
       }
 
-      if (currentQuestion.type === 'number') {
-        // Extract numbers from Marathi/English speech
-        const match = norm.match(/\d+/);
-        if (match) {
-          const num = parseInt(match[0], 10);
+      // 2. Numeric Questions (e.g. Age: "तुमचे वय किती?")
+      if (q.type === 'number') {
+        const num = extractNumberFromMarathi(raw);
+        if (num !== null && !isNaN(num) && num > 0) {
+          setFeedbackHint({ text: `वय नोंदवले: ${num} वर्षे`, type: 'info' });
           handleAnswer(num);
           return true;
         }
+
+        setFeedbackHint({
+          text: `समजलेला आवाज: "${raw}". कृपया वयाचा आकडा सांगा (उदा. पंचवीस किंवा 28).`,
+          type: 'warning'
+        });
+        speak('कृपया वयाचा आकडा सांगा.');
+        return true;
       }
 
-      if (currentQuestion.type === 'select') {
-        if (currentQuestion.options) {
-          for (const opt of currentQuestion.options) {
-            if (norm.includes(opt.label_mr.toLowerCase()) || norm.includes(opt.value)) {
+      // 3. Select / Multiple Choice Questions
+      if (q.type === 'select') {
+        const norm = normalizeMarathiSpeech(raw);
+
+        // Special handling for income
+        if (q.id === 'annual_income') {
+          if (norm.includes('कमी') || norm.includes('2.5') || norm.includes('२.५') || isYesIntent(raw)) {
+            handleAnswer('below_2_5');
+            return true;
+          }
+          if (norm.includes('जास्त') || isNoIntent(raw)) {
+            handleAnswer('above_2_5');
+            return true;
+          }
+          if (norm.includes('रेशन') || norm.includes('पिवळे') || norm.includes('केशरी')) {
+            handleAnswer('has_ration_card');
+            return true;
+          }
+        }
+
+        // Option matching
+        if (q.options) {
+          for (const opt of q.options) {
+            const optNorm = normalizeMarathiSpeech(opt.label_mr);
+            if (norm.includes(optNorm) || norm.includes(opt.value)) {
               handleAnswer(opt.value);
               return true;
             }
           }
         }
+
+        // If unclear
+        setFeedbackHint({
+          text: `समजलेला आवाज: "${raw}". कृपया स्क्रीनवरील पर्यायांपैकी एक निवडा.`,
+          type: 'warning'
+        });
+        speak('कृपया स्क्रीनवरील पर्यायांपैकी एक निवडा.');
+        return true;
       }
 
-      return false; // let global processor handle if not matched
+      return true; // Always handle within screen to prevent leaking to global intent
     });
 
     return () => unregister();
-  }, [currentQuestion, result, handleAnswer, registerVoiceHandler]);
+  }, [currentQuestion, result, handleAnswer, registerVoiceHandler, speak, setActiveScreen]);
 
   const handleRestart = () => {
     setCurrentStep(0);
     setAnswers({});
     setResult(null);
     setNumberInputValue('');
+    setFeedbackHint(null);
   };
 
   return (
@@ -239,6 +317,22 @@ export default function EligibilityScreen() {
         isSpeaking={isSpeaking} 
         interimText={interimTranscript} 
       />
+
+      {/* Feedback Hint Banner */}
+      {feedbackHint && (
+        <div className={`p-3.5 rounded-2xl border-2 flex items-center gap-2 text-sm font-bold animate-fadeIn ${
+          feedbackHint.type === 'warning'
+            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 text-amber-900 dark:text-amber-200'
+            : 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200'
+        }`}>
+          {feedbackHint.type === 'warning' ? (
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+          ) : (
+            <Sparkles className="w-5 h-5 flex-shrink-0 text-emerald-600" />
+          )}
+          <span>{feedbackHint.text}</span>
+        </div>
+      )}
 
       {/* Wizard Question Card */}
       {!result && currentQuestion && (
@@ -343,7 +437,7 @@ export default function EligibilityScreen() {
           </div>
 
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500">
-            <span>🗣️ तुम्ही थेट माईकवर उत्तर बोलू शकता.</span>
+            <span>🗣️ तुम्ही थेट माईकवर उत्तर बोलू शकता (उदा. "होय", "नाही", "पंचवीस").</span>
             {currentStep > 0 && (
               <button
                 onClick={() => setCurrentStep(prev => prev - 1)}

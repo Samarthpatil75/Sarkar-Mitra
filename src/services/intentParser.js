@@ -1,7 +1,8 @@
 /**
  * Bolu Ya - Marathi Conversational Intent Parser & NLP Engine
  * 
- * Rule-based natural language understanding tuned for spoken Marathi and code-mixed Marathi/English.
+ * Rule-based natural language understanding tuned for spoken Marathi,
+ * rural dialect expressions, and code-mixed Marathi/English.
  * 
  * ============================================================================
  * PLUG-IN ARCHITECTURE FOR LLM / RAG:
@@ -17,6 +18,12 @@
  */
 
 import schemesData from '../data/schemes.json';
+import { 
+  isYesIntent, 
+  isNoIntent, 
+  isCancelOrBackIntent, 
+  normalizeMarathiSpeech 
+} from './marathiVoiceMatcher';
 
 // Scheme aliases and keywords (both Marathi Devanagari and Latin/Romanized)
 const SCHEME_KEYWORDS = {
@@ -77,22 +84,10 @@ const INTENT_PATTERNS = {
 };
 
 /**
- * Clean & normalize input string
- */
-function normalizeText(text) {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .replace(/[?,.!:;"'।॥]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/**
  * Detect scheme mentioned in speech
  */
 export function detectScheme(text, currentSchemeId = null) {
-  const norm = normalizeText(text);
+  const norm = normalizeMarathiSpeech(text);
 
   for (const [schemeId, keywords] of Object.entries(SCHEME_KEYWORDS)) {
     if (keywords.some(kw => norm.includes(kw))) {
@@ -112,7 +107,7 @@ export function detectScheme(text, currentSchemeId = null) {
  * Parse intent and generate spoken Marathi response & action
  */
 export function parseIntent(userText, currentScheme = null) {
-  const norm = normalizeText(userText);
+  const norm = normalizeMarathiSpeech(userText);
   const scheme = detectScheme(userText, currentScheme ? currentScheme.id : null);
 
   // 1. Check for Repeat
@@ -125,17 +120,38 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 2. Check for Go Back / Home
-  if (INTENT_PATTERNS.BACK.some(kw => norm.includes(kw))) {
+  // 2. Check for Go Back / Cancel / Home
+  if (isCancelOrBackIntent(userText) || INTENT_PATTERNS.BACK.some(kw => norm.includes(kw))) {
     return {
       intent: 'GO_BACK',
       action: 'navigate_home',
       scheme: null,
-      reply_mr: 'मी तुम्हाला मुख्य पानावर नेत आहे. बोला, काय मदत हवी आहे?'
+      reply_mr: 'मी तुम्हाला मुख्य पानावर नेत आहे. बोला, कोणती मदत हवी आहे?'
     };
   }
 
-  // 3. Check for Greeting
+  // 3. Conversational Negation / "I don't want" / "नाही नको"
+  // Handles colloquial utterances like "मला नको", "नाही नको", "नकोय", "no i don't want"
+  if (isNoIntent(userText) && norm.split(' ').length <= 4) {
+    return {
+      intent: 'USER_REJECTION',
+      action: 'none',
+      scheme: currentScheme,
+      reply_mr: 'ठीक आहे. तुम्हाला जेव्हा कोणतीही माहिती हवी असेल तेव्हा फक्त माईक दाबा आणि बोला.'
+    };
+  }
+
+  // 4. Conversational Affirmation / "Yes" / "होय"
+  if (isYesIntent(userText) && norm.split(' ').length <= 3) {
+    return {
+      intent: 'USER_AFFIRMATION',
+      action: 'none',
+      scheme: currentScheme,
+      reply_mr: 'होय! तुम्हाला लाडकी बहीण, पीएम किसान, आयुष्यमान भारत किंवा रेशन कार्ड यापैकी कोणत्या योजनेबद्दल माहिती हवी आहे?'
+    };
+  }
+
+  // 5. Check for Greeting
   if (INTENT_PATTERNS.GREETING.some(kw => norm.includes(kw)) && norm.split(' ').length <= 3) {
     return {
       intent: 'GREETING',
@@ -145,7 +161,7 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 4. Check for Help
+  // 6. Check for Help
   if (INTENT_PATTERNS.HELP.some(kw => norm.includes(kw))) {
     return {
       intent: 'HELP',
@@ -155,7 +171,7 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 5. Code-mixed status check (e.g. "माझा application status check कर")
+  // 7. Code-mixed status check (e.g. "माझा application status check कर")
   if (INTENT_PATTERNS.STATUS.some(kw => norm.includes(kw))) {
     const schemeName = scheme ? scheme.name_mr : 'सरकारी योजनेच्या';
     const link = scheme ? scheme.official_link : 'https://maharashtra.gov.in';
@@ -168,9 +184,9 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 6. If a specific scheme is identified:
+  // 8. If a specific scheme is identified:
   if (scheme) {
-    // 6a. Check eligibility intent
+    // 8a. Check eligibility intent
     if (INTENT_PATTERNS.ELIGIBILITY.some(kw => norm.includes(kw))) {
       return {
         intent: 'CHECK_ELIGIBILITY',
@@ -180,7 +196,7 @@ export function parseIntent(userText, currentScheme = null) {
       };
     }
 
-    // 6b. Check documents intent
+    // 8b. Check documents intent
     if (INTENT_PATTERNS.DOCUMENTS.some(kw => norm.includes(kw))) {
       const topDocs = scheme.documents_mr.slice(0, 3).map(d => d.name).join(', ');
       return {
@@ -191,7 +207,7 @@ export function parseIntent(userText, currentScheme = null) {
       };
     }
 
-    // 6c. Apply / fill form intent
+    // 8c. Apply / fill form intent
     if (INTENT_PATTERNS.APPLY.some(kw => norm.includes(kw))) {
       return {
         intent: 'START_APPLICATION',
@@ -201,7 +217,7 @@ export function parseIntent(userText, currentScheme = null) {
       };
     }
 
-    // 6d. General inquiry about the scheme
+    // 8d. General inquiry about the scheme
     return {
       intent: 'SCHEME_INFO',
       action: 'show_scheme_detail',
@@ -210,7 +226,7 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 7. General eligibility or documents requested without specifying scheme
+  // 9. General eligibility or documents requested without specifying scheme
   if (INTENT_PATTERNS.ELIGIBILITY.some(kw => norm.includes(kw))) {
     return {
       intent: 'SELECT_SCHEME_FOR_ELIGIBILITY',
@@ -229,7 +245,7 @@ export function parseIntent(userText, currentScheme = null) {
     };
   }
 
-  // 8. Outside stored data / Unknown query
+  // 10. Outside stored data / Unknown query
   return {
     intent: 'OUT_OF_SCOPE',
     action: 'show_fallback',

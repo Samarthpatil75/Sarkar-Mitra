@@ -3,6 +3,8 @@
  * 
  * Uses Browser Web SpeechSynthesis API with preferred Marathi ('mr-IN') voice,
  * with graceful fallbacks (e.g. Hindi or default Devanagari TTS engine).
+ * Includes memory-retention guards against Chromium garbage-collection drops
+ * and queue unfreezing mechanisms.
  * 
  * ============================================================================
  * PLUG-IN ARCHITECTURE FOR BHASHINI TTS:
@@ -31,6 +33,8 @@ class SpeechSynthesisService {
     this.voices = [];
     this.selectedVoice = null;
     this.isSpeaking = false;
+    this.currentUtterance = null;
+    this.watchdogTimer = null;
     this.loadVoices();
 
     if (this.synth && typeof window !== 'undefined') {
@@ -80,15 +84,28 @@ class SpeechSynthesisService {
     );
   }
 
+  clearWatchdog() {
+    if (this.watchdogTimer) {
+      clearTimeout(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+  }
+
   stop() {
+    this.clearWatchdog();
     if (this.synth) {
       try {
+        // Resume first in case Chromium's audio queue was paused
+        if (this.synth.paused) {
+          this.synth.resume();
+        }
         this.synth.cancel();
       } catch (e) {
         console.warn('Error cancelling speech synthesis:', e);
       }
     }
     this.isSpeaking = false;
+    this.currentUtterance = null;
   }
 
   speak(text, { onStart, onEnd, onError, lowBandwidth = false, force = false } = {}) {
@@ -107,7 +124,12 @@ class SpeechSynthesisService {
       this.stop(); // Stop any pending speech
 
       const utterance = new SpeechSynthesisUtterance(text);
-      
+      // Retain reference on instance and window to prevent Chromium GC bug
+      this.currentUtterance = utterance;
+      if (typeof window !== 'undefined') {
+        window.__bolu_ya_active_utterance = utterance;
+      }
+
       if (!this.selectedVoice) {
         this.loadVoices();
       }
@@ -123,27 +145,54 @@ class SpeechSynthesisService {
       utterance.rate = 0.90;
       utterance.pitch = 1.0;
 
+      const handleSpeechComplete = () => {
+        this.clearWatchdog();
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+        if (onEnd) onEnd();
+      };
+
       utterance.onstart = () => {
         this.isSpeaking = true;
         if (onStart) onStart();
+
+        // Safety watchdog: estimate speech duration based on word count + buffer
+        const wordCount = text.split(/\s+/).length;
+        const estimatedMs = Math.max(4000, (wordCount / 2.5) * 1000 + 3000);
+        this.clearWatchdog();
+        this.watchdogTimer = setTimeout(() => {
+          if (this.isSpeaking) {
+            console.warn('Speech synthesis watchdog triggered, resetting state.');
+            this.stop();
+            handleSpeechComplete();
+          }
+        }, estimatedMs);
       };
 
       utterance.onend = () => {
-        this.isSpeaking = false;
-        if (onEnd) onEnd();
+        handleSpeechComplete();
       };
 
       utterance.onerror = (e) => {
         console.warn('Speech synthesis error:', e);
+        this.clearWatchdog();
         this.isSpeaking = false;
+        this.currentUtterance = null;
         if (onError) onError(e);
         if (onEnd) onEnd();
       };
 
+      // Unpause queue if stuck before speaking
+      if (this.synth.paused) {
+        this.synth.resume();
+      }
+
       this.synth.speak(utterance);
     } catch (err) {
       console.error('Speech synthesis failure:', err);
+      this.clearWatchdog();
       this.isSpeaking = false;
+      this.currentUtterance = null;
       if (onError) onError(err);
       if (onEnd) onEnd();
     }

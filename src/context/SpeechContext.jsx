@@ -28,6 +28,13 @@ export function SpeechProvider({ children }) {
   // Active custom input handler hook for wizard screens (e.g. eligibility or form filling)
   const screenVoiceHandlerRef = useRef(null);
 
+  // Anti-lag, anti-echo & debouncing references
+  const isSpeakingRef = useRef(false);
+  const hasProcessedFinalInSessionRef = useRef(false);
+  const lastProcessedTextRef = useRef('');
+  const lastProcessedTimeRef = useRef(0);
+  const cooldownTimerRef = useRef(null);
+
   // Speech support flags
   const isSpeechSupported = speechRecognizer.isSupported();
   const isTtsSupported = speechSynthesizer.isSupported();
@@ -42,21 +49,43 @@ export function SpeechProvider({ children }) {
     };
   }, []);
 
+  const stopSpeaking = useCallback(() => {
+    speechSynthesizer.stop();
+    isSpeakingRef.current = false;
+    setIsSpeaking(false);
+  }, []);
+
   const speak = useCallback((text, options = {}) => {
     if (!text) return;
+
+    // Immediately stop listening so mic doesn't hear the speaker output
+    speechRecognizer.abort();
+    setIsListening(false);
+    setMicStatus('idle');
+
+    isSpeakingRef.current = true;
     setIsSpeaking(true);
+
     speechSynthesizer.speak(text, {
       lowBandwidth,
       force: options.force || false,
       onStart: () => {
+        isSpeakingRef.current = true;
         setIsSpeaking(true);
         if (options.onStart) options.onStart();
       },
       onEnd: () => {
+        isSpeakingRef.current = false;
         setIsSpeaking(false);
-        if (options.onEnd) options.onEnd();
+
+        // Cooldown delay (350ms) to ensure speaker hardware is silent before accepting mic input
+        if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+        cooldownTimerRef.current = setTimeout(() => {
+          if (options.onEnd) options.onEnd();
+        }, 350);
       },
       onError: (err) => {
+        isSpeakingRef.current = false;
         setIsSpeaking(false);
         console.warn('TTS error:', err);
         if (options.onError) options.onError(err);
@@ -64,20 +93,30 @@ export function SpeechProvider({ children }) {
     });
   }, [lowBandwidth]);
 
-  const stopSpeaking = useCallback(() => {
-    speechSynthesizer.stop();
-    setIsSpeaking(false);
-  }, []);
-
   // Process text entered either via voice or manual typing box
   const processInput = useCallback((rawText) => {
     if (!rawText || !rawText.trim()) return;
     const text = rawText.trim();
 
+    // Debounce rapid duplicate calls (e.g. from race conditions between onResult and onEnd)
+    const now = Date.now();
+    if (now - lastProcessedTimeRef.current < 650 && lastProcessedTextRef.current === text) {
+      return;
+    }
+    lastProcessedTimeRef.current = now;
+    lastProcessedTextRef.current = text;
+
+    // Echo guard: if device is speaking, reject spurious microphone pickups
+    if (isSpeakingRef.current) {
+      console.warn('Dropped microphone input received while assistant was speaking (echo prevention):', text);
+      return;
+    }
+
     // Check if an active wizard screen has registered a step-level handler
     if (screenVoiceHandlerRef.current) {
       const handled = screenVoiceHandlerRef.current(text);
       if (handled) {
+        setMicStatus('idle');
         return;
       }
     }
@@ -128,6 +167,7 @@ export function SpeechProvider({ children }) {
         setActiveScreen('conversation');
       }
     }
+    setMicStatus('idle');
   }, [selectedScheme, addMessage, speak, setActiveScreen, activeScreen, setSelectedScheme]);
 
   const startListening = useCallback(() => {
@@ -137,21 +177,24 @@ export function SpeechProvider({ children }) {
       return;
     }
 
-    // Stop speaking before starting to listen to prevent echo
+    // Stop speaking immediately before starting to listen to prevent echo
     stopSpeaking();
 
     setInterimTranscript('');
     setFinalTranscript('');
     setErrorMessage(null);
+    hasProcessedFinalInSessionRef.current = false;
 
     const started = speechRecognizer.start({
       onStart: () => {
         setIsListening(true);
         setMicStatus('listening');
+        hasProcessedFinalInSessionRef.current = false;
       },
       onResult: ({ interim, final }) => {
         setInterimTranscript(interim);
-        if (final) {
+        if (final && final.trim()) {
+          hasProcessedFinalInSessionRef.current = true;
           setFinalTranscript(final);
           setInterimTranscript('');
           setIsListening(false);
@@ -177,8 +220,9 @@ export function SpeechProvider({ children }) {
         if (micStatus === 'listening') {
           setMicStatus('idle');
         }
-        // If there was an interim phrase that didn't fire final
-        if (lastInterim && lastInterim.trim().length > 1) {
+        // ONLY process interim if no final result was dispatched during this recognition session
+        if (!hasProcessedFinalInSessionRef.current && lastInterim && lastInterim.trim().length > 1) {
+          hasProcessedFinalInSessionRef.current = true;
           processInput(lastInterim.trim());
         }
       }

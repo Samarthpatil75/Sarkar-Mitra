@@ -2,6 +2,7 @@
  * Bolu Ya - Speech Recognition Service
  * 
  * Uses Browser Web Speech API (SpeechRecognition / webkitSpeechRecognition) with lang="mr-IN".
+ * Includes debouncing and session state isolation to prevent duplicate utterances and lagging.
  * 
  * ============================================================================
  * PLUG-IN ARCHITECTURE FOR BHASHINI / WHISPER:
@@ -18,6 +19,7 @@ class SpeechRecognitionService {
   constructor() {
     this.recognition = null;
     this.isListening = false;
+    this.hasDispatchedFinal = false;
     this.onStartCallback = null;
     this.onResultCallback = null;
     this.onErrorCallback = null;
@@ -28,7 +30,7 @@ class SpeechRecognitionService {
   }
 
   init() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
     if (!SpeechRecognition) {
       console.warn('Web Speech API is not supported in this browser.');
       return;
@@ -43,6 +45,7 @@ class SpeechRecognitionService {
 
       this.recognition.onstart = () => {
         this.isListening = true;
+        this.hasDispatchedFinal = false;
         this.lastInterim = '';
         if (this.onStartCallback) this.onStartCallback();
       };
@@ -52,8 +55,9 @@ class SpeechRecognitionService {
         let finalTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
+          const item = event.results[i];
+          const transcript = item[0] ? item[0].transcript : '';
+          if (item.isFinal) {
             finalTranscript += transcript;
           } else {
             interimTranscript += transcript;
@@ -62,11 +66,16 @@ class SpeechRecognitionService {
 
         this.lastInterim = interimTranscript;
 
+        if (finalTranscript.trim()) {
+          this.hasDispatchedFinal = true;
+          this.lastInterim = ''; // Clear interim so onend does not re-process
+        }
+
         if (this.onResultCallback) {
           this.onResultCallback({
             interim: interimTranscript,
             final: finalTranscript.trim(),
-            confidence: event.results[0] ? event.results[0][0].confidence : 0.85
+            confidence: event.results[0] && event.results[0][0] ? event.results[0][0].confidence : 0.85
           });
         }
       };
@@ -81,8 +90,13 @@ class SpeechRecognitionService {
 
       this.recognition.onend = () => {
         this.isListening = false;
+        const pendingInterim = (!this.hasDispatchedFinal && this.lastInterim.trim().length > 1) 
+          ? this.lastInterim.trim() 
+          : '';
+        this.lastInterim = '';
+        
         if (this.onEndCallback) {
-          this.onEndCallback(this.lastInterim);
+          this.onEndCallback(pendingInterim);
         }
       };
     } catch (err) {
@@ -91,7 +105,7 @@ class SpeechRecognitionService {
   }
 
   isSupported() {
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return !!(typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
   }
 
   start({ onStart, onResult, onError, onEnd } = {}) {
@@ -107,15 +121,29 @@ class SpeechRecognitionService {
     this.onResultCallback = onResult;
     this.onErrorCallback = onError;
     this.onEndCallback = onEnd;
+    this.hasDispatchedFinal = false;
+    this.lastInterim = '';
 
     try {
       if (this.isListening) {
-        this.recognition.stop();
+        this.recognition.abort();
       }
       this.recognition.start();
       return true;
     } catch (err) {
-      console.error('Error starting speech recognition:', err);
+      console.warn('Error starting speech recognition:', err);
+      // If already started or aborting, give it a tiny reset
+      if (err.name === 'InvalidStateError') {
+        try {
+          this.recognition.abort();
+          setTimeout(() => {
+            try { this.recognition.start(); } catch (e) { /* ignore */ }
+          }, 150);
+          return true;
+        } catch (e) {
+          /* ignore */
+        }
+      }
       if (onError) onError(err.message || 'start_failed');
       return false;
     }
@@ -141,6 +169,8 @@ class SpeechRecognitionService {
       }
     }
     this.isListening = false;
+    this.hasDispatchedFinal = false;
+    this.lastInterim = '';
   }
 }
 
