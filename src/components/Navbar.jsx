@@ -57,15 +57,15 @@ export default function Navbar() {
         <button
           onClick={() => handleNavClick('home')}
           className="flex items-center gap-3 text-left focus:outline-none focus:ring-4 focus:ring-saffron-400 rounded-lg p-1 group"
-          aria-label="बोलू या मुख्य पान"
+          aria-label="सरकार मित्र मुख्य पान"
         >
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-saffron-600 to-civic-800 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-            <span className="font-extrabold text-2xl tracking-tighter">बो</span>
+            <span className="font-extrabold text-2xl tracking-tighter">स</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-civic-950 dark:text-white tracking-wide">
-                बोलू या <span className="text-saffron-600 dark:text-saffron-400 text-lg font-bold">| Bolu Ya</span>
+                सरकार मित्र <span className="text-saffron-600 dark:text-saffron-400 text-lg font-bold">| Sarkar Mitra</span>
               </h1>
               <span className="hidden sm:inline-block px-2 py-0.5 text-xs font-semibold bg-saffron-100 dark:bg-saffron-950/60 text-saffron-800 dark:text-saffron-300 rounded-full border border-saffron-300">
                 मराठी-First

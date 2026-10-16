@@ -72,7 +72,7 @@ export default function ConversationScreen() {
                 {/* Assistant Voice Replay Button & Timestamp */}
                 <div className="flex items-center justify-between gap-4 mb-2 pb-1.5 border-b border-slate-100 dark:border-slate-700/60">
                   <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    {isAssistant ? 'बोलू या सहाय्यक' : 'तुम्ही बोललात'}
+                    {isAssistant ? 'सरकार मित्र सहाय्यक' : 'तुम्ही बोललात'}
                   </span>
                   
                   <div className="flex items-center gap-2">

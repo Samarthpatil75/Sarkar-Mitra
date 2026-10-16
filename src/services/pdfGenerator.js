@@ -1,5 +1,5 @@
 /**
- * Bolu Ya - PDF Generator Service
+ * Sarkar Mitra - PDF Generator Service
  * Generates an accessible, clean civic application summary in the browser using jsPDF.
  */
 import { jsPDF } from 'jspdf';
@@ -12,7 +12,7 @@ export function generateApplicationPDF({ scheme, formData, verificationDate }) {
       format: 'a4'
     });
 
-    const refNumber = `BY-MH-${Math.floor(100000 + Math.random() * 900000)}`;
+    const refNumber = `SM-MH-${Math.floor(100000 + Math.random() * 900000)}`;
     const dateStr = new Date().toLocaleDateString('mr-IN', {
       year: 'numeric',
       month: 'long',
@@ -32,7 +32,7 @@ export function generateApplicationPDF({ scheme, formData, verificationDate }) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('BOLU YA (BOLU YA) - MAHARASHTRA CIVIC VOICE ASSISTANT', 105, 22, { align: 'center' });
+    doc.text('SARKAR MITRA (सरकार मित्र) - MAHARASHTRA CIVIC VOICE ASSISTANT', 105, 22, { align: 'center' });
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -139,7 +139,7 @@ export function generateApplicationPDF({ scheme, formData, verificationDate }) {
     doc.setFont('helvetica', 'italic');
     doc.text('DISCLAIMER & PRIVACY NOTICE:', 16, 261);
     doc.text(
-      'Bolu Ya operates client-side for voice assistance. No sensitive identification (Aadhaar number) is permanently stored.',
+      'Sarkar Mitra operates client-side for voice assistance. No sensitive identification (Aadhaar number) is permanently stored.',
       16, 266
     );
     doc.text(
@@ -152,7 +152,7 @@ export function generateApplicationPDF({ scheme, formData, verificationDate }) {
     );
 
     // Save PDF
-    const filename = `Bolu_Ya_Arja_${scheme ? scheme.id : 'form'}_${Date.now()}.pdf`;
+    const filename = `Sarkar_Mitra_Arja_${scheme ? scheme.id : 'form'}_${Date.now()}.pdf`;
     doc.save(filename);
     return { success: true, filename, refNumber };
   } catch (error) {

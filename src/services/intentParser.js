@@ -1,5 +1,5 @@
 /**
- * Bolu Ya - Marathi Conversational Intent Parser & NLP Engine
+ * Sarkar Mitra - Marathi Conversational Intent Parser & NLP Engine
  * 
  * Rule-based natural language understanding tuned for spoken Marathi,
  * rural dialect expressions, and code-mixed Marathi/English.
@@ -157,7 +157,7 @@ export function parseIntent(userText, currentScheme = null) {
       intent: 'GREETING',
       action: 'none',
       scheme: null,
-      reply_mr: 'नमस्कार! मी बोलू या, तुमचा सरकारी योजना सहाय्यक. तुम्हाला लाडकी बहीण, पीएम किसान, आयुष्यमान भारत किंवा रेशन कार्ड यापैकी कोणत्या योजनेची माहिती हवी आहे?'
+      reply_mr: 'नमस्कार! मी सरकार मित्र, तुमचा सरकारी योजना सहाय्यक. तुम्हाला लाडकी बहीण, पीएम किसान, आयुष्यमान भारत किंवा रेशन कार्ड यापैकी कोणत्या योजनेची माहिती हवी आहे?'
     };
   }
 

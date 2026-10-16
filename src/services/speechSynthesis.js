@@ -1,5 +1,5 @@
 /**
- * Bolu Ya - Speech Synthesis (Text-to-Speech) Service
+ * Sarkar Mitra - Speech Synthesis (Text-to-Speech) Service
  * 
  * Uses Browser Web SpeechSynthesis API with preferred Marathi ('mr-IN') voice,
  * with graceful fallbacks (e.g. Hindi or default Devanagari TTS engine).
@@ -127,7 +127,7 @@ class SpeechSynthesisService {
       // Retain reference on instance and window to prevent Chromium GC bug
       this.currentUtterance = utterance;
       if (typeof window !== 'undefined') {
-        window.__bolu_ya_active_utterance = utterance;
+        window.__sarkar_mitra_active_utterance = utterance;
       }
 
       if (!this.selectedVoice) {

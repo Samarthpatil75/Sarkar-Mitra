@@ -170,7 +170,7 @@ export default function AccuracyTestScreen() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Bolu_Ya_Dialect_Benchmark_${Date.now()}.csv`);
+    link.setAttribute('download', `Sarkar_Mitra_Dialect_Benchmark_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

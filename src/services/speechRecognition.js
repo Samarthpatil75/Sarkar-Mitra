@@ -1,5 +1,5 @@
 /**
- * Bolu Ya - Speech Recognition Service
+ * Sarkar Mitra - Speech Recognition Service
  * 
  * Uses Browser Web Speech API (SpeechRecognition / webkitSpeechRecognition) with lang="mr-IN".
  * Includes debouncing and session state isolation to prevent duplicate utterances and lagging.

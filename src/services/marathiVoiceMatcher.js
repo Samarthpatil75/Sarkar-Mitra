@@ -1,5 +1,5 @@
 /**
- * Bolu Ya - Marathi Voice & Intent Matcher
+ * Sarkar Mitra - Marathi Voice & Intent Matcher
  * 
  * Provides ultra-resilient phonetic and semantic matching for Marathi Devanagari,
  * code-mixed Marathi/English, and rural spoken colloquial forms (e.g., 'नको', 'नाही नको', 'नको मला').

@@ -31,7 +31,7 @@ export default function AboutHelpScreen() {
         <div className="flex items-center gap-3 mb-2">
           <HeartHandshake className="w-8 h-8 text-saffron-300" />
           <h2 className="text-2xl sm:text-3xl font-black">
-            बोलू या (Bolu Ya) बद्दल
+            सरकार मित्र (Sarkar Mitra) बद्दल
           </h2>
         </div>
         <p className="text-base sm:text-lg text-saffron-100 font-medium leading-relaxed">
@@ -153,7 +153,7 @@ export default function AboutHelpScreen() {
           <span>तांत्रिक रचना (Extensibility Architecture):</span>
         </div>
         <p>
-          'बोलू या' ॲपची रचना मॉड्यूलर आहे. सद्य डेमोमध्ये Web Speech API ('mr-IN') व स्थानिक नियम-इंजिन वापरले आहे. भविष्यात हे स्तर सहजपणे <strong>Bhashini ASR/TTS</strong>, <strong>Whisper</strong>, आणि <strong>Gemini / LLM RAG API</strong> द्वारे जोडण्यासाठी कोडमध्ये स्पष्ट हुक्स दिलेले आहेत.
+          'सरकार मित्र' ॲपची रचना मॉड्यूलर आहे. सद्य डेमोमध्ये Web Speech API ('mr-IN') व स्थानिक नियम-इंजिन वापरले आहे. भविष्यात हे स्तर सहजपणे <strong>Bhashini ASR/TTS</strong>, <strong>Whisper</strong>, आणि <strong>Gemini / LLM RAG API</strong> द्वारे जोडण्यासाठी कोडमध्ये स्पष्ट हुक्स दिलेले आहेत.
         </p>
       </div>
 

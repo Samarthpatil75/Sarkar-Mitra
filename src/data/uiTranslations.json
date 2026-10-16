@@ -1,7 +1,7 @@
 {
   "mr": {
-    "app_name": "बोलू या",
-    "app_name_en": "Bolu Ya",
+    "app_name": "सरकार मित्र",
+    "app_name_en": "Sarkar Mitra",
     "tagline": "बोला, सरकारी योजना समजून घ्या.",
     "sub_tagline": "ग्रामीण व सर्वसामान्य नागरिकांसाठी खास मराठी आवाज सहाय्यक",
     "tap_to_speak": "बोलण्यासाठी दाबा",
@@ -47,8 +47,8 @@
     "tts_unsupported": "मराठी आवाज उपलब्ध नाही. मजकूर स्क्रीनवर वाचता येईल."
   },
   "en": {
-    "app_name": "Bolu Ya",
-    "app_name_en": "Bolu Ya",
+    "app_name": "Sarkar Mitra",
+    "app_name_en": "Sarkar Mitra",
     "tagline": "Speak, understand government schemes.",
     "sub_tagline": "Voice assistant for Maharashtra citizens in Marathi",
     "tap_to_speak": "Tap to Speak",
