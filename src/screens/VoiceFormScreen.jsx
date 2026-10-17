@@ -12,9 +12,11 @@ import {
   RotateCcw,
   Sparkles,
   HelpCircle,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
+import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { generateApplicationPDF } from '../services/pdfGenerator';
@@ -119,10 +121,34 @@ export default function VoiceFormScreen() {
     speak('ठीक आहे, उत्तर रद्द केले. कृपया पुन्हा सांगा.');
   }, [speak]);
 
-  // Voice handler for answering and confirming
-  useEffect(() => {
-    if (stage === 'completed' || !currentField) return;
+  // Download PDF handler
+  const handleDownloadPDF = useCallback(() => {
+    const res = generateApplicationPDF({
+      scheme: selectedScheme,
+      formData: formData,
+      verificationDate: selectedScheme?.last_verified_date
+    });
 
+    if (res.success) {
+      setPdfGenerated(res);
+      showToast(`PDF तयार झाली: ${res.filename}`, 'success');
+      speak('तुमची अर्जाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा ग्रामपंचायतीत संपर्क करा.');
+    } else {
+      showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
+    }
+  }, [selectedScheme, formData, showToast, speak]);
+
+  const handleRestartForm = useCallback(() => {
+    setCurrentFieldIndex(0);
+    setFormData({});
+    setPendingAnswer('');
+    setStage('asking');
+    setPdfGenerated(null);
+    setSpeechFeedback(null);
+  }, []);
+
+  // Voice handler for answering, confirming, and completed summary actions
+  useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim();
       if (!raw) return true;
@@ -134,7 +160,31 @@ export default function VoiceFormScreen() {
         return true;
       }
 
-      // 1. In 'asking' stage: capture the field's value
+      // 1. In 'completed' stage: voice-driven download, print, restart
+      if (stageRef.current === 'completed') {
+        const norm = raw.toLowerCase();
+        if (norm.includes('pdf') || norm.includes('डाऊनलोड') || norm.includes('download') || norm.includes('सेव्ह')) {
+          handleDownloadPDF();
+          return true;
+        }
+        if (norm.includes('प्रिंट') || norm.includes('print')) {
+          window.print();
+          return true;
+        }
+        if (norm.includes('पुन्हा') || norm.includes('restart') || norm.includes('नवीन')) {
+          handleRestartForm();
+          return true;
+        }
+        if (norm.includes('मुख्य') || norm.includes('होम') || norm.includes('home')) {
+          setActiveScreen('home');
+          return true;
+        }
+        return true;
+      }
+
+      if (!currentField) return true;
+
+      // 2. In 'asking' stage: capture the field's value
       if (stageRef.current === 'asking') {
         // If user says "नको" or "cancel" right away
         if (isNoIntent(raw)) {
@@ -150,7 +200,7 @@ export default function VoiceFormScreen() {
         return true;
       }
 
-      // 2. In 'confirming' stage: strictly evaluate YES vs NO (including 'नको' / 'मला नको आहे' / 'no')
+      // 3. In 'confirming' stage: strictly evaluate YES vs NO (including 'नको' / 'मला नको आहे' / 'no')
       if (stageRef.current === 'confirming') {
         // Negation / Reject / "I don't want" / "No"
         if (isNoIntent(raw)) {
@@ -178,33 +228,7 @@ export default function VoiceFormScreen() {
     });
 
     return () => unregister();
-  }, [currentField, handleAnswerCaptured, handleConfirmYes, handleConfirmNo, registerVoiceHandler, speak, setActiveScreen]);
-
-  // Download PDF handler
-  const handleDownloadPDF = () => {
-    const res = generateApplicationPDF({
-      scheme: selectedScheme,
-      formData: formData,
-      verificationDate: selectedScheme?.last_verified_date
-    });
-
-    if (res.success) {
-      setPdfGenerated(res);
-      showToast(`PDF तयार झाली: ${res.filename}`, 'success');
-      speak('तुमची अर्जाची PDF डाऊनलोड झाली आहे.');
-    } else {
-      showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
-    }
-  };
-
-  const handleRestartForm = () => {
-    setCurrentFieldIndex(0);
-    setFormData({});
-    setPendingAnswer('');
-    setStage('asking');
-    setPdfGenerated(null);
-    setSpeechFeedback(null);
-  };
+  }, [currentField, handleAnswerCaptured, handleConfirmYes, handleConfirmNo, handleDownloadPDF, handleRestartForm, registerVoiceHandler, speak, setActiveScreen]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-2 pb-32 space-y-6">
@@ -236,6 +260,9 @@ export default function VoiceFormScreen() {
           })}
         </div>
       </div>
+
+      {/* 4-Stage Citizen Journey Stepper */}
+      <CitizenJourneyStepper currentStage="form" />
 
       {/* Live Audio / Interim Waveform Visualizer */}
       <VoiceWaveVisualizer 
@@ -441,8 +468,19 @@ export default function VoiceFormScreen() {
             </div>
           </div>
 
+          {/* Trustworthy by Design & Privacy Notice */}
+          <div className="p-3.5 bg-emerald-50 dark:bg-slate-900/70 rounded-2xl border border-emerald-300 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 font-black text-emerald-900 dark:text-emerald-300">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span>विश्वासार्ह डिजिटल अर्ज सारांश (Verified Civic Summary)</span>
+            </span>
+            <span className="font-semibold text-slate-600 dark:text-slate-400">
+              {selectedScheme?.verification_tag}
+            </span>
+          </div>
+
           <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 font-semibold leading-relaxed">
-            📢 ही PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अंतिम पडताळणी करू शकता.
+            📢 ही PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अंतिम पडताळणी करू शकता. (तुम्ही थेट माईकमध्ये "डाऊनलोड करा" बोलू शकता.)
           </div>
         </div>
       )}

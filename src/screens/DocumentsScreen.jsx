@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   CheckSquare, 
   Square, 
@@ -8,14 +8,25 @@ import {
   HelpCircle, 
   Building2, 
   ShieldCheck, 
-  ExternalLink 
+  ExternalLink,
+  ArrowLeft,
+  Sparkles
 } from 'lucide-react';
+import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
+import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
+import { isCancelOrBackIntent } from '../services/marathiVoiceMatcher';
 
 export default function DocumentsScreen() {
-  const { selectedScheme, setSelectedScheme, schemes, setActiveScreen } = useApp();
-  const { speak } = useSpeech();
+  const { selectedScheme, setSelectedScheme, schemes, setActiveScreen, lowBandwidth } = useApp();
+  const { 
+    isListening, 
+    isSpeaking, 
+    interimTranscript, 
+    speak, 
+    registerVoiceHandler 
+  } = useSpeech();
 
   // Checked state for documents
   const [checkedDocs, setCheckedDocs] = useState({});
@@ -35,12 +46,12 @@ export default function DocumentsScreen() {
   };
 
   // Read entire document list aloud in Marathi
-  const handleReadAllAloud = () => {
+  const handleReadAllAloud = useCallback(() => {
     if (!documents || documents.length === 0) return;
     const docNames = documents.map((d, i) => `${i + 1}. ${d.name}`).join('. ');
-    const speechText = `${selectedScheme.name_mr} साठी लागणारी आवश्यक कागदपत्रे: ${docNames}. हे सर्व पुरावे तयार ठेवून तुम्ही अर्ज करू शकता.`;
+    const speechText = `${selectedScheme.name_mr} साठी लागणारी आवश्यक कागदपत्रे: ${docNames}. हे सर्व पुरावे तयार ठेवून तुम्ही थेट अर्ज भरू शकता.`;
     speak(speechText, { force: true });
-  };
+  }, [documents, selectedScheme, speak]);
 
   // Read single document aloud
   const handleReadSingle = (e, doc) => {
@@ -48,6 +59,45 @@ export default function DocumentsScreen() {
     const speechText = `${doc.name}. टीप: ${doc.note || 'मूळ प्रत व झेरॉक्स सोबत ठेवावी.'}`;
     speak(speechText, { force: true });
   };
+
+  // Welcome guidance when entering Documents screen
+  useEffect(() => {
+    if (selectedScheme && !lowBandwidth) {
+      speak(`${selectedScheme.name_mr} साठी आवश्यक कागदपत्रे येथे तपासा. ऐकण्यासाठी "सर्व कागदपत्रे ऐका" म्हणा, किंवा अर्ज भरण्यासाठी "अर्ज भरा" म्हणा.`);
+    }
+  }, [selectedScheme, lowBandwidth, speak]);
+
+  // Pure Voice Navigation handler on Documents screen
+  useEffect(() => {
+    const unregister = registerVoiceHandler((speechText) => {
+      const raw = speechText.trim().toLowerCase();
+      if (!raw) return true;
+
+      // Check if user says to read documents aloud
+      if (raw.includes('ऐका') || raw.includes('वाचून') || raw.includes('सांगा') || raw.includes('read')) {
+        handleReadAllAloud();
+        return true;
+      }
+
+      // Check if user wants to advance to Form Fill
+      if (raw.includes('अर्ज') || raw.includes('फॉर्म') || raw.includes('पुढील') || raw.includes('पुढे') || raw.includes('apply')) {
+        speak('आवाजाने अर्ज भरणे सुरू करत आहोत.');
+        setActiveScreen('form');
+        return true;
+      }
+
+      // Go back / eligibility
+      if (isCancelOrBackIntent(raw) || raw.includes('पात्रता') || raw.includes('मागे')) {
+        speak('पात्रता तपासणीवर परत जात आहोत.');
+        setActiveScreen('eligibility');
+        return true;
+      }
+
+      return true; // Keep interactions within screen
+    });
+
+    return () => unregister();
+  }, [handleReadAllAloud, registerVoiceHandler, setActiveScreen, speak]);
 
   const checkedCount = Object.values(checkedDocs).filter(Boolean).length;
 
@@ -79,13 +129,23 @@ export default function DocumentsScreen() {
         </div>
       </div>
 
+      {/* 4-Stage Citizen Journey Stepper */}
+      <CitizenJourneyStepper currentStage="documents" />
+
+      {/* Live Audio / Interim Waveform Visualizer */}
+      <VoiceWaveVisualizer 
+        isListening={isListening} 
+        isSpeaking={isSpeaking} 
+        interimText={interimTranscript} 
+      />
+
       {/* Checklist Header */}
       <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border-2 border-slate-200 dark:border-slate-700 shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-700">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="px-3 py-0.5 bg-saffron-100 dark:bg-saffron-950/60 text-saffron-800 dark:text-saffron-300 text-xs font-black rounded-full">
-                कागदपत्रे तपासणी
+                पायरी ३ : कागदपत्रे तपासणी
               </span>
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 {checkedCount} / {documents.length} तयार आहेत
@@ -178,16 +238,32 @@ export default function DocumentsScreen() {
           })}
         </div>
 
+        {/* Trustworthy by Design Notice */}
+        <div className="mt-6 p-3.5 bg-emerald-50 dark:bg-slate-900/60 rounded-2xl border border-emerald-300 dark:border-emerald-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span className="flex items-center gap-1.5 font-black text-emerald-900 dark:text-emerald-300">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>अधिकृत शासन निर्णयानुसार पडताळलेली कागदपत्रे सूची</span>
+          </span>
+          <span className="font-semibold text-slate-600 dark:text-slate-400">
+            शेवटची तपासणी: {selectedScheme?.last_verified_date}
+          </span>
+        </div>
+
         {/* Next Step / Form Apply CTA */}
-        <div className="mt-8 pt-5 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            कागदपत्रे तयार असल्यास तुम्ही आता आवाजाने थेट अर्ज भरू शकता.
-          </div>
+        <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button
+            onClick={() => setActiveScreen('eligibility')}
+            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:underline flex items-center gap-1 min-h-[44px]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>मागील पायरी: पात्रता तपासा</span>
+          </button>
+          
           <button
             onClick={() => setActiveScreen('form')}
-            className="w-full sm:w-auto px-6 py-3.5 bg-saffron-600 hover:bg-saffron-700 text-white font-black text-base rounded-2xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[52px]"
+            className="w-full sm:w-auto px-6 py-4 bg-saffron-600 hover:bg-saffron-700 text-white font-black text-lg rounded-2xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[58px]"
           >
-            <span>आवाजाने अर्ज भरा</span>
+            <span>पुढील पायरी ४: आवाजाने अर्ज भरा (Voice Apply)</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>

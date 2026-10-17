@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight } from 'lucide-react';
+import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2 } from 'lucide-react';
 import SchemeCard from '../components/SchemeCard';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
@@ -91,6 +91,120 @@ export default function HomeScreen() {
                 "{item.label}"
               </button>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3 Core Pillars: Voice-first, End-to-End, Trustworthy by Design */}
+      <section className="max-w-5xl mx-auto px-4">
+        <div className="bg-gradient-to-br from-white via-saffron-50/40 to-civic-50/40 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-saffron-200 dark:border-slate-700 shadow-lg">
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <span className="px-3.5 py-1 rounded-full bg-saffron-500/10 text-saffron-800 dark:text-saffron-300 border border-saffron-300 dark:border-saffron-800 text-xs sm:text-sm font-black tracking-wide uppercase">
+              ★ सरकार मित्रची ३ प्रमुख वैशिष्ट्ये ★
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-2">
+              नागरिकांसाठी डिझाईन केलेले ३ प्रमुख खांब
+            </h3>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1.5 font-medium">
+              केवळ उत्तरे देणारे ॲप नाही — शोध, पात्रता, कागदपत्रे ते थेट अर्ज डाऊनलोडपर्यंत संपूर्ण प्रवास.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Pillar 1: Voice-first, Marathi-first */}
+            <div className="bg-white dark:bg-slate-800/95 rounded-2xl p-5 border-2 border-saffron-300 dark:border-saffron-700/60 shadow-md flex flex-col justify-between hover:shadow-xl transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-saffron-500 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform">
+                  <Volume2 className="w-6 h-6" />
+                </div>
+                <div className="inline-block px-2.5 py-0.5 rounded-md bg-saffron-100 dark:bg-saffron-950 text-saffron-800 dark:text-saffron-300 text-xs font-black mb-2">
+                  १. व्हॉईस-फर्स्ट, मराठी-फर्स्ट
+                </div>
+                <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 leading-snug">
+                  वाचन किंवा टायपिंगची गरज नाही
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  नागरिक थेट मराठीत बोलतात — बोलीभाषा (विदर्भ, कोकण, मराठवाडा, खान्देश) व कोड-मिक्स्ड भाषण (<span className="font-bold text-slate-800 dark:text-slate-200">"application status check kar"</span>) अचूक ओळखले जाते आणि साध्या मराठीत बोलून उत्तरे मिळतात.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <span className="text-xs font-bold text-saffron-700 dark:text-saffron-400">
+                  ✓ शून्य टायपिंग आवश्यक
+                </span>
+                <button
+                  onClick={toggleListening}
+                  className="text-xs font-extrabold text-saffron-600 dark:text-saffron-400 hover:underline flex items-center gap-1 min-h-[36px]"
+                >
+                  <span>आता बोला</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Pillar 2: End-to-end journey in one place */}
+            <div className="bg-white dark:bg-slate-800/95 rounded-2xl p-5 border-2 border-civic-300 dark:border-civic-700/60 shadow-md flex flex-col justify-between hover:shadow-xl transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-civic-800 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform">
+                  <Workflow className="w-6 h-6 text-saffron-300" />
+                </div>
+                <div className="inline-block px-2.5 py-0.5 rounded-md bg-civic-100 dark:bg-civic-950 text-civic-800 dark:text-civic-300 text-xs font-black mb-2">
+                  २. एकाच ठिकाणी पूर्ण प्रवास
+                </div>
+                <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 leading-snug">
+                  शोध ➔ पात्रता ➔ कागदपत्रे ➔ अर्ज
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  बहुतांश ॲप्स फक्त प्रश्नोत्तरे देतात. 'सरकार मित्र' नागरिकाला योग्य योजना निवडण्यापासून, ४ प्रश्नांत पात्रता तपासणे, कागदपत्रांची यादी देणे, आणि आवाजाने अर्ज भरून अधिकृत PDF देण्यापर्यंत सर्व काम एकाच ठिकाणी पूर्ण करते.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <span className="text-xs font-bold text-civic-700 dark:text-civic-400">
+                  ✓ ४-टप्प्यांची सलग गाईड
+                </span>
+                <button
+                  onClick={() => {
+                    if (schemes.length > 0) {
+                      setSelectedScheme(schemes[0]);
+                      setActiveScreen('eligibility');
+                    }
+                  }}
+                  className="text-xs font-extrabold text-civic-700 dark:text-civic-400 hover:underline flex items-center gap-1 min-h-[36px]"
+                >
+                  <span>प्रवास सुरू करा</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Pillar 3: Trustworthy by design */}
+            <div className="bg-white dark:bg-slate-800/95 rounded-2xl p-5 border-2 border-emerald-300 dark:border-emerald-700/60 shadow-md flex flex-col justify-between hover:shadow-xl transition-all group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div className="inline-block px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black mb-2">
+                  ३. विश्वासार्ह शासकीय डिझाईन
+                </div>
+                <h4 className="text-lg font-black text-slate-900 dark:text-white mb-2 leading-snug">
+                  १००% नियम-आधारित, खोटे अंदाज नाही
+                </h4>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  पात्रता कोणत्याही AI अंदाजाशिवाय अधिकृत शासन निर्णयानुसार (GR) तपासली जाते. माहिती पडताळणी तारीख व अधिकृत लिंक दिली जाते. माहिती नसलेल्या प्रश्नांवर थाप न मारता <span className="font-bold text-slate-800 dark:text-slate-200">"अधिकृत संकेतस्थळ पाहा"</span> असा प्रामाणिक सल्ला दिला जातो.
+                </p>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                  ✓ GR पडताळणी व सुरक्षितता
+                </span>
+                <button
+                  onClick={() => setActiveScreen('about')}
+                  className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1 min-h-[36px]"
+                >
+                  <span>तारीख पहा</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>

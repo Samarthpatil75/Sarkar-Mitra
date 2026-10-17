@@ -11,9 +11,12 @@ import {
   Sparkles,
   ShieldAlert,
   FileCheck,
-  AlertCircle
+  FileText,
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
+import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { 
@@ -130,10 +133,10 @@ export default function EligibilityScreen() {
       const res = {
         status: 'eligible',
         reasons: [],
-        summary_mr: `अभिनंदन! तुम्ही ${selectedScheme.name_mr} साठी पात्र आहात. आता तुम्ही आवाजाने थेट अर्ज भरू शकता.`
+        summary_mr: `अभिनंदन! तुम्ही ${selectedScheme.name_mr} साठी पात्र आहात. आता पुढील पायरी म्हणजे आवश्यक कागदपत्रे तपासणे.`
       };
       setResult(res);
-      speak(res.summary_mr);
+      speak(`${res.summary_mr} कागदपत्रे पाहण्यासाठी "कागदपत्रे" म्हणा, किंवा थेट अर्ज भरण्यासाठी "अर्ज भरा" म्हणा.`);
 
       // Trigger celebration confetti
       if (!lowBandwidth && typeof confetti === 'function') {
@@ -172,8 +175,6 @@ export default function EligibilityScreen() {
 
   // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
-    if (result || !currentQuestion) return;
-
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim();
       if (!raw) return true;
@@ -184,6 +185,32 @@ export default function EligibilityScreen() {
         setActiveScreen('home');
         return true;
       }
+
+      // If on result card, allow natural spoken navigation
+      if (result) {
+        const norm = raw.toLowerCase();
+        if (norm.includes('कागद') || norm.includes('पुढील') || norm.includes('पुढे') || norm.includes('documents') || norm.includes('दाखवा')) {
+          setActiveScreen('documents');
+          speak('कागदपत्रांची यादी उघडत आहे.');
+          return true;
+        }
+        if (norm.includes('अर्ज') || norm.includes('फॉर्म') || norm.includes('apply') || norm.includes('form')) {
+          setActiveScreen('form');
+          speak('अर्जाचा फॉर्म उघडत आहे.');
+          return true;
+        }
+        if (norm.includes('निकाल') || norm.includes('ऐका') || norm.includes('repeat')) {
+          speak(result.summary_mr, { force: true });
+          return true;
+        }
+        if (norm.includes('पुन्हा') || norm.includes('तपासा') || norm.includes('restart')) {
+          handleRestart();
+          return true;
+        }
+        return true;
+      }
+
+      if (!currentQuestion) return true;
 
       const q = currentQuestionRef.current;
       if (!q) return true;
@@ -310,6 +337,9 @@ export default function EligibilityScreen() {
           })}
         </div>
       </div>
+
+      {/* 4-Stage Citizen Journey Stepper */}
+      <CitizenJourneyStepper currentStage="eligibility" />
 
       {/* Live Audio / Interim Waveform Visualizer */}
       <VoiceWaveVisualizer 
@@ -519,15 +549,40 @@ export default function EligibilityScreen() {
           {/* Action Buttons */}
           <div className="space-y-3 pt-2">
             {result.status === 'eligible' && (
-              <button
-                onClick={() => setActiveScreen('form')}
-                className="w-full py-4 px-6 bg-saffron-600 hover:bg-saffron-700 text-white font-black text-xl rounded-2xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[58px]"
-              >
-                <FileCheck className="w-6 h-6" />
-                <span>आवाजाने अर्ज भरा (Fill Form)</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
+              <div className="space-y-2.5">
+                {/* Next Stage: Document Checklist */}
+                <button
+                  onClick={() => setActiveScreen('documents')}
+                  className="w-full py-4 px-6 bg-saffron-600 hover:bg-saffron-700 text-white font-black text-lg sm:text-xl rounded-2xl shadow-lg transition-transform active:scale-95 flex items-center justify-between min-h-[58px]"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="w-6 h-6 text-white" />
+                    <span>पुढील पायरी: कागदपत्रे तपासा (Check Documents)</span>
+                  </div>
+                  <ArrowRight className="w-5 h-5 flex-shrink-0" />
+                </button>
+
+                {/* Direct Stage: Apply Form */}
+                <button
+                  onClick={() => setActiveScreen('form')}
+                  className="w-full py-3.5 px-6 bg-civic-900 hover:bg-civic-800 text-white font-bold text-base rounded-2xl transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[52px]"
+                >
+                  <FileCheck className="w-5 h-5 text-emerald-400" />
+                  <span>किंवा थेट आवाजाने अर्ज भरा (Skip to Apply)</span>
+                </button>
+              </div>
             )}
+
+            {/* Trustworthy by Design Badge */}
+            <div className="p-3 bg-white/70 dark:bg-slate-900/70 rounded-2xl border border-emerald-300 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="flex items-center gap-1.5 font-black text-emerald-800 dark:text-emerald-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>१००% नियम-आधारित निकाल (Rule-Based, No Guessing)</span>
+              </span>
+              <span className="font-semibold text-slate-600 dark:text-slate-400">
+                {selectedScheme?.verification_tag}
+              </span>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <button
