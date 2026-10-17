@@ -24,6 +24,7 @@ import {
   isYesIntent, 
   isNoIntent, 
   extractNumberFromMarathi, 
+  parseSpokenPhoneNumber,
   normalizeMarathiSpeech,
   isCancelOrBackIntent 
 } from '../services/marathiVoiceMatcher';
@@ -66,11 +67,16 @@ export default function VoiceFormScreen() {
     if (!answerText || !answerText.trim()) return;
     let cleanAnswer = answerText.trim();
 
-    // If mobile number field, normalize digits
-    if (currentField && currentField.type === 'tel') {
-      const extracted = extractNumberFromMarathi(cleanAnswer);
-      if (extracted) {
-        cleanAnswer = String(extracted);
+    // If mobile number / phone field, convert spoken words (Marathi or English) into numerical format
+    if (currentField && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone'))) {
+      const extractedPhone = parseSpokenPhoneNumber(cleanAnswer);
+      if (extractedPhone) {
+        cleanAnswer = extractedPhone;
+      }
+    } else if (currentField && currentField.type === 'number') {
+      const extractedNum = extractNumberFromMarathi(cleanAnswer);
+      if (extractedNum !== null) {
+        cleanAnswer = String(extractedNum);
       }
     }
 
@@ -122,19 +128,26 @@ export default function VoiceFormScreen() {
   }, [speak]);
 
   // Download PDF handler
-  const handleDownloadPDF = useCallback(() => {
-    const res = generateApplicationPDF({
-      scheme: selectedScheme,
-      formData: formData,
-      verificationDate: selectedScheme?.last_verified_date
-    });
+  const handleDownloadPDF = useCallback(async () => {
+    showToast('PDF तयार करत आहोत, कृपया प्रतीक्षा करा...', 'info');
+    try {
+      const res = await generateApplicationPDF({
+        scheme: selectedScheme,
+        formData: formData,
+        verificationDate: selectedScheme?.last_verified_date
+      });
 
-    if (res.success) {
-      setPdfGenerated(res);
-      showToast(`PDF तयार झाली: ${res.filename}`, 'success');
-      speak('तुमची अर्जाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा ग्रामपंचायतीत संपर्क करा.');
-    } else {
-      showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
+      if (res && res.success) {
+        setPdfGenerated(res);
+        showToast(`PDF तयार झाली: ${res.filename}`, 'success');
+        speak('तुमची अर्जाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा ग्रामपंचायतीत संपर्क करा.');
+      } else {
+        showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
+      }
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      showToast('प्रिंट विंडो उघडली आहे.', 'warning');
+      window.print();
     }
   }, [selectedScheme, formData, showToast, speak]);
 
