@@ -221,7 +221,7 @@ export default function VoiceFormScreen() {
       if (res && res.success) {
         setPdfGenerated(res);
         showToast(`PDF तयार झाली: ${res.filename}`, 'success');
-        speak('तुमची अर्जाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा ग्रामपंचायतीत संपर्क करा.');
+        speak('तुमची पूर्व-अर्ज सारांशाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा अधिकृत कार्यालयात प्रत्यक्ष अर्ज सादर करू शकता.');
       } else {
         showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
       }
@@ -580,12 +580,12 @@ export default function VoiceFormScreen() {
       {stage === 'completed' && (
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border-4 border-emerald-500 shadow-2xl animate-fadeIn space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-saffron-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
               <FileCheck className="w-8 h-8" />
             </div>
             <div>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                तयार झालेला अर्ज सारांश
+              <span className="text-xs font-black text-saffron-700 dark:text-saffron-400 uppercase tracking-wider">
+                पूर्व-अर्ज सारांश (Pre-Application Summary)
               </span>
               <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                 {selectedScheme?.name_mr}
@@ -666,19 +666,27 @@ export default function VoiceFormScreen() {
             </div>
           </div>
 
-          {/* Trustworthy by Design & Privacy Notice */}
-          <div className="p-3.5 bg-emerald-50 dark:bg-slate-900/70 rounded-2xl border border-emerald-300 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="flex items-center gap-1.5 font-black text-emerald-900 dark:text-emerald-300">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>विश्वासार्ह डिजिटल अर्ज सारांश (Verified Civic Summary)</span>
-            </span>
-            <span className="font-semibold text-slate-600 dark:text-slate-400">
-              {selectedScheme?.verification_tag}
-            </span>
+          {/* Visible Mandatory Disclaimer Notice (Non-Government Document) */}
+          <div className="p-4 sm:p-5 bg-red-50 dark:bg-red-950/40 rounded-2xl border-2 border-red-400 dark:border-red-600 space-y-2">
+            <div className="flex items-center gap-2 font-black text-red-700 dark:text-red-300 text-sm sm:text-base">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>महत्त्वाची सूचना (Important Disclaimer):</span>
+            </div>
+            <p className="font-extrabold text-red-900 dark:text-red-200 text-sm sm:text-base leading-relaxed">
+              ही सरकार मित्रने तयार केलेली पूर्व-अर्ज सारांश पत्रिका आहे. हा अधिकृत शासकीय दस्तऐवज नाही. कृपया अधिकृत पोर्टल किंवा कार्यालयात अर्ज सादर करा.
+            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-red-200 dark:border-red-800/80 text-xs text-red-800 dark:text-red-300 font-medium">
+              <span>
+                मसुदा संदर्भ नोंद: <strong className="font-mono font-bold text-red-950 dark:text-red-100">SM-DRAFT</strong> (Draft, not a government registration number.)
+              </span>
+              <span className="text-slate-600 dark:text-slate-400 font-semibold">
+                {selectedScheme?.verification_tag}
+              </span>
+            </div>
           </div>
 
           <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 font-semibold leading-relaxed">
-            📢 ही PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अंतिम पडताळणी करू शकता. (तुम्ही थेट माईकमध्ये "डाऊनलोड करा" बोलू शकता.)
+            📢 ही पूर्व-अर्ज सारांश PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अर्ज सादर करू शकता. (तुम्ही थेट माईकमध्ये "डाऊनलोड करा" बोलू शकता.)
           </div>
         </div>
       )}
