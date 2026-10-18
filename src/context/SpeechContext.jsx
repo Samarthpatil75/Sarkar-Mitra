@@ -50,6 +50,31 @@ export function SpeechProvider({ children }) {
     showToast(`आवाजाची गती: ${label}`, 'info');
   }, [showToast]);
 
+  // Auto-speak answers toggle: 'उत्तर ऐका' (persisted in localStorage inside try/catch)
+  const [autoSpeakAnswers, setAutoSpeakAnswersState] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('sarkar_mitra_auto_speak');
+        return saved !== null ? saved === 'true' : true;
+      }
+    } catch (e) {
+      console.warn('LocalStorage read error for auto speak:', e);
+    }
+    return true;
+  });
+
+  const setAutoSpeakAnswers = useCallback((val) => {
+    setAutoSpeakAnswersState(val);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sarkar_mitra_auto_speak', String(val));
+      }
+    } catch (e) {
+      console.warn('LocalStorage write error for auto speak:', e);
+    }
+    showToast(val ? 'उत्तर ऐकणे (आवाज) सुरू केले' : 'उत्तर ऐकणे (आवाज) बंद केले', 'info');
+  }, [showToast]);
+
   const getSpeedMultiplier = useCallback((speed) => {
     if (speed === 'slow') return 0.78;
     if (speed === 'fast') return 1.25;
@@ -177,13 +202,25 @@ export function SpeechProvider({ children }) {
       link: parsed.link,
       link_text: parsed.link_text,
       action: parsed.action,
-      options: parsed.options || null
+      options: parsed.options || null,
+      follow_ups: parsed.follow_ups || null,
+      source_gr: parsed.source_gr || null,
+      last_verified: parsed.last_verified || null,
+      verified: parsed.verified !== undefined ? parsed.verified : true,
+      topic: parsed.topic || null,
+      topic_key: parsed.topic_key || null,
+      hasEligibilityAction: parsed.hasEligibilityAction || false,
+      action_label_mr: parsed.action_label_mr || null,
+      action_screen: parsed.action_screen || null,
+      isPrivacyWarning: parsed.isPrivacyWarning || false
     };
 
     addMessage(assistantMsg);
 
-    // Speak reply aloud (unless low bandwidth mode is on and not forced)
-    speak(parsed.reply_mr);
+    // Speak reply aloud only if autoSpeakAnswers is enabled and not low bandwidth
+    if (autoSpeakAnswers) {
+      speak(parsed.reply_mr);
+    }
 
     // Perform navigation actions based on intent
     if (parsed.action === 'navigate_eligibility') {
@@ -302,7 +339,9 @@ export function SpeechProvider({ children }) {
         processInput,
         registerVoiceHandler,
         speechSpeed,
-        setSpeechSpeed
+        setSpeechSpeed,
+        autoSpeakAnswers,
+        setAutoSpeakAnswers
       }}
     >
       {children}
