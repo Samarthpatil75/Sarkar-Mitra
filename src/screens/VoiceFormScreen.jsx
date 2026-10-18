@@ -9,6 +9,7 @@ import {
   Edit3, 
   FileCheck, 
   ArrowRight, 
+  ArrowLeft,
   RotateCcw,
   Sparkles,
   HelpCircle,
@@ -25,6 +26,9 @@ import {
   isNoIntent, 
   extractNumberFromMarathi, 
   parseSpokenPhoneNumber,
+  detectSpokenLanguage,
+  formatPhoneNumberForSpeech,
+  isPreviousOrBackIntent,
   normalizeMarathiSpeech,
   isCancelOrBackIntent 
 } from '../services/marathiVoiceMatcher';
@@ -46,6 +50,8 @@ export default function VoiceFormScreen() {
   const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
   const [formData, setFormData] = useState({});
   const [pendingAnswer, setPendingAnswer] = useState('');
+  const [detectedLang, setDetectedLang] = useState('mr'); // 'en' | 'mr'
+  const [isEditingFromSummary, setIsEditingFromSummary] = useState(false);
   const [stage, setStage] = useState('asking'); // 'asking' | 'confirming' | 'completed'
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [pdfGenerated, setPdfGenerated] = useState(null);
@@ -62,13 +68,61 @@ export default function VoiceFormScreen() {
     }
   }, [stage, currentFieldIndex, currentField, speak]);
 
+  // Go back to the previous question (allows user to correct mistaken answers)
+  const handleGoBack = useCallback(() => {
+    if (currentFieldIndex <= 0) {
+      showToast('हा पहिलाच प्रश्न आहे.', 'info');
+      speak('हा पहिलाच प्रश्न आहे.');
+      return;
+    }
+    const targetIndex = currentFieldIndex - 1;
+    const targetField = formFields[targetIndex];
+
+    setCurrentFieldIndex(targetIndex);
+    setStage('asking');
+    setIsEditingManually(false);
+
+    const prevAnswer = formData[targetField.key] || '';
+    setPendingAnswer(prevAnswer);
+    setSpeechFeedback({
+      text: `मागील प्रश्न: "${targetField.label_mr}" दुरुस्त करण्यासाठी उघडला आहे.`,
+      type: 'info'
+    });
+
+    speak(`मागील प्रश्नावर परत आलो आहोत: ${targetField.spoken_prompt}. तुमचे योग्य उत्तर सांगा.`);
+  }, [currentFieldIndex, formFields, formData, speak, showToast]);
+
+  // Jump to edit a specific field directly from the summary screen
+  const handleEditFieldFromSummary = useCallback((index) => {
+    const targetField = formFields[index];
+    if (!targetField) return;
+
+    setCurrentFieldIndex(index);
+    setIsEditingFromSummary(true);
+    setStage('asking');
+    setIsEditingManually(false);
+
+    const prevVal = formData[targetField.key] || '';
+    setPendingAnswer(prevVal);
+    setSpeechFeedback({
+      text: `दुरुस्तीसाठी उघडले: "${targetField.label_mr}"`,
+      type: 'info'
+    });
+
+    speak(`${targetField.label_mr} दुरुस्त करण्यासाठी उघडले आहे: ${targetField.spoken_prompt}`);
+  }, [formFields, formData, speak]);
+
   // When answer is captured, read it back and confirm
   const handleAnswerCaptured = useCallback((answerText) => {
     if (!answerText || !answerText.trim()) return;
     let cleanAnswer = answerText.trim();
+    const spokenLang = detectSpokenLanguage(cleanAnswer);
+    setDetectedLang(spokenLang);
+
+    const isPhoneField = currentField && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone'));
 
     // If mobile number / phone field, convert spoken words (Marathi or English) into numerical format
-    if (currentField && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone'))) {
+    if (isPhoneField) {
       const extractedPhone = parseSpokenPhoneNumber(cleanAnswer);
       if (extractedPhone) {
         cleanAnswer = extractedPhone;
@@ -81,14 +135,33 @@ export default function VoiceFormScreen() {
     }
 
     setPendingAnswer(cleanAnswer);
-    setSpeechFeedback({
-      text: `समजलेले उत्तर: "${cleanAnswer}"`,
-      type: 'info'
-    });
+
+    if (isPhoneField && spokenLang === 'en') {
+      setSpeechFeedback({
+        text: `Recognized Mobile Number (English): "${cleanAnswer}"`,
+        type: 'info'
+      });
+    } else {
+      setSpeechFeedback({
+        text: `समजलेले उत्तर: "${cleanAnswer}"`,
+        type: 'info'
+      });
+    }
+
     setStage('confirming');
 
-    const confirmationText = `तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`;
-    speak(confirmationText);
+    // Natural spoken confirmation:
+    // If phone field, read digit-by-digit in the spoken language so speech synthesis doesn't misread
+    if (isPhoneField) {
+      const speechDigits = formatPhoneNumberForSpeech(cleanAnswer, spokenLang);
+      if (spokenLang === 'en') {
+        speak(`You said: ${speechDigits}. Is this correct? बरोबर आहे का?`);
+      } else {
+        speak(`तुम्ही सांगितले: ${speechDigits}. हे बरोबर आहे का?`);
+      }
+    } else {
+      speak(`तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`);
+    }
   }, [speak, currentField]);
 
   // Confirm answer as YES
@@ -106,6 +179,14 @@ export default function VoiceFormScreen() {
     });
     setIsEditingManually(false);
 
+    // If user came from summary screen to edit a single field, take them straight back to summary
+    if (isEditingFromSummary) {
+      setIsEditingFromSummary(false);
+      setStage('completed');
+      speak('बदल जतन केला आहे! अर्जाचा सारांश अद्ययावत झाला आहे.');
+      return;
+    }
+
     if (currentFieldIndex < formFields.length - 1) {
       setCurrentFieldIndex(prev => prev + 1);
       setStage('asking');
@@ -114,7 +195,7 @@ export default function VoiceFormScreen() {
       setStage('completed');
       speak('अभिनंदन! तुमचे सर्व तपशील नोंदवले गेले आहेत. खाली दिलेले PDF डाउनलोड करा बटण दाबून अर्जाचा सारांश जतन करा.');
     }
-  }, [currentField, formData, pendingAnswer, currentFieldIndex, formFields.length, speak]);
+  }, [currentField, formData, pendingAnswer, isEditingFromSummary, currentFieldIndex, formFields.length, speak]);
 
   // Reject answer as NO (retry / "i dont want" / cancel)
   const handleConfirmNo = useCallback(() => {
@@ -166,14 +247,7 @@ export default function VoiceFormScreen() {
       const raw = speechText.trim();
       if (!raw) return true;
 
-      // Check if user wants to cancel or go back
-      if (isCancelOrBackIntent(raw)) {
-        speak('फॉर्म थांबवला आहे. मुख्य पानावर जात आहोत.');
-        setActiveScreen('home');
-        return true;
-      }
-
-      // 1. In 'completed' stage: voice-driven download, print, restart
+      // 1. In 'completed' stage: voice-driven download, print, restart, edit
       if (stageRef.current === 'completed') {
         const norm = raw.toLowerCase();
         if (norm.includes('pdf') || norm.includes('डाऊनलोड') || norm.includes('download') || norm.includes('सेव्ह')) {
@@ -182,6 +256,10 @@ export default function VoiceFormScreen() {
         }
         if (norm.includes('प्रिंट') || norm.includes('print')) {
           window.print();
+          return true;
+        }
+        if (norm.includes('दुरुस्त') || norm.includes('बदला') || norm.includes('edit') || norm.includes('बदल')) {
+          handleEditFieldFromSummary(0);
           return true;
         }
         if (norm.includes('पुन्हा') || norm.includes('restart') || norm.includes('नवीन')) {
@@ -195,9 +273,25 @@ export default function VoiceFormScreen() {
         return true;
       }
 
+      // 2. Check if user wants to go back to previous question/field
+      if (isPreviousOrBackIntent(raw)) {
+        if (currentFieldIndex > 0 || stageRef.current === 'confirming') {
+          handleGoBack();
+          return true;
+        }
+      }
+
+      // 3. Check if user explicitly wants to cancel or exit completely to home
+      const normRaw = normalizeMarathiSpeech(raw);
+      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'थांबवा', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw.includes(k))) {
+        speak('फॉर्म थांबवला आहे. मुख्य पानावर जात आहोत.');
+        setActiveScreen('home');
+        return true;
+      }
+
       if (!currentField) return true;
 
-      // 2. In 'asking' stage: capture the field's value
+      // 4. In 'asking' stage: capture the field's value
       if (stageRef.current === 'asking') {
         // If user says "नको" or "cancel" right away
         if (isNoIntent(raw)) {
@@ -213,7 +307,7 @@ export default function VoiceFormScreen() {
         return true;
       }
 
-      // 3. In 'confirming' stage: strictly evaluate YES vs NO (including 'नको' / 'मला नको आहे' / 'no')
+      // 5. In 'confirming' stage: strictly evaluate YES vs NO
       if (stageRef.current === 'confirming') {
         // Negation / Reject / "I don't want" / "No"
         if (isNoIntent(raw)) {
@@ -221,14 +315,13 @@ export default function VoiceFormScreen() {
           return true;
         }
 
-        // Affirmation / Accept / "Yes" / "Correct"
+        // Affirmation / Approval / "Yes"
         if (isYesIntent(raw)) {
           handleConfirmYes();
           return true;
         }
 
-        // Ambiguous speech during confirmation:
-        // NEVER leak to global intent parser! Handle gracefully within the screen.
+        // Ambiguous speech during confirmation
         setSpeechFeedback({
           text: `तुमचा आवाज: "${raw}". कृपया 'होय' (बरोबर आहे) किंवा 'नाही' (नको / बदला) म्हणा.`,
           type: 'warning'
@@ -241,7 +334,20 @@ export default function VoiceFormScreen() {
     });
 
     return () => unregister();
-  }, [currentField, handleAnswerCaptured, handleConfirmYes, handleConfirmNo, handleDownloadPDF, handleRestartForm, registerVoiceHandler, speak, setActiveScreen]);
+  }, [
+    currentField, 
+    currentFieldIndex, 
+    handleAnswerCaptured, 
+    handleConfirmYes, 
+    handleConfirmNo, 
+    handleGoBack,
+    handleDownloadPDF, 
+    handleRestartForm, 
+    handleEditFieldFromSummary, 
+    registerVoiceHandler, 
+    speak, 
+    setActiveScreen
+  ]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-2 pb-32 space-y-6">
@@ -307,9 +413,23 @@ export default function VoiceFormScreen() {
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border-2 border-saffron-400 dark:border-saffron-500 shadow-lg animate-fadeIn">
           
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs sm:text-sm font-extrabold text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950/60 px-3 py-1 rounded-full border border-saffron-200">
-              माहिती विचारत आहे {currentFieldIndex + 1} / {formFields.length}
-            </span>
+            <div className="flex items-center gap-2">
+              {currentFieldIndex > 0 && (
+                <button
+                  onClick={handleGoBack}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl border border-slate-300 dark:border-slate-600 transition-colors min-h-[38px]"
+                  aria-label="मागील प्रश्नावर जा"
+                  title="मागील प्रश्न दुरुस्त करा"
+                >
+                  <ArrowLeft className="w-4 h-4 text-saffron-600" />
+                  <span>मागील प्रश्न (Go Back)</span>
+                </button>
+              )}
+              <span className="text-xs sm:text-sm font-extrabold text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950/60 px-3 py-1 rounded-full border border-saffron-200">
+                माहिती विचारत आहे {currentFieldIndex + 1} / {formFields.length}
+              </span>
+            </div>
+
             <button
               onClick={() => speak(currentField.spoken_prompt, { force: true })}
               className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
@@ -324,6 +444,11 @@ export default function VoiceFormScreen() {
           </h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
             फील्ड नाव: <span className="font-bold text-slate-700 dark:text-slate-300">{currentField.label_mr}</span>
+            {(currentField.type === 'tel' || currentField.key?.includes('mobile')) && (
+              <span className="ml-2 inline-block px-2.5 py-0.5 rounded-md bg-saffron-100 dark:bg-saffron-950 text-saffron-800 dark:text-saffron-300 text-xs font-bold">
+                मराठी किंवा इंग्रजीत बोला (English or Marathi)
+              </span>
+            )}
           </p>
 
           {/* Spoken Mic Input or Typing Input */}
@@ -370,6 +495,20 @@ export default function VoiceFormScreen() {
                 </button>
               </div>
             )}
+
+            {/* Go back helper note */}
+            {currentFieldIndex > 0 && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400">
+                <span>मागील उत्तर चुकले असल्यास:</span>
+                <button
+                  onClick={handleGoBack}
+                  className="text-saffron-600 dark:text-saffron-400 font-bold hover:underline flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>मागे जाऊन दुरुस्त करा (Go Back)</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -377,9 +516,22 @@ export default function VoiceFormScreen() {
       {/* Stage 2: Confirming Answer */}
       {stage === 'confirming' && currentField && (
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border-4 border-amber-400 dark:border-amber-500 shadow-xl animate-fadeIn">
-          <div className="flex items-center gap-2 mb-3 text-amber-800 dark:text-amber-400 font-extrabold text-sm">
-            <Sparkles className="w-4 h-4" />
-            <span>उत्तर पडताळणी:</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-extrabold text-sm">
+              <Sparkles className="w-4 h-4" />
+              <span>उत्तर पडताळणी:</span>
+            </div>
+
+            {currentFieldIndex > 0 && (
+              <button
+                onClick={handleGoBack}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 hover:bg-amber-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl border border-amber-300 dark:border-slate-600 transition-colors min-h-[36px]"
+                title="मागील प्रश्नावर जा"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-saffron-600" />
+                <span>मागील प्रश्न (Go Back)</span>
+              </button>
+            )}
           </div>
 
           <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-2">
@@ -387,7 +539,12 @@ export default function VoiceFormScreen() {
           </h3>
 
           <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-300 dark:border-amber-800 my-4 text-center">
-            <p className="text-2xl sm:text-3xl font-black text-amber-950 dark:text-amber-100">
+            {detectedLang === 'en' && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone')) && (
+              <span className="text-xs font-bold text-saffron-700 dark:text-saffron-400 block mb-1">
+                इंग्रजीत नोंदवलेला मोबाईल नंबर (English Mobile Number):
+              </span>
+            )}
+            <p className="text-2xl sm:text-3xl font-black text-amber-950 dark:text-amber-100 font-mono tracking-wider">
               "{pendingAnswer}"
             </p>
           </div>
@@ -414,7 +571,7 @@ export default function VoiceFormScreen() {
           </div>
 
           <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400">
-            🗣️ तुम्ही थेट माईकमध्ये "होय" किंवा "नाही" / "नको" बोलू शकता.
+            🗣️ तुम्ही थेट माईकमध्ये "होय", "नाही" / "नको" किंवा "मागे जा" बोलू शकता.
           </div>
         </div>
       )}
@@ -436,24 +593,45 @@ export default function VoiceFormScreen() {
             </div>
           </div>
 
-          {/* Entered Fields List */}
+          {/* Entered Fields List with Individual Edit Buttons */}
           <div className="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 space-y-3">
-            <h4 className="text-sm font-extrabold text-slate-500 uppercase tracking-wider">
-              नोंदवलेली माहिती:
-            </h4>
-            {formFields.map((field, idx) => (
-              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between py-2 border-b border-slate-200/60 dark:border-slate-800 last:border-0 gap-1">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                  {field.label_mr}:
-                </span>
-                <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                  {formData[field.key] || 'उपलब्ध नाही'}
-                </span>
-              </div>
-            ))}
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-extrabold text-slate-500 uppercase tracking-wider">
+                नोंदवलेली माहिती:
+              </h4>
+              <span className="text-xs text-slate-500 font-semibold">
+                (कोणतीही माहिती दुरुस्त करण्यासाठी 'दुरुस्त करा' दाबा)
+              </span>
+            </div>
+
+            {formFields.map((field, idx) => {
+              const isPhone = field.type === 'tel' || field.key?.includes('mobile') || field.key?.includes('phone');
+              const val = formData[field.key];
+              return (
+                <div key={idx} className="flex items-center justify-between py-2.5 border-b border-slate-200/60 dark:border-slate-800 last:border-0 gap-2">
+                  <div className="flex-1">
+                    <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 block">
+                      {field.label_mr} {isPhone && <span className="text-xs text-saffron-600 font-semibold">(Mobile Number)</span>}:
+                    </span>
+                    <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">
+                      {val || 'उपलब्ध नाही'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleEditFieldFromSummary(idx)}
+                    className="px-3 py-1.5 bg-slate-200/80 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-saffron-950/60 text-slate-800 hover:text-saffron-700 dark:text-slate-200 dark:hover:text-saffron-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
+                    aria-label={`${field.label_mr} दुरुस्त करा`}
+                    title="माहिती दुरुस्त करा"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-saffron-600" />
+                    <span>दुरुस्त करा (Edit)</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Download PDF & Print Buttons */}
+          {/* Download PDF & Action Buttons */}
           <div className="space-y-3">
             <button
               onClick={handleDownloadPDF}
@@ -463,13 +641,20 @@ export default function VoiceFormScreen() {
               <span>{t('download_pdf')}</span>
             </button>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => window.print()}
                 className="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
               >
                 <Printer className="w-5 h-5 text-civic-600" />
                 <span>{t('print_form')}</span>
+              </button>
+              <button
+                onClick={() => handleEditFieldFromSummary(0)}
+                className="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
+              >
+                <Edit3 className="w-5 h-5 text-saffron-600" />
+                <span>माहिती दुरुस्त करा</span>
               </button>
               <button
                 onClick={handleRestartForm}

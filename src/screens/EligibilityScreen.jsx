@@ -23,6 +23,7 @@ import {
   isYesIntent, 
   isNoIntent, 
   extractNumberFromMarathi, 
+  isPreviousOrBackIntent,
   isCancelOrBackIntent,
   normalizeMarathiSpeech 
 } from '../services/marathiVoiceMatcher';
@@ -173,15 +174,39 @@ export default function EligibilityScreen() {
     }
   }, [answers, currentStep, questions.length, evaluateEligibility]);
 
+  // Go back to the previous eligibility question
+  const handleGoBack = useCallback(() => {
+    if (currentStep > 0) {
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      setNumberInputValue('');
+      setFeedbackHint({
+        text: 'मागील प्रश्नावर परत आलो आहोत.',
+        type: 'info'
+      });
+      const prevQ = questions[prevStep];
+      speak(`मागील प्रश्नावर परत आलो आहोत: ${prevQ.spoken_prompt_mr || prevQ.question_mr}`);
+    }
+  }, [currentStep, questions, speak]);
+
   // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim();
       if (!raw) return true;
 
-      // Handle cancel / go back
-      if (isCancelOrBackIntent(raw)) {
-        speak('पात्रता तपासणी थांबवली आहे.');
+      // 1. Handle go back to previous question
+      if (isPreviousOrBackIntent(raw)) {
+        if (currentStep > 0 && !result) {
+          handleGoBack();
+          return true;
+        }
+      }
+
+      // 2. Handle cancel / exit to home
+      const normRaw = normalizeMarathiSpeech(raw);
+      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'थांबवा', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw.includes(k))) {
+        speak('पात्रता तपासणी थांबवली आहे. मुख्य पानावर जात आहोत.');
         setActiveScreen('home');
         return true;
       }
@@ -368,11 +393,25 @@ export default function EligibilityScreen() {
       {!result && currentQuestion && (
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border-2 border-saffron-300 dark:border-saffron-600 shadow-lg animate-fadeIn">
           
-          {/* Progress bar */}
+          {/* Progress bar and Back Button */}
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs sm:text-sm font-extrabold text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950/60 px-3 py-1 rounded-full border border-saffron-200">
-              प्रश्न {currentStep + 1} / {questions.length}
-            </span>
+            <div className="flex items-center gap-2">
+              {currentStep > 0 && (
+                <button
+                  onClick={handleGoBack}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl border border-slate-300 dark:border-slate-600 transition-colors min-h-[38px]"
+                  aria-label="मागील प्रश्नावर जा"
+                  title="मागील प्रश्न दुरुस्त करा"
+                >
+                  <ArrowLeft className="w-4 h-4 text-saffron-600" />
+                  <span>मागील प्रश्न (Go Back)</span>
+                </button>
+              )}
+              <span className="text-xs sm:text-sm font-extrabold text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950/60 px-3 py-1 rounded-full border border-saffron-200">
+                प्रश्न {currentStep + 1} / {questions.length}
+              </span>
+            </div>
+
             <button
               onClick={() => speak(currentQuestion.spoken_prompt_mr || currentQuestion.question_mr, { force: true })}
               className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"

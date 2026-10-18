@@ -384,6 +384,71 @@ export function extractNumberFromMarathi(text) {
 }
 
 /**
+ * Determines if text indicates a request to go back to the previous question/field
+ */
+export function isPreviousOrBackIntent(text) {
+  if (!text) return false;
+  const norm = normalizeMarathiSpeech(text);
+  const backKeywords = [
+    'मागे जा', 'मागे चला', 'मागचा प्रश्न', 'मागील प्रश्न', 'मागील', 'मागे',
+    'परत जा', 'मागे या', 'मागचा', 'मागील पायरी', 'मागे फिरा',
+    'back', 'go back', 'previous', 'prev', 'previous question', 'mage ja', 'magcha'
+  ];
+  return backKeywords.some(kw => norm === kw || norm.startsWith(kw + ' ') || norm.endsWith(' ' + kw) || norm.includes(' ' + kw + ' '));
+}
+
+/**
+ * Detects whether the user's speech input for phone/numbers was in English or Marathi
+ * Checks for Latin letters, English words, or English digit words transcribed in Devanagari.
+ */
+export function detectSpokenLanguage(text) {
+  if (!text) return 'mr';
+  const norm = text.toLowerCase().trim();
+
+  // 1. Check for Latin characters (e.g., 'nine', 'double', 'phone', '966')
+  if (/[a-zA-Z]/.test(text)) return 'en';
+
+  // 2. Check for English number words transcribed in Devanagari (common Web Speech output)
+  const englishDevanagariWords = [
+    'नाईन', 'नाइन', 'नायन', 'नायेन', 'सिक्स', 'शीक्स', 'सीक्स',
+    'फोर', 'फॉर', 'टू', 'टु', 'वन', 'वान', 'व्हाँ',
+    'झिरो', 'झीरो', 'जीरो', 'ओ', 'थ्री', 'त्री',
+    'फाइव्ह', 'फाईव्ह', 'फाइव', 'फाईव', 'फाएव',
+    'सेव्हन', 'सेवन', 'एट', 'ऐट', 'इट',
+    'डबल', 'ट्रिपल'
+  ];
+
+  for (const w of englishDevanagariWords) {
+    if (norm.includes(w)) return 'en';
+  }
+
+  return 'mr';
+}
+
+/**
+ * Formats a phone number digit-by-digit for natural, non-lagging speech synthesis
+ * Prevents Marathi TTS from trying to read 10-digit numbers as huge cardinal numbers (e.g. ९६ कोटी...)
+ */
+export function formatPhoneNumberForSpeech(phoneNumber, lang = 'mr') {
+  if (!phoneNumber) return '';
+  const digits = String(phoneNumber).replace(/\D/g, '').split('');
+
+  if (lang === 'en') {
+    const englishDigitWords = {
+      '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+      '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'
+    };
+    return digits.map(d => englishDigitWords[d] || d).join(' ');
+  } else {
+    const marathiDigitWords = {
+      '0': 'शून्य', '1': 'एक', '2': 'दोन', '3': 'तीन', '4': 'चार',
+      '5': 'पाच', '6': 'सहा', '7': 'सात', '8': 'आठ', '9': 'नऊ'
+    };
+    return digits.map(d => marathiDigitWords[d] || d).join(', ');
+  }
+}
+
+/**
  * Determines if text indicates a request to go back or cancel
  */
 export function isCancelOrBackIntent(text) {
@@ -401,5 +466,8 @@ export default {
   isYesIntent,
   extractNumberFromMarathi,
   parseSpokenPhoneNumber,
+  detectSpokenLanguage,
+  formatPhoneNumberForSpeech,
+  isPreviousOrBackIntent,
   isCancelOrBackIntent
 };
