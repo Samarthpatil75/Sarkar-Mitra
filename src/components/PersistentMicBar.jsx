@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Mic, MicOff, Send, Keyboard, X, Sparkles, ChevronUp, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mic, MicOff, Send, Keyboard, X, Sparkles, ChevronUp, AlertTriangle, AlertCircle } from 'lucide-react';
 import { useSpeech } from '../context/SpeechContext';
 import { useApp } from '../context/AppContext';
 
@@ -17,6 +17,13 @@ export default function PersistentMicBar() {
   const { t, lowBandwidth } = useApp();
   const [showTypeBox, setShowTypeBox] = useState(false);
   const [manualText, setManualText] = useState('');
+
+  // Auto-switch to tap & type mode if speech recognition is unsupported or permission is denied
+  useEffect(() => {
+    if (!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') {
+      setShowTypeBox(true);
+    }
+  }, [isSpeechSupported, micStatus]);
 
   const quickPrompts = [
     'लाडकी बहीण योजना काय आहे?',
@@ -58,13 +65,19 @@ export default function PersistentMicBar() {
           </div>
         )}
 
-        {/* Microphone Denied / Error Alert Banner */}
-        {micStatus === 'denied' && (
-          <div className="mb-2 p-3 bg-red-50 dark:bg-red-950/60 border border-red-300 dark:border-red-800 rounded-xl flex items-start gap-2 text-red-800 dark:text-red-200 text-sm">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
+        {/* Friendly Speech Unavailable / Permission Fallback Banner */}
+        {(!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') && (
+          <div className="mb-2 p-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl flex items-start gap-2 text-amber-900 dark:text-amber-200 text-sm animate-fadeIn">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div className="flex-1">
-              <p className="font-bold">{t('mic_denied_warning')}</p>
-              <p className="text-xs mt-0.5">तुम्ही खालील कीबोर्ड चिन्हास स्पर्श करून लिहू शकता.</p>
+              <p className="font-bold">
+                {micStatus === 'denied'
+                  ? 'मायक्रोफोन परवानगी मिळालेली नाही. काळजी करू नका!'
+                  : 'तुमच्या ब्राउझरमध्ये थेट आवाज ओळख उपलब्ध नाही. काळजी करू नका!'}
+              </p>
+              <p className="text-xs mt-0.5 text-slate-700 dark:text-slate-300">
+                ॲप टॅप आणि टाईप मोडमध्ये सुरू झाले आहे. खालील कीबोर्ड किंवा सुचवलेल्या पर्यायांवर थेट बोट ठेवून संवाद साधा.
+              </p>
             </div>
           </div>
         )}

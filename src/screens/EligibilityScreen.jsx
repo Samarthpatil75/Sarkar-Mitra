@@ -43,7 +43,10 @@ export default function EligibilityScreen() {
     isSpeaking, 
     speak, 
     interimTranscript, 
-    registerVoiceHandler 
+    registerVoiceHandler,
+    isSpeechSupported,
+    micStatus,
+    startListening 
   } = useSpeech();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -421,6 +424,20 @@ export default function EligibilityScreen() {
               <Volume2 className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Friendly Speech Fallback Banner (when speech unsupported or denied) */}
+          {(!isSpeechSupported || micStatus === 'denied') && (
+            <div className="mb-4 p-3.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-2xl flex items-center gap-2.5 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold animate-fadeIn">
+              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <div>
+                <span>
+                  {micStatus === 'denied'
+                    ? 'मायक्रोफोन परवानगी नाकारली गेली आहे. काळजी करू नका! तुम्ही खालील बटणे दाबून थेट उत्तर देऊ शकता.'
+                    : 'तुमच्या डिव्हाइसमध्ये थेट आवाज ओळख उपलब्ध नाही. काळजी करू नका! तुम्ही खालील बटणे दाबून सहज उत्तर देऊ शकता.'}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Question Text */}
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-6 leading-snug">

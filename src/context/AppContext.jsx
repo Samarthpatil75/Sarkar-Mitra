@@ -31,8 +31,16 @@ export function AppProvider({ children }) {
     return false;
   });
 
-  // Active Screen: 'home' | 'conversation' | 'eligibility' | 'documents' | 'form' | 'accuracy' | 'about'
-  const [activeScreen, setActiveScreen] = useState('home');
+  // Active Screen: 'home' | 'conversation' | 'eligibility' | 'documents' | 'form' | 'accuracy' | 'about' | 'demo'
+  const [activeScreen, setActiveScreen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('demo') === '1' || window.location.hash.includes('demo')) {
+        return 'demo';
+      }
+    }
+    return 'home';
+  });
 
   // Currently selected or focused scheme
   const [selectedScheme, setSelectedScheme] = useState(() => {

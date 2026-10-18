@@ -13,7 +13,8 @@ import {
   MessageSquare, 
   Home, 
   BarChart2, 
-  Languages 
+  Languages,
+  PlayCircle 
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
@@ -36,6 +37,7 @@ export default function Navbar() {
 
   const navItems = [
     { id: 'home', label: t('nav_home'), icon: Home },
+    { id: 'demo', label: 'डेमो पहा (Demo)', icon: PlayCircle, highlight: true },
     { id: 'conversation', label: t('nav_conversation'), icon: MessageSquare },
     { id: 'eligibility', label: t('nav_eligibility'), icon: CheckSquare },
     { id: 'documents', label: t('nav_documents'), icon: FileText },
@@ -79,6 +81,20 @@ export default function Navbar() {
 
         {/* Accessibility & Mode Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+
+          {/* Quick Demo Mode Pill Button */}
+          <button
+            onClick={() => handleNavClick('demo')}
+            className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all min-h-[44px] shadow-sm ${
+              activeScreen === 'demo'
+                ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400'
+                : 'bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-950/80 dark:hover:bg-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+            }`}
+            title="९० सेकंदांचा स्वयंचलित डेमो पहा"
+          >
+            <PlayCircle className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+            <span>डेमो पहा</span>
+          </button>
 
           {/* Speaking Audio Stop Indicator */}
           {isSpeaking && (

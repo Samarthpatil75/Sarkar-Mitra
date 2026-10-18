@@ -11,6 +11,7 @@ import DocumentsScreen from './screens/DocumentsScreen';
 import VoiceFormScreen from './screens/VoiceFormScreen';
 import AboutHelpScreen from './screens/AboutHelpScreen';
 import AccuracyTestScreen from './screens/AccuracyTestScreen';
+import DemoScreen from './screens/DemoScreen';
 
 function MainApp() {
   const { activeScreen, toast } = useApp();
@@ -18,6 +19,17 @@ function MainApp() {
   return (
     <div className="min-h-screen flex flex-col bg-warmbg-light dark:bg-warmbg-dark selection:bg-saffron-200 selection:text-saffron-900 transition-colors">
       
+      {/* Demo Mode Ribbon (Always visible when in demo mode) */}
+      {activeScreen === 'demo' && (
+        <aside 
+          aria-label="डेमो मोड सूचना"
+          className="bg-amber-400 text-slate-950 px-4 py-1.5 text-center text-xs font-black tracking-wide flex items-center justify-center gap-2 border-b-2 border-amber-500 shadow-sm sticky top-0 z-50"
+        >
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+          <span>🟡 डेमो मोड (Demo Mode) • सिम्युलेटेड प्रात्यक्षिक डेटा • Not real user data</span>
+        </aside>
+      )}
+
       {/* Accessibility Skip Link */}
       <a 
         href="#main-content" 
@@ -32,6 +44,7 @@ function MainApp() {
       {/* Main Content Area */}
       <main id="main-content" className="flex-1 w-full max-w-5xl mx-auto px-2 sm:px-4 pt-4 sm:pt-6">
         {activeScreen === 'home' && <HomeScreen />}
+        {activeScreen === 'demo' && <DemoScreen />}
         {activeScreen === 'conversation' && <ConversationScreen />}
         {activeScreen === 'eligibility' && <EligibilityScreen />}
         {activeScreen === 'documents' && <DocumentsScreen />}

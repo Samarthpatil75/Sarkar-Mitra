@@ -42,7 +42,9 @@ export default function VoiceFormScreen() {
     stopSpeaking,
     interimTranscript, 
     startListening, 
-    registerVoiceHandler 
+    registerVoiceHandler,
+    isSpeechSupported,
+    micStatus 
   } = useSpeech();
 
   const formFields = selectedScheme?.form_fields || [];
@@ -60,6 +62,45 @@ export default function VoiceFormScreen() {
   const currentField = formFields[currentFieldIndex];
   const stageRef = useRef(stage);
   stageRef.current = stage;
+
+  // Auto-switch to tap & type mode if speech is unsupported or denied
+  useEffect(() => {
+    if (!isSpeechSupported || micStatus === 'denied') {
+      setIsEditingManually(true);
+    }
+  }, [isSpeechSupported, micStatus]);
+
+  // Common tap-to-answer choices for each field type
+  const getQuickChoicesForField = useCallback((field) => {
+    if (!field) return [];
+    const k = (field.key || '').toLowerCase();
+    
+    if (k.includes('district') || k.includes('जिल्हा')) {
+      return ['पुणे', 'सातारा', 'बीड', 'कोल्हापूर', 'छ. संभाजीनगर', 'नाशिक', 'नागपूर', 'मुंबई', 'सोलापूर', 'ठाणे'];
+    }
+    if (k.includes('mobile') || k.includes('phone') || field.type === 'tel') {
+      return ['9822451234', '9664429410', '9420123456', '9890123456'];
+    }
+    if (k.includes('land') || k.includes('acre') || k.includes('जमीन')) {
+      return ['१ एकर', '२ एकर', '३ एकर', '४ एकर', '५ एकर'];
+    }
+    if (k.includes('gat') || k.includes('गट')) {
+      return ['गट क्र. १२४/२ (३ एकर)', 'गट क्र. ५६/१ (२ एकर)', 'गट क्र. ८९ (१.५ एकर)'];
+    }
+    if (k.includes('ration') || k.includes('रेशन')) {
+      return ['पिवळे रेशन कार्ड (BPL)', 'केशरी रेशन कार्ड', 'अंत्योदय अन्न योजना कार्ड'];
+    }
+    if (k.includes('bank') || k.includes('ifsc') || k.includes('बँक')) {
+      return ['बँक ऑफ महाराष्ट्र', 'State Bank of India', 'बँक ऑफ इंडिया', 'जिल्हा मध्यवर्ती बँक'];
+    }
+    if (k.includes('name') || k.includes('नाव')) {
+      return ['सुनिता प्रकाश पाटील', 'तुकाराम ज्ञानोबा शिंदे', 'दत्तात्रय गोविंद कांबळे'];
+    }
+    if (k.includes('treatment') || k.includes('उपचार')) {
+      return ['मोतीबिंदू शस्त्रक्रिया', 'गुडघा प्रत्यारोपण', 'हृदयरोग उपचार', 'सामान्य शस्त्रक्रिया'];
+    }
+    return ['होय, बरोबर आहे', 'नाही, माहिती नाही'];
+  }, []);
 
   // Speak prompt when entering a field in asking stage
   useEffect(() => {
@@ -451,6 +492,20 @@ export default function VoiceFormScreen() {
             )}
           </p>
 
+          {/* Friendly Speech Fallback Banner */}
+          {(!isSpeechSupported || micStatus === 'denied') && (
+            <div className="mb-4 p-3.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-2xl flex items-center gap-2.5 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold animate-fadeIn">
+              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <div>
+                <span>
+                  {micStatus === 'denied'
+                    ? 'मायक्रोफोन परवानगी नाकारली गेली आहे. काळजी करू नका! खालील पर्याय निवडून किंवा टाईप करून उत्तर नोंदवा.'
+                    : 'तुमच्या डिव्हाइसमध्ये थेट आवाज ओळख उपलब्ध नाही. काळजी करू नका! खालील पर्याय निवडून किंवा टाईप करून उत्तर नोंदवा.'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Spoken Mic Input or Typing Input */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3">
@@ -469,6 +524,25 @@ export default function VoiceFormScreen() {
                 <Edit3 className="w-5 h-5 text-saffron-600" />
                 <span>{isEditingManually ? 'माईक वापरा' : 'टाईप करा'}</span>
               </button>
+            </div>
+
+            {/* Always Visible Tap-to-Answer Buttons (beside / below the mic) */}
+            <div className="pt-2">
+              <span className="text-xs font-black text-slate-500 dark:text-slate-400 block mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-saffron-500" />
+                <span>थेट पर्याय निवडून पुढे जा (Tap to Answer):</span>
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {getQuickChoicesForField(currentField).map((choice, cIdx) => (
+                  <button
+                    key={cIdx}
+                    onClick={() => handleAnswerCaptured(choice)}
+                    className="px-3.5 py-2.5 bg-slate-100 hover:bg-saffron-100 dark:bg-slate-700/80 dark:hover:bg-saffron-950/70 border-2 border-slate-200 dark:border-slate-600 hover:border-saffron-400 text-slate-900 dark:text-white rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
+                  >
+                    {choice}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Manual Typing Box */}

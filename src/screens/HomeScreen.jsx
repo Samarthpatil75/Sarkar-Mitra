@@ -1,9 +1,10 @@
 import React from 'react';
-import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2 } from 'lucide-react';
+import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle } from 'lucide-react';
 import SchemeCard from '../components/SchemeCard';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
+import { DEMO_PERSONAS } from '../data/demoPersonas';
 
 export default function HomeScreen() {
   const { schemes, setSelectedScheme, setActiveScreen, t, lowBandwidth } = useApp();
@@ -89,6 +90,70 @@ export default function HomeScreen() {
                 className="px-3.5 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-saffron-500 dark:hover:border-saffron-400 rounded-2xl text-sm font-bold text-slate-800 dark:text-slate-200 hover:text-saffron-600 dark:hover:text-saffron-400 shadow-sm transition-all text-left min-h-[48px]"
               >
                 "{item.label}"
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* "डेमो पहा" Section - 3 One-Tap Persona Cards */}
+      <section className="max-w-5xl mx-auto px-4">
+        <div className="bg-gradient-to-r from-amber-500/10 via-saffron-500/10 to-amber-500/10 dark:from-amber-950/40 dark:to-slate-800 rounded-3xl p-5 sm:p-7 border-2 border-amber-300 dark:border-amber-700 shadow-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                <span className="px-3 py-0.5 rounded-full bg-amber-200 dark:bg-amber-950 text-amber-900 dark:text-amber-200 text-xs font-black uppercase">
+                  ९० सेकंदांचे प्रात्यक्षिक
+                </span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+                🎥 "डेमो पहा" (Watch Live Voice Demo)
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                माईकची आवश्यकता नाही! खालील एका पात्रावर स्पर्श करा, ॲप आपोआप संपूर्ण प्रवास बोलून दाखवेल.
+              </p>
+            </div>
+            <button
+              onClick={() => setActiveScreen('demo')}
+              className="py-2.5 px-5 bg-gradient-to-r from-amber-500 to-saffron-600 hover:from-amber-600 hover:to-saffron-700 text-slate-950 font-black text-sm rounded-2xl shadow-md flex items-center gap-2 min-h-[46px] transition-transform active:scale-95"
+            >
+              <PlayCircle className="w-5 h-5" />
+              <span>सर्व डेमो पहा</span>
+            </button>
+          </div>
+
+          {/* 3 One-Tap Persona Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {DEMO_PERSONAS.map((persona) => (
+              <button
+                key={persona.id}
+                onClick={() => {
+                  setActiveScreen('demo');
+                }}
+                className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-amber-500 dark:hover:border-amber-400 text-left shadow-sm hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px]"
+              >
+                <div>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className="text-2xl p-1.5 rounded-xl bg-amber-50 dark:bg-slate-700">{persona.avatar}</span>
+                    <div>
+                      <h4 className="font-black text-slate-900 dark:text-white text-base leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                        {persona.name_mr}
+                      </h4>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{persona.role_mr}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 inline-block mb-1.5">
+                    {persona.scheme_name_mr}
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                    {persona.description_mr}
+                  </p>
+                </div>
+                <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs font-black text-amber-700 dark:text-amber-400">
+                  <span>प्रवास पहा (९० सेकंद)</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
               </button>
             ))}
           </div>
