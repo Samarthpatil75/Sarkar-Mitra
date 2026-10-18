@@ -6,7 +6,7 @@ import { useSpeech } from '../context/SpeechContext';
 
 export default function ConversationScreen() {
   const { messages, setSelectedScheme, setActiveScreen, t } = useApp();
-  const { isListening, isSpeaking, interimTranscript, speak } = useSpeech();
+  const { isListening, isSpeaking, interimTranscript, speak, processInput, speechSpeed, setSpeechSpeed } = useSpeech();
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to latest message
@@ -26,16 +26,58 @@ export default function ConversationScreen() {
   return (
     <div className="max-w-3xl mx-auto px-4 pt-2 pb-32 space-y-4">
 
-      {/* Screen Title & Instruction Header */}
-      <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+      {/* Screen Title & Speech Speed Control Header */}
+      <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
             <Bot className="w-6 h-6 text-saffron-600" />
             <span>मराठी संभाषण (Voice Chat)</span>
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            माईक दाबा आणि बोला, किंवा उत्तर ऐकण्यासाठी 🔊 बटण दाबा.
+            माईक दाबा आणि बोला, किंवा उत्तर ऐकण्यासाठी 🔁 बटण दाबा.
           </p>
+        </div>
+
+        {/* Speech Speed Control (हळू / सामान्य / जलद) */}
+        <div className="flex items-center gap-2 self-start sm:self-auto bg-slate-50 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 pl-1">
+            आवाजाचा वेग:
+          </span>
+          <div className="inline-flex rounded-xl p-0.5 bg-slate-200/70 dark:bg-slate-800">
+            <button
+              onClick={() => setSpeechSpeed('slow')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                speechSpeed === 'slow'
+                  ? 'bg-saffron-600 text-white shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="हळू आवाज (ग्रामीण / ज्येष्ठ नागरिकांसाठी)"
+            >
+              हळू
+            </button>
+            <button
+              onClick={() => setSpeechSpeed('normal')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                speechSpeed === 'normal'
+                  ? 'bg-saffron-600 text-white shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="सामान्य आवाज"
+            >
+              सामान्य
+            </button>
+            <button
+              onClick={() => setSpeechSpeed('fast')}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                speechSpeed === 'fast'
+                  ? 'bg-saffron-600 text-white shadow-sm'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+              }`}
+              title="जलद आवाज"
+            >
+              जलद
+            </button>
+          </div>
         </div>
       </div>
 
@@ -82,11 +124,12 @@ export default function ConversationScreen() {
                     {isAssistant && (
                       <button
                         onClick={() => handleReplay(msg.text_mr)}
-                        className="p-1.5 text-saffron-600 dark:text-saffron-400 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-lg min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors focus:ring-2 focus:ring-saffron-400"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-saffron-800 dark:text-saffron-300 bg-saffron-50 dark:bg-slate-700 hover:bg-saffron-100 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-xl transition-all shadow-sm focus:ring-2 focus:ring-saffron-400 min-h-[36px]"
                         aria-label="हे उत्तर पुन्हा ऐका"
                         title="पुन्हा ऐका"
                       >
-                        <Volume2 className="w-5 h-5" />
+                        <span className="text-sm">🔁</span>
+                        <span>पुन्हा ऐका</span>
                       </button>
                     )}
                   </div>
@@ -96,6 +139,28 @@ export default function ConversationScreen() {
                 <p className="font-medium whitespace-pre-line text-lg leading-relaxed">
                   {msg.text_mr}
                 </p>
+
+                {/* Tappable Options when confidence is low or multiple schemes match ("तुम्ही हे म्हणालात का?") */}
+                {isAssistant && msg.options && msg.options.length > 0 && (
+                  <div className="mt-3.5 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                    <span className="text-xs font-bold text-saffron-800 dark:text-saffron-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-saffron-600" />
+                      <span>खालील पर्यायांपैकी एकावर स्पर्श करा:</span>
+                    </span>
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+                      {msg.options.map((opt, optIdx) => (
+                        <button
+                          key={optIdx}
+                          onClick={() => processInput(opt.query || opt.label_mr)}
+                          className="px-3.5 py-2.5 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm flex items-center gap-2 text-left active:scale-95"
+                        >
+                          <span className="text-saffron-600 dark:text-saffron-400">👉</span>
+                          <span>{opt.label_mr}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* External link if provided */}
                 {msg.link && (

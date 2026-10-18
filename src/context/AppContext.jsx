@@ -31,6 +31,77 @@ export function AppProvider({ children }) {
     return false;
   });
 
+  // Font Size scaling: 'normal' | 'large' | 'xlarge'
+  const [fontSize, setFontSizeState] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('sarkar_mitra_font_size') || 'normal';
+      }
+    } catch (e) {
+      console.warn('LocalStorage error reading font size:', e);
+    }
+    return 'normal';
+  });
+
+  const increaseFontSize = () => {
+    setFontSizeState(prev => {
+      const next = prev === 'normal' ? 'large' : 'xlarge';
+      try {
+        localStorage.setItem('sarkar_mitra_font_size', next);
+      } catch (e) {}
+      showToast(next === 'xlarge' ? 'अक्षरांचा आकार खूप मोठा केला (A++)' : 'अक्षरांचा आकार मोठा केला (A+)', 'info');
+      return next;
+    });
+  };
+
+  const decreaseFontSize = () => {
+    setFontSizeState(prev => {
+      const next = prev === 'xlarge' ? 'large' : 'normal';
+      try {
+        localStorage.setItem('sarkar_mitra_font_size', next);
+      } catch (e) {}
+      showToast('अक्षरांचा आकार सामान्य केला (A-)', 'info');
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (fontSize === 'xlarge') {
+      root.style.fontSize = '18.5px';
+    } else if (fontSize === 'large') {
+      root.style.fontSize = '17.2px';
+    } else {
+      root.style.fontSize = '16px';
+    }
+  }, [fontSize]);
+
+  // One-time Microphone check dialog state
+  const [isMicCheckOpen, setIsMicCheckOpen] = useState(false);
+  const openMicCheck = () => setIsMicCheckOpen(true);
+  const closeMicCheck = () => setIsMicCheckOpen(false);
+
+  // First-launch welcome banner state
+  const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return !localStorage.getItem('sarkar_mitra_welcomed');
+      }
+    } catch (e) {
+      return true;
+    }
+    return true;
+  });
+
+  const dismissWelcomeModal = () => {
+    setShowWelcomeModal(false);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sarkar_mitra_welcomed', 'true');
+      }
+    } catch (e) {}
+  };
+
   // Active Screen: 'home' | 'conversation' | 'eligibility' | 'documents' | 'form' | 'accuracy' | 'about' | 'demo'
   const [activeScreen, setActiveScreen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -136,7 +207,15 @@ export function AppProvider({ children }) {
         showToast,
         t,
         schemes: schemesData.schemes,
-        officialNotice: schemesData.notice
+        officialNotice: schemesData.notice,
+        fontSize,
+        increaseFontSize,
+        decreaseFontSize,
+        isMicCheckOpen,
+        openMicCheck,
+        closeMicCheck,
+        showWelcomeModal,
+        dismissWelcomeModal
       }}
     >
       {children}

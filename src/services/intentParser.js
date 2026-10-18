@@ -106,9 +106,65 @@ export function detectScheme(text, currentSchemeId = null) {
 /**
  * Parse intent and generate spoken Marathi response & action
  */
-export function parseIntent(userText, currentScheme = null) {
+export function parseIntent(userText, currentScheme = null, confidence = null) {
   const norm = normalizeMarathiSpeech(userText);
-  const scheme = detectScheme(userText, currentScheme ? currentScheme.id : null);
+
+  // 0a. Low confidence disambiguation guard
+  if (confidence !== null && confidence > 0 && confidence < 0.65) {
+    return {
+      intent: 'DISAMBIGUATION',
+      action: 'ask_options',
+      reply_mr: 'तुम्ही हे म्हणालात का? खालीलपैकी योग्य पर्याय निवडा:',
+      options: [
+        { label_mr: 'लाडकी बहीण योजना माहिती', query: 'लाडकी बहीण योजना' },
+        { label_mr: 'पीएम किसान शेतकरी योजना', query: 'पीएम किसान योजना' },
+        { label_mr: 'आयुष्यमान भारत हॉस्पिटल उपचार', query: 'आयुष्यमान भारत योजना' }
+      ]
+    };
+  }
+
+  // 0b. Detect all schemes that match keywords
+  const matchedSchemes = [];
+  for (const [schemeId, keywords] of Object.entries(SCHEME_KEYWORDS)) {
+    if (keywords.some(kw => norm.includes(kw))) {
+      const found = schemesData.schemes.find(s => s.id === schemeId);
+      if (found && !matchedSchemes.some(m => m.id === found.id)) {
+        matchedSchemes.push(found);
+      }
+    }
+  }
+
+  // If two or more close schemes matched:
+  if (matchedSchemes.length >= 2) {
+    return {
+      intent: 'DISAMBIGUATION',
+      action: 'ask_options',
+      reply_mr: 'तुम्ही हे म्हणालात का? खालीलपैकी कोणती योजना तुम्हाला पाहायची आहे?',
+      options: matchedSchemes.slice(0, 3).map(s => ({
+        label_mr: s.name_mr,
+        query: `${s.name_mr} बद्दल सांगा`
+      }))
+    };
+  }
+
+  // 0c. General inquiries like "मला कोणत्या योजना मिळू शकतात?", "योजना सांगा", "सर्व योजना"
+  const GENERAL_SCHEME_QUERIES = [
+    'कोणत्या योजना', 'कोणती योजना', 'योजना सांगा', 'योजनांची यादी', 'योजना दाखवा', 'काय योजना', 'योजना हवी', 'सर्व योजना', 'योजना मिळू शकतात'
+  ];
+  if (GENERAL_SCHEME_QUERIES.some(kw => norm.includes(kw)) && matchedSchemes.length === 0) {
+    return {
+      intent: 'DISAMBIGUATION',
+      action: 'ask_options',
+      reply_mr: 'तुम्ही हे म्हणालात का? खालील प्रमुख सरकारी योजनांची माहिती उपलब्ध आहे:',
+      options: [
+        { label_mr: 'लाडकी बहीण योजना (दरमहा ₹१,५००)', query: 'लाडकी बहीण योजना माहिती' },
+        { label_mr: 'पीएम किसान योजना (वार्षिक ₹१२,०००)', query: 'पीएम किसान योजना माहिती' },
+        { label_mr: 'आयुष्यमान भारत (₹५ लाख मोफत उपचार)', query: 'आयुष्यमान भारत योजना माहिती' }
+      ]
+    };
+  }
+
+  const scheme = matchedSchemes[0] || detectScheme(userText, currentScheme ? currentScheme.id : null);
 
   // 1. Check for Repeat
   if (INTENT_PATTERNS.REPEAT.some(kw => norm.includes(kw))) {
@@ -232,7 +288,13 @@ export function parseIntent(userText, currentScheme = null) {
       intent: 'SELECT_SCHEME_FOR_ELIGIBILITY',
       action: 'ask_scheme_selection',
       scheme: null,
-      reply_mr: 'तुम्हाला कोणत्या योजनेची पात्रता तपासायची आहे? लाडकी बहीण, पीएम किसान, आयुष्यमान भारत की रेशन कार्ड?'
+      reply_mr: 'तुम्ही हे म्हणालात का? तुम्हाला कोणत्या योजनेची पात्रता तपासायची आहे?',
+      options: [
+        { label_mr: 'लाडकी बहीण पात्रता', query: 'लाडकी बहीण पात्रता' },
+        { label_mr: 'पीएम किसान पात्रता', query: 'पीएम किसान पात्रता' },
+        { label_mr: 'आयुष्यमान भारत पात्रता', query: 'आयुष्यमान भारत पात्रता' },
+        { label_mr: 'रेशन कार्ड पात्रता', query: 'रेशन कार्ड पात्रता' }
+      ]
     };
   }
 
@@ -241,7 +303,13 @@ export function parseIntent(userText, currentScheme = null) {
       intent: 'SELECT_SCHEME_FOR_DOCS',
       action: 'ask_scheme_selection',
       scheme: null,
-      reply_mr: 'तुम्हाला कोणत्या योजनेची कागदपत्रे हवी आहेत? लाडकी बहीण, पीएम किसान, आयुष्यमान भारत किंवा रेशन कार्डचे नाव सांगा.'
+      reply_mr: 'तुम्ही हे म्हणालात का? तुम्हाला कोणत्या योजनेची कागदपत्रे हवी आहेत?',
+      options: [
+        { label_mr: 'लाडकी बहीण कागदपत्रे', query: 'लाडकी बहीण कागदपत्रे' },
+        { label_mr: 'पीएम किसान कागदपत्रे', query: 'पीएम किसान कागदपत्रे' },
+        { label_mr: 'आयुष्यमान भारत कागदपत्रे', query: 'आयुष्यमान भारत कागदपत्रे' },
+        { label_mr: 'रेशन कार्ड कागदपत्रे', query: 'रेशन कार्ड कागदपत्रे' }
+      ]
     };
   }
 

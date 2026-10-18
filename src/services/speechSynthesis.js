@@ -108,7 +108,7 @@ class SpeechSynthesisService {
     this.currentUtterance = null;
   }
 
-  speak(text, { onStart, onEnd, onError, lowBandwidth = false, force = false } = {}) {
+  speak(text, { onStart, onEnd, onError, lowBandwidth = false, force = false, rate = 0.95 } = {}) {
     if (!this.synth || !text) {
       if (onEnd) onEnd();
       return;
@@ -141,8 +141,8 @@ class SpeechSynthesisService {
         utterance.lang = 'mr-IN';
       }
 
-      // Slightly slower pace for elderly and rural listeners
-      utterance.rate = 0.90;
+      // Configurable rate (हळू / सामान्य / जलद)
+      utterance.rate = Number(rate) || 0.95;
       utterance.pitch = 1.0;
 
       const handleSpeechComplete = () => {

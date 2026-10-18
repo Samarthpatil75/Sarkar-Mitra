@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle } from 'lucide-react';
 import SchemeCard from '../components/SchemeCard';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
@@ -9,6 +9,21 @@ import { DEMO_PERSONAS } from '../data/demoPersonas';
 export default function HomeScreen() {
   const { schemes, setSelectedScheme, setActiveScreen, t, lowBandwidth } = useApp();
   const { isListening, isSpeaking, toggleListening, interimTranscript, processInput } = useSpeech();
+
+  const rotatingChips = [
+    'लाडकी बहीण योजनेबद्दल सांगा',
+    'मला कोणत्या योजना मिळू शकतात?',
+    'कागदपत्रे कोणती लागतील?'
+  ];
+
+  const [currentChipIdx, setCurrentChipIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentChipIdx(prev => (prev + 1) % rotatingChips.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [rotatingChips.length]);
 
   const sampleVoicePrompts = [
     { label: 'लाडकी बहीण योजनेची माहिती द्या', query: 'लाडकी बहीण योजना माहिती' },
@@ -67,6 +82,51 @@ export default function HomeScreen() {
           <p className="mt-4 text-base sm:text-lg font-extrabold text-saffron-800 dark:text-saffron-300">
             {isListening ? 'आम्ही ऐकत आहोत... तुमची शंका बोला' : '👆 वरील बटण दाबून मराठीत बोला'}
           </p>
+
+          {/* Rotating "असे म्हणा" example chips under big mic button */}
+          <div className="mt-5 w-full max-w-lg flex flex-col items-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-saffron-100 dark:bg-saffron-950/80 border border-saffron-300 dark:border-saffron-700 text-xs sm:text-sm font-extrabold text-saffron-900 dark:text-saffron-200 mb-2.5">
+              <Sparkles className="w-4 h-4 text-saffron-600 animate-pulse" />
+              <span>"असे म्हणा" (किंवा खालील पर्यायावर दाबा):</span>
+            </div>
+
+            {/* Featured Rotating Example Chip Button */}
+            <button
+              onClick={() => processInput(rotatingChips[currentChipIdx])}
+              className="group w-full max-w-md py-3 px-5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-saffron-400 dark:border-saffron-500 shadow-md hover:shadow-lg hover:border-saffron-500 text-left flex items-center justify-between gap-3 transition-all transform hover:scale-[1.02] active:scale-95"
+              aria-label={`असे म्हणा: ${rotatingChips[currentChipIdx]}`}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="text-xl">💬</span>
+                <span className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white truncate">
+                  "{rotatingChips[currentChipIdx]}"
+                </span>
+              </div>
+              <span className="px-3 py-1 rounded-xl bg-saffron-600 text-white text-xs font-black uppercase shrink-0 group-hover:bg-saffron-700">
+                विचारा 👉
+              </span>
+            </button>
+
+            {/* Small Quick Chips Row */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {rotatingChips.map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setCurrentChipIdx(idx);
+                    processInput(chip);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold border transition-all text-left shadow-sm ${
+                    idx === currentChipIdx
+                      ? 'bg-saffron-100 dark:bg-saffron-950 text-saffron-900 dark:text-saffron-200 border-saffron-500 ring-2 ring-saffron-300'
+                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-saffron-400'
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Live Audio / Interim Waveform Visualizer */}

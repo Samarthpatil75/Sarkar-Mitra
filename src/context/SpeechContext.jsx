@@ -25,6 +25,37 @@ export function SpeechProvider({ children }) {
   const [micStatus, setMicStatus] = useState('idle'); // 'idle' | 'listening' | 'denied' | 'unsupported' | 'processing'
   const [errorMessage, setErrorMessage] = useState(null);
 
+  // Speech speed control: 'slow' | 'normal' | 'fast' (saved in localStorage inside try/catch)
+  const [speechSpeed, setSpeechSpeedState] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        return localStorage.getItem('sarkar_mitra_speech_speed') || 'normal';
+      }
+    } catch (e) {
+      console.warn('LocalStorage read error for speech speed:', e);
+    }
+    return 'normal';
+  });
+
+  const setSpeechSpeed = useCallback((newSpeed) => {
+    setSpeechSpeedState(newSpeed);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sarkar_mitra_speech_speed', newSpeed);
+      }
+    } catch (e) {
+      console.warn('LocalStorage write error for speech speed:', e);
+    }
+    const label = newSpeed === 'slow' ? 'हळू' : newSpeed === 'fast' ? 'जलद' : 'सामान्य';
+    showToast(`आवाजाची गती: ${label}`, 'info');
+  }, [showToast]);
+
+  const getSpeedMultiplier = useCallback((speed) => {
+    if (speed === 'slow') return 0.78;
+    if (speed === 'fast') return 1.25;
+    return 0.95; // normal
+  }, []);
+
   // Active custom input handler hook for wizard screens (e.g. eligibility or form filling)
   const screenVoiceHandlerRef = useRef(null);
 
@@ -66,9 +97,12 @@ export function SpeechProvider({ children }) {
     isSpeakingRef.current = true;
     setIsSpeaking(true);
 
+    const speedRate = options.rate || getSpeedMultiplier(speechSpeed);
+
     speechSynthesizer.speak(text, {
       lowBandwidth,
       force: options.force || false,
+      rate: speedRate,
       onStart: () => {
         isSpeakingRef.current = true;
         setIsSpeaking(true);
@@ -91,7 +125,7 @@ export function SpeechProvider({ children }) {
         if (options.onError) options.onError(err);
       }
     });
-  }, [lowBandwidth]);
+  }, [lowBandwidth, speechSpeed, getSpeedMultiplier]);
 
   // Process text entered either via voice or manual typing box
   const processInput = useCallback((rawText) => {
@@ -142,7 +176,8 @@ export function SpeechProvider({ children }) {
       scheme: parsed.scheme || selectedScheme,
       link: parsed.link,
       link_text: parsed.link_text,
-      action: parsed.action
+      action: parsed.action,
+      options: parsed.options || null
     };
 
     addMessage(assistantMsg);
@@ -265,7 +300,9 @@ export function SpeechProvider({ children }) {
         speak,
         stopSpeaking,
         processInput,
-        registerVoiceHandler
+        registerVoiceHandler,
+        speechSpeed,
+        setSpeechSpeed
       }}
     >
       {children}

@@ -11,7 +11,9 @@ export default function PersistentMicBar() {
     micStatus, 
     errorMessage, 
     processInput,
-    isSpeechSupported
+    isSpeechSupported,
+    speechSpeed,
+    setSpeechSpeed
   } = useSpeech();
 
   const { t, lowBandwidth } = useApp();
@@ -188,10 +190,24 @@ export default function PersistentMicBar() {
             </button>
           </div>
 
-          {/* Helper Chip for elderly / quick guidance */}
-          <div className="hidden sm:flex flex-col text-right text-xs text-slate-500 dark:text-slate-400">
-            <span className="font-bold text-slate-700 dark:text-slate-300">मराठीत बोला</span>
-            <span>कोणतीही योजना विचारा</span>
+          {/* Helper Chip & Speech Speed Quick Toggle */}
+          <div className="hidden sm:flex flex-col items-end gap-1 text-xs">
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">वेग:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextSpeed = speechSpeed === 'slow' ? 'normal' : speechSpeed === 'normal' ? 'fast' : 'slow';
+                  setSpeechSpeed(nextSpeed);
+                }}
+                className="px-2 py-0.5 rounded-lg font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-saffron-800 dark:text-saffron-300 border border-slate-300 dark:border-slate-700 transition-colors"
+                title="आवाजाचा वेग बदला (हळू / सामान्य / जलद)"
+                aria-label="आवाजाचा वेग बदला"
+              >
+                {speechSpeed === 'slow' ? '🐢 हळू' : speechSpeed === 'fast' ? '⚡ जलद' : '🗣️ सामान्य'}
+              </button>
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">मराठीत बोला</span>
           </div>
         </div>
 

@@ -12,6 +12,8 @@ import VoiceFormScreen from './screens/VoiceFormScreen';
 import AboutHelpScreen from './screens/AboutHelpScreen';
 import AccuracyTestScreen from './screens/AccuracyTestScreen';
 import DemoScreen from './screens/DemoScreen';
+import FirstLaunchWelcomeModal from './components/FirstLaunchWelcomeModal';
+import MicCheckModal from './components/MicCheckModal';
 
 function MainApp() {
   const { activeScreen, toast } = useApp();
@@ -55,6 +57,12 @@ function MainApp() {
 
       {/* Persistent Bottom Voice / Mic Bar */}
       <PersistentMicBar />
+
+      {/* First Launch Spoken Welcome Modal */}
+      <FirstLaunchWelcomeModal />
+
+      {/* One-Time Microphone Check Modal */}
+      <MicCheckModal />
 
       {/* Toast Notification */}
       {toast && (

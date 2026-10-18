@@ -14,7 +14,8 @@ import {
   Home, 
   BarChart2, 
   Languages,
-  PlayCircle 
+  PlayCircle,
+  Mic
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
@@ -29,6 +30,10 @@ export default function Navbar() {
     toggleLowBandwidth, 
     activeScreen, 
     setActiveScreen,
+    fontSize,
+    increaseFontSize,
+    decreaseFontSize,
+    openMicCheck,
     t 
   } = useApp();
 
@@ -126,6 +131,46 @@ export default function Navbar() {
             </span>
           </button>
 
+          {/* Mic Check One-Time Button */}
+          <button
+            onClick={openMicCheck}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-saffron-50 hover:bg-saffron-100 text-saffron-900 dark:bg-saffron-950/80 dark:hover:bg-saffron-900 dark:text-saffron-200 border border-saffron-300 dark:border-saffron-700 min-h-[44px] transition-all shadow-sm"
+            aria-label="माइक तपासा"
+            title="माइक तपासा (Say 'नमस्कार')"
+          >
+            <Mic className="w-4 h-4 text-saffron-600 dark:text-saffron-400" />
+            <span className="hidden sm:inline">माइक तपासा</span>
+          </button>
+
+          {/* Text Size Scaling A- / A+ */}
+          <div 
+            className="flex items-center rounded-xl border border-slate-300 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-800 shadow-sm"
+            role="group"
+            aria-label="अक्षरांचा आकार बदला"
+          >
+            <button
+              onClick={decreaseFontSize}
+              className={`px-2.5 py-2 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs min-h-[44px] min-w-[36px] flex items-center justify-center transition-colors focus:ring-2 focus:ring-saffron-400 ${
+                fontSize === 'normal' ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+              aria-label="अक्षरांचा आकार लहान करा (A-)"
+              title="अक्षरांचा आकार लहान करा (A-)"
+            >
+              A-
+            </button>
+            <div className="w-[1px] h-4 bg-slate-300 dark:bg-slate-600"></div>
+            <button
+              onClick={increaseFontSize}
+              className={`px-2.5 py-2 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-sm min-h-[44px] min-w-[36px] flex items-center justify-center transition-colors focus:ring-2 focus:ring-saffron-400 ${
+                fontSize === 'xlarge' ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
+              aria-label="अक्षरांचा आकार मोठा करा (A+)"
+              title="अक्षरांचा आकार मोठा करा (A+)"
+            >
+              A+
+            </button>
+          </div>
+
           {/* Language Toggle (UI Labels: mr/en) */}
           <button
             onClick={toggleLanguage}
@@ -202,6 +247,18 @@ export default function Navbar() {
               </button>
             );
           })}
+
+          {/* Mobile Mic Check Button */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              openMicCheck();
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold text-left transition-colors min-h-[48px] bg-saffron-50 dark:bg-slate-800 text-saffron-900 dark:text-saffron-200 border border-saffron-200 dark:border-slate-700 mt-2"
+          >
+            <Mic className="w-5 h-5 text-saffron-600" />
+            <span>माइक तपासा (मायक्रोफोन चाचणी)</span>
+          </button>
         </div>
       )}
     </header>
