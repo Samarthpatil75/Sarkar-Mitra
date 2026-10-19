@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle, Square } from 'lucide-react';
+import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle, Square, Smartphone, Download } from 'lucide-react';
 import SchemeCard from '../components/SchemeCard';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
@@ -7,7 +7,7 @@ import { useSpeech } from '../context/SpeechContext';
 import { DEMO_PERSONAS } from '../data/demoPersonas';
 
 export default function HomeScreen() {
-  const { schemes, setSelectedScheme, setActiveScreen, t, lowBandwidth } = useApp();
+  const { schemes, setSelectedScheme, setActiveScreen, t, lowBandwidth, isAppInstalled, installPWA } = useApp();
   const { isListening, isSpeaking, toggleListening, stopSpeaking, interimTranscript, processInput } = useSpeech();
 
   const rotatingChips = [
@@ -94,7 +94,7 @@ export default function HomeScreen() {
                 aria-label="आवाज थांबवा"
               >
                 <Square className="w-5 h-5 fill-current" />
-                <span>⏹ आवाज थांबवा</span>
+                <span>आवाज थांबवा</span>
               </button>
             </div>
           )}
@@ -380,6 +380,34 @@ export default function HomeScreen() {
           ))}
         </div>
       </section>
+
+      {/* PWA Offline / Install Banner on Home */}
+      {!isAppInstalled && (
+        <section className="max-w-5xl mx-auto px-4 mt-6">
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-saffron-600 via-amber-600 to-saffron-700 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-saffron-400/40">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0 text-white shadow-inner">
+                <Smartphone className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="font-black text-base sm:text-lg text-white">
+                  सरकार मित्र ॲप होम स्क्रीनवर जोडा (PWA App)
+                </h4>
+                <p className="text-xs sm:text-sm text-amber-100 font-medium">
+                  मोबाईलवर ॲपप्रमाणे वापरा — इंटरनेट नसतानाही योजनांची माहिती आणि कागदपत्रे यादी उपलब्ध!
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={installPWA}
+              className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-amber-50 text-slate-900 font-black text-sm rounded-2xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2 min-h-[48px] shrink-0"
+            >
+              <Download className="w-4 h-4 text-saffron-600" />
+              <span>होम स्क्रीनवर जोडा</span>
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Trust & Privacy Civic Footer Banner */}
       <section className="max-w-4xl mx-auto px-4 mt-8">

@@ -293,13 +293,6 @@ export default function VoiceFormScreen() {
     setSpeechFeedback(null);
   }, []);
 
-  // Cleanup on unmount so nothing keeps speaking after screen closes
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
-    };
-  }, [stopSpeaking]);
-
   // Voice handler for answering, confirming, and completed summary actions
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
@@ -511,7 +504,7 @@ export default function VoiceFormScreen() {
                 title="आवाज थांबवा"
               >
                 <Square className="w-4 h-4 fill-current" />
-                <span>⏹ आवाज थांबवा</span>
+                <span>आवाज थांबवा</span>
               </button>
             ) : (
               <button

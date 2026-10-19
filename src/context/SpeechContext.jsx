@@ -16,6 +16,7 @@ export function SpeechProvider({ children }) {
     setSelectedScheme,
     addMessage,
     showToast,
+    isOffline,
     t
   } = useApp();
 
@@ -76,7 +77,11 @@ export function SpeechProvider({ children }) {
     try {
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('sarkar_mitra_auto_speak');
-        return saved !== null ? saved === 'true' : true;
+        // MUST DEFAULT TO TRUE, and only turn off when explicitly 'false'
+        if (saved === 'false') {
+          return false;
+        }
+        return true;
       }
     } catch (e) {
       console.warn('LocalStorage read error for auto speak:', e);
@@ -92,6 +97,9 @@ export function SpeechProvider({ children }) {
       }
     } catch (e) {
       console.warn('LocalStorage write error for auto speak:', e);
+    }
+    if (!val) {
+      audioController.stop({ userInitiated: true, reason: 'auto_speak_disabled' });
     }
     showToast(val ? 'उत्तर ऐकणे (आवाज) सुरू केले' : 'उत्तर ऐकणे (आवाज) बंद केले', 'info');
   }, [showToast]);
@@ -129,9 +137,11 @@ export function SpeechProvider({ children }) {
     return audioController.replayLast();
   }, []);
 
-  // Automatic stopping when screen/route changes
+  // Automatic stopping when navigating to static info screens
   useEffect(() => {
-    stopSpeaking({ reason: 'route_change' });
+    if (activeScreen === 'about' || activeScreen === 'accuracy') {
+      stopSpeaking({ reason: 'static_screen' });
+    }
   }, [activeScreen, stopSpeaking]);
 
   // Automatic stopping when lowBandwidth mode changes
@@ -151,7 +161,14 @@ export function SpeechProvider({ children }) {
 
   // Central speak method routing to audioController
   const speak = useCallback((text, options = {}) => {
-    if (!text) return;
+    if (!text || !text.trim()) return;
+
+    // Check "उत्तर ऐका" (autoSpeakAnswers):
+    // If user explicitly switched off "उत्तर ऐका" and caller is not forcing playback (force: true), block auto-speaking
+    if (!autoSpeakAnswers && !options.force) {
+      console.debug('[SpeechContext] speak blocked: "उत्तर ऐका" (autoSpeakAnswers) is turned off by user');
+      return;
+    }
 
     // Immediately stop listening so mic doesn't hear the speaker output (echo guard)
     speechRecognizer.abort();
@@ -167,6 +184,7 @@ export function SpeechProvider({ children }) {
       id: options.id || null,
       lowBandwidth,
       force: options.force || false,
+      isWelcome: options.isWelcome || false,
       rate: speedRate,
       lang: options.lang || 'mr-IN',
       onStart: () => {
@@ -187,11 +205,11 @@ export function SpeechProvider({ children }) {
       onError: (err) => {
         isSpeakingRef.current = false;
         setIsSpeaking(false);
-        console.warn('TTS error:', err);
+        console.warn('[SpeechContext] TTS error:', err);
         if (options.onError) options.onError(err);
       }
     });
-  }, [lowBandwidth, speechSpeed, getSpeedMultiplier]);
+  }, [lowBandwidth, speechSpeed, autoSpeakAnswers, getSpeedMultiplier]);
 
   // Process text entered either via voice or manual typing box
   const processInput = useCallback((rawText) => {
@@ -292,6 +310,14 @@ export function SpeechProvider({ children }) {
   }, [selectedScheme, addMessage, speak, stopSpeaking, setActiveScreen, activeScreen, setSelectedScheme, autoSpeakAnswers]);
 
   const startListening = useCallback(() => {
+    // Keep voice recognition requiring a connection, and fall back to tap mode when offline
+    if (isOffline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      showToast('ऑफलाइन — आवाज ओळख बंद, बटणे वापरा', 'warning');
+      setMicStatus('offline');
+      setIsListening(false);
+      return;
+    }
+
     if (!isSpeechSupported) {
       showToast(t('speech_unsupported'), 'warning');
       setMicStatus('unsupported');
@@ -325,7 +351,11 @@ export function SpeechProvider({ children }) {
       },
       onError: (error) => {
         setIsListening(false);
-        if (error === 'not-allowed') {
+        if (error === 'network') {
+          setMicStatus('offline');
+          setErrorMessage('ऑफलाइन — आवाज ओळख बंद, बटणे वापरा');
+          showToast('ऑफलाइन — आवाज ओळख बंद, बटणे वापरा', 'warning');
+        } else if (error === 'not-allowed') {
           setMicStatus('denied');
           setErrorMessage(t('mic_denied_warning'));
           showToast(t('mic_denied_warning'), 'error');

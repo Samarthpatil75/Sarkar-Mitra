@@ -18,7 +18,8 @@ import {
   PlayCircle,
   Mic,
   Square,
-  RotateCcw
+  RotateCcw,
+  Smartphone
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
@@ -38,6 +39,8 @@ export default function Navbar() {
     increaseFontSize,
     decreaseFontSize,
     openMicCheck,
+    isAppInstalled,
+    installPWA,
     t 
   } = useApp();
 
@@ -125,6 +128,21 @@ export default function Navbar() {
             <span>डेमो पहा</span>
           </button>
 
+          {/* PWA Install Button "होम स्क्रीनवर जोडा" */}
+          {!isAppInstalled && (
+            <button
+              type="button"
+              onClick={installPWA}
+              className="px-3 py-2 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all min-h-[44px] shadow-sm bg-gradient-to-r from-saffron-600 to-amber-600 hover:from-saffron-700 hover:to-amber-700 text-white border border-saffron-500 active:scale-95 cursor-pointer"
+              title="सरकार मित्र ॲप मोबाईलवर इन्स्टॉल करा"
+              aria-label="होम स्क्रीनवर जोडा"
+            >
+              <Smartphone className="w-4 h-4 text-white" />
+              <span className="hidden lg:inline">होम स्क्रीनवर जोडा</span>
+              <span className="lg:hidden">इन्स्टॉल</span>
+            </button>
+          )}
+
           {/* Prominent Speaking Audio Stop Button */}
           {isSpeaking && (
             <button
@@ -136,7 +154,7 @@ export default function Navbar() {
               title="आवाज थांबवा"
             >
               <Square className="w-4 h-4 fill-current" />
-              <span>⏹ आवाज थांबवा</span>
+              <span>आवाज थांबवा</span>
             </button>
           )}
 
@@ -317,6 +335,25 @@ export default function Navbar() {
             <Mic className="w-5 h-5 text-saffron-600" />
             <span>माइक तपासा (मायक्रोफोन चाचणी)</span>
           </button>
+
+          {/* Mobile "होम स्क्रीनवर जोडा" PWA Install Button */}
+          {!isAppInstalled && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                installPWA();
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-black min-h-[48px] bg-gradient-to-r from-saffron-600 to-amber-600 text-white shadow-md mt-2"
+            >
+              <div className="flex items-center gap-2.5">
+                <Smartphone className="w-5 h-5 text-white" />
+                <span>होम स्क्रीनवर जोडा (Install App)</span>
+              </div>
+              <span className="px-2 py-0.5 text-xs bg-white/25 rounded-md font-bold">
+                PWA
+              </span>
+            </button>
+          )}
         </div>
       )}
 

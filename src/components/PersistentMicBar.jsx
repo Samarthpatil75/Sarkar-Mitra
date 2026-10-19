@@ -10,7 +10,8 @@ import {
   RotateCcw, 
   Volume2, 
   VolumeX, 
-  AlertCircle 
+  AlertCircle,
+  WifiOff
 } from 'lucide-react';
 import { useSpeech } from '../context/SpeechContext';
 import { useApp } from '../context/AppContext';
@@ -34,16 +35,16 @@ export default function PersistentMicBar() {
     setAutoSpeakAnswers
   } = useSpeech();
 
-  const { t, lowBandwidth } = useApp();
+  const { t, lowBandwidth, isOffline, showToast } = useApp();
   const [showTypeBox, setShowTypeBox] = useState(false);
   const [manualText, setManualText] = useState('');
 
-  // Auto-switch to tap & type mode if speech recognition is unsupported or permission is denied
+  // Auto-switch to tap & type mode if offline, unsupported, or denied
   useEffect(() => {
-    if (!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') {
+    if (isOffline || micStatus === 'offline' || !isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') {
       setShowTypeBox(true);
     }
-  }, [isSpeechSupported, micStatus]);
+  }, [isOffline, isSpeechSupported, micStatus]);
 
   const quickPrompts = [
     'लाडकी बहीण योजना काय आहे?',
@@ -99,7 +100,7 @@ export default function PersistentMicBar() {
               aria-label="आवाज थांबवा"
             >
               <Square className="w-5 h-5 fill-current" />
-              <span>⏹ आवाज थांबवा</span>
+              <span>आवाज थांबवा</span>
             </button>
           </div>
         )}
@@ -121,8 +122,21 @@ export default function PersistentMicBar() {
           </div>
         )}
 
+        {/* Offline Fallback Banner */}
+        {(isOffline || micStatus === 'offline') && (
+          <div className="mb-2 p-3 bg-red-50 dark:bg-red-950/60 border-2 border-red-400 dark:border-red-600 rounded-xl flex items-center gap-2.5 text-red-900 dark:text-red-200 text-sm font-black animate-fadeIn">
+            <WifiOff className="w-5 h-5 flex-shrink-0 text-red-600" />
+            <div className="flex-1">
+              <span>ऑफलाइन — आवाज ओळख बंद, बटणे वापरा</span>
+              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+                इंटरनेट उपलब्ध नसल्यामुळे आवाज ओळख बंद आहे. खालील पर्याय किंवा कीबोर्ड वापरून संवाद साधा.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Friendly Speech Unavailable / Permission Fallback Banner */}
-        {(!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') && (
+        {!isOffline && (!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') && (
           <div className="mb-2 p-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl flex items-start gap-2 text-amber-900 dark:text-amber-200 text-sm animate-fadeIn">
             <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div className="flex-1">
@@ -224,20 +238,40 @@ export default function PersistentMicBar() {
           <div className="flex-1 flex justify-center">
             <button
               type="button"
-              onClick={toggleListening}
+              onClick={() => {
+                if (isOffline) {
+                  showToast('ऑफलाइन — आवाज ओळख बंद, बटणे वापरा', 'warning');
+                  setShowTypeBox(true);
+                  return;
+                }
+                toggleListening();
+              }}
               className={`group relative flex items-center justify-center gap-3 px-6 sm:px-8 py-3 rounded-full font-extrabold text-lg sm:text-xl transition-all shadow-lg min-h-[58px] min-w-[200px] focus:outline-none focus:ring-4 ${
-                isListening
+                isOffline
+                  ? 'bg-slate-700 hover:bg-slate-800 text-white border-2 border-slate-600 focus:ring-slate-400'
+                  : isListening
                   ? 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300 animate-pulse'
                   : 'bg-gradient-to-r from-saffron-600 to-saffron-700 hover:from-saffron-700 hover:to-saffron-800 text-white focus:ring-saffron-400 shadow-glow-saffron'
               }`}
-              aria-label={isListening ? 'बोलणे थांबवण्यासाठी दाबा' : 'बोलण्यासाठी दाबा (मराठीत बोला)'}
+              aria-label={
+                isOffline
+                  ? 'ऑफलाइन — आवाज ओळख बंद, बटणे वापरा'
+                  : isListening
+                  ? 'बोलणे थांबवण्यासाठी दाबा'
+                  : 'बोलण्यासाठी दाबा (मराठीत बोला)'
+              }
             >
               {/* Outer pulsing ring for visual feedback */}
-              {isListening && !lowBandwidth && (
+              {isListening && !lowBandwidth && !isOffline && (
                 <span className="absolute -inset-1 rounded-full bg-red-500 opacity-60 animate-ping"></span>
               )}
 
-              {isListening ? (
+              {isOffline ? (
+                <>
+                  <WifiOff className="w-6 h-6 text-amber-300 flex-shrink-0" />
+                  <span className="text-sm sm:text-base">ऑफलाइन (बटणे वापरा)</span>
+                </>
+              ) : isListening ? (
                 <>
                   <MicOff className="w-7 h-7 animate-bounce" />
                   <span>{t('stop_listening')}</span>

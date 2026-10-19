@@ -167,7 +167,7 @@ export default function ConversationScreen() {
               title="आवाज थांबवा"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
-              <span>⏹ आवाज थांबवा</span>
+              <span>आवाज थांबवा</span>
             </button>
           )}
 
@@ -342,7 +342,7 @@ export default function ConversationScreen() {
                           title="आवाज थांबवा"
                         >
                           <Square className="w-3.5 h-3.5 fill-current" />
-                          <span>⏹ थांबवा</span>
+                          <span>थांबवा</span>
                         </button>
                       ) : (
                         <button

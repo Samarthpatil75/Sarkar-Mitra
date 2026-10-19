@@ -194,6 +194,75 @@ export function AppProvider({ children }) {
     showToast(!lowBandwidth ? 'कमी डेटा मोड सुरू झाला (ऑडिओ फक्त दाबावर वाजेल)' : 'सामान्य डेटा मोड सुरू झाला');
   };
 
+  // Offline network detection state
+  const [isOffline, setIsOffline] = useState(() => {
+    if (typeof navigator !== 'undefined') {
+      return !navigator.onLine;
+    }
+    return false;
+  });
+
+  // PWA BeforeInstallPrompt state
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(display-mode: standalone)').matches || Boolean(window.navigator.standalone);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false);
+      showToast('इंटरनेट जोडणी पूर्ववत सुरू झाली (Online)', 'success');
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
+      showToast('ऑफलाइन — आवाज ओळख बंद, बटणे वापरा', 'warning');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsAppInstalled(true);
+      setDeferredInstallPrompt(null);
+      showToast('सरकार मित्र ॲप यशस्वीरित्या इन्स्टॉल झाले!', 'success');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const installPWA = async () => {
+    if (deferredInstallPrompt) {
+      try {
+        await deferredInstallPrompt.prompt();
+        const choiceResult = await deferredInstallPrompt.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          showToast('सरकार मित्र ॲप होम स्क्रीनवर जोडले जात आहे...', 'success');
+          setDeferredInstallPrompt(null);
+        }
+      } catch (err) {
+        console.warn('Install prompt error:', err);
+      }
+    } else {
+      showToast('होम स्क्रीनवर जोडण्यासाठी ब्राउझर मेनू (⋮ किंवा Share) मधील "Install app" किंवा "Add to Home screen" दाबा.', 'info');
+    }
+  };
+
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => {
@@ -248,7 +317,11 @@ export function AppProvider({ children }) {
         showWelcomeModal,
         dismissWelcomeModal,
         maxReachedStep,
-        unlockStep
+        unlockStep,
+        isOffline,
+        isAppInstalled,
+        deferredInstallPrompt,
+        installPWA
       }}
     >
       {children}

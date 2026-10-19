@@ -71,13 +71,6 @@ export default function DocumentsScreen() {
     }
   }, [selectedScheme, lowBandwidth, speak]);
 
-  // Cleanup on unmount to prevent any speaking after screen closes
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
-    };
-  }, [stopSpeaking]);
-
   // Pure Voice Navigation handler on Documents screen
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
@@ -181,7 +174,7 @@ export default function DocumentsScreen() {
                 aria-label="आवाज थांबवा"
               >
                 <Square className="w-5 h-5 fill-current" />
-                <span>⏹ आवाज थांबवा</span>
+                <span>आवाज थांबवा</span>
               </button>
             ) : (
               <>

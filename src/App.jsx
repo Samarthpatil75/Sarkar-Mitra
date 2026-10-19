@@ -16,10 +16,22 @@ import FirstLaunchWelcomeModal from './components/FirstLaunchWelcomeModal';
 import MicCheckModal from './components/MicCheckModal';
 
 function MainApp() {
-  const { activeScreen, toast } = useApp();
+  const { activeScreen, toast, isOffline } = useApp();
 
   return (
     <div className="min-h-screen flex flex-col bg-warmbg-light dark:bg-warmbg-dark selection:bg-saffron-200 selection:text-saffron-900 transition-colors">
+      
+      {/* Offline Notice Banner (Visible when offline) */}
+      {isOffline && (
+        <aside 
+          role="alert" 
+          aria-live="assertive"
+          className="bg-red-600 text-white px-4 py-2 text-center text-xs sm:text-sm font-black tracking-wide flex items-center justify-center gap-2 border-b-2 border-red-800 shadow-md sticky top-0 z-50 animate-fadeIn"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
+          <span>🔴 ऑफलाइन — आवाज ओळख बंद, बटणे वापरा</span>
+        </aside>
+      )}
       
       {/* Demo Mode Ribbon (Always visible when in demo mode) */}
       {activeScreen === 'demo' && (

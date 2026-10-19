@@ -55,7 +55,7 @@ export default function VoiceWaveVisualizer({ isListening: propIsListening, isSp
               aria-label="आवाज थांबवा"
             >
               <Square className="w-4 h-4 fill-current" />
-              <span>⏹ आवाज थांबवा</span>
+              <span>आवाज थांबवा</span>
             </button>
           </div>
         ) : null}

@@ -12,12 +12,9 @@ export default function FirstLaunchWelcomeModal() {
   // Speak the welcome greeting when modal appears
   useEffect(() => {
     if (showWelcomeModal) {
-      speak(welcomeText, { force: true });
+      speak(welcomeText, { force: true, isWelcome: true });
     }
-    return () => {
-      stopSpeaking();
-    };
-  }, [showWelcomeModal, speak, stopSpeaking]);
+  }, [showWelcomeModal, speak]);
 
   if (!showWelcomeModal) return null;
 

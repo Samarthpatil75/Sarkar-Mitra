@@ -199,13 +199,6 @@ export default function EligibilityScreen() {
     }
   }, [currentStep, questions, speak, stopSpeaking]);
 
-  // Cleanup on unmount so nothing keeps speaking after screen closes
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
-    };
-  }, [stopSpeaking]);
-
   // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
@@ -443,7 +436,7 @@ export default function EligibilityScreen() {
                 title="आवाज थांबवा"
               >
                 <Square className="w-4 h-4 fill-current" />
-                <span>⏹ आवाज थांबवा</span>
+                <span>आवाज थांबवा</span>
               </button>
             ) : (
               <button

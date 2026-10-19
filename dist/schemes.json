@@ -1,0 +1,2086 @@
+{
+  "notice": "VERIFY AGAINST OFFICIAL SOURCE: सर्व आकडेवारी व निकष सरकारी परिपत्रकानुसार वेळोवेळी बदलू शकतात. कृपया प्रत्यक्ष अर्जापूर्वी अधिकृत संकेतस्थळावर खात्री करा.",
+  "schemes": [
+    {
+      "id": "ladki-bahin",
+      "name_mr": "मुख्यमंत्री माझी लाडकी बहीण योजना",
+      "name_en": "Mukhyamantri Majhi Ladki Bahin Yojana",
+      "category_mr": "महिला कल्याण व आर्थिक साहाय्य",
+      "short_description_mr": "महाराष्ट्रातील पात्र महिलांना दरमहा ₹१,५०० थेट बँक खात्यात आर्थिक साहाय्य देणारी योजना.",
+      "benefit_summary_mr": "दरमहा ₹१,५०० (वर्षाला ₹१८,०००) थेट DBT द्वारे.",
+      "official_link": "https://ladakibahin.maharashtra.gov.in",
+      "last_verified_date": "2026-09-15",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२)",
+      "eligibility_rules": {
+        "gender": "महिला",
+        "min_age": 21,
+        "max_age": 65,
+        "max_annual_income": 250000,
+        "maharashtra_resident": true,
+        "govt_employee_allowed": false,
+        "tax_payer_allowed": false,
+        "four_wheeler_allowed": false
+      },
+      "eligibility_questions": [
+        {
+          "id": "gender",
+          "field": "gender",
+          "question_mr": "तुम्ही महिला आहात का?",
+          "spoken_prompt_mr": "तुम्ही महिला आहात का? हो किंवा नाही सांगा.",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, मी महिला आहे",
+              "value": true
+            },
+            {
+              "label_mr": "नाही",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "ही योजना केवळ महिलांसाठी आहे."
+        },
+        {
+          "id": "age",
+          "field": "age",
+          "question_mr": "तुमचे सध्याचे वय किती वर्षे आहे?",
+          "spoken_prompt_mr": "तुमचे सध्याचे वय किती वर्षे आहे? आकडा सांगा.",
+          "type": "number",
+          "placeholder_mr": "उदा. २८ किंवा 45",
+          "min": 18,
+          "max": 100,
+          "rule_check": "value >= 21 && value <= 65",
+          "fail_reason_mr": "अर्जदाराचे वय २१ ते ६५ वर्षांच्या दरम्यान असणे आवश्यक आहे."
+        },
+        {
+          "id": "maharashtra_resident",
+          "field": "maharashtra_resident",
+          "question_mr": "तुम्ही महाराष्ट्र राज्याचे रहिवासी आहात का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्र राज्याचे रहिवासी आहात का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, महाराष्ट्राचे रहिवासी",
+              "value": true
+            },
+            {
+              "label_mr": "नाही, इतर राज्य",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "अर्जदार महिला महाराष्ट्राची मूळ रहिवासी असणे अनिवार्य आहे."
+        },
+        {
+          "id": "annual_income",
+          "field": "annual_income",
+          "question_mr": "तुमच्या कुटुंबाचे वार्षिक उत्पन्न २.५ लाखांपेक्षा कमी आहे का?",
+          "spoken_prompt_mr": "तुमच्या कुटुंबाचे वार्षिक उत्पन्न अडीच लाखांपेक्षा कमी आहे का?",
+          "type": "select",
+          "options": [
+            {
+              "label_mr": "होय, ₹२.५ लाखांपेक्षा कमी",
+              "value": "below_2_5"
+            },
+            {
+              "label_mr": "नाही, ₹२.५ लाखांपेक्षा जास्त",
+              "value": "above_2_5"
+            },
+            {
+              "label_mr": "माहिती नाही / पिवळे-केशरी रेशन कार्ड आहे",
+              "value": "has_ration_card"
+            }
+          ],
+          "rule_check": "value === 'below_2_5' || value === 'has_ration_card'",
+          "fail_reason_mr": "कुटुंबाचे वार्षिक उत्पन्न ₹२,५०,००० पेक्षा कमी असणे आवश्यक आहे (पिवळे किंवा केशरी रेशन कार्ड असल्यास उत्पन्न दाखल्याची सूट)."
+        },
+        {
+          "id": "govt_job_or_tax",
+          "field": "govt_job_or_tax",
+          "question_mr": "कुटुंबात कोणी सरकारी नोकरदार किंवा आयकर भरणारे आहे का?",
+          "spoken_prompt_mr": "तुमच्या कुटुंबात कोणी नियमित सरकारी नोकरदार किंवा आयकरदाता आहे का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "नाही, कोणीही नाही",
+              "value": false
+            },
+            {
+              "label_mr": "होय, सरकारी नोकरदार/करदाता आहे",
+              "value": true
+            }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "कुटुंबात सरकारी नियमित नोकरदार किंवा आयकरदाता असल्यास या योजनेचा लाभ मिळत नाही."
+        }
+      ],
+      "documents_mr": [
+        {
+          "id": "aadhaar",
+          "name": "आधार कार्ड (Aadhaar Card)",
+          "required": true,
+          "note": "बँकेशी आधार लिंक (DBT Active) असणे आवश्यक"
+        },
+        {
+          "id": "domicile",
+          "name": "अधिवास / रहिवासी प्रमाणपत्र किंवा जन्म दाखला किंवा शाळा सोडल्याचा दाखला",
+          "required": true,
+          "note": "महाराष्ट्रातील रहिवासी असल्याचा पुरावा"
+        },
+        {
+          "id": "income_cert",
+          "name": "उत्पन्न प्रमाणपत्र (वार्षिक ₹२.५ लाखांपर्यंत) किंवा पिवळे/केशरी रेशन कार्ड",
+          "required": true,
+          "note": "रेशन कार्ड असल्यास वेगळा दाखला नको"
+        },
+        {
+          "id": "bank_passbook",
+          "name": "बँक पासबुक झेरॉक्स",
+          "required": true,
+          "note": "स्वतःचे वैयक्तिक बँक खाते व IFSC कोड"
+        },
+        {
+          "id": "photo_undertaking",
+          "name": "हमीपत्र व पासपोर्ट फोटो",
+          "required": true,
+          "note": "मोबाईलवरून ऑनलाईन फोटोही चालतो"
+        }
+      ],
+      "how_to_apply_mr": "१. 'नारीशक्ती दूत' ॲप किंवा अधिकृत पोर्टलवर नोंदणी करा.\n२. आधार क्रमांक व मोबाईल OTP ने लॉगिन करा.\n३. बँक खाते माहिती भरा व रेशन कार्ड अपलोड करा.\n४. अंगणवाडी केंद्र किंवा सेतू केंद्रावर विनामूल्य अर्ज करता येतो.",
+      "form_fields": [
+        {
+          "key": "full_name",
+          "label_mr": "पूर्ण नाव",
+          "spoken_prompt": "तुमचे पूर्ण नाव सांगा.",
+          "placeholder": "उदा. सुवर्णा गणेश पाटील",
+          "type": "text"
+        },
+        {
+          "key": "mobile_number",
+          "label_mr": "मोबाईल नंबर",
+          "spoken_prompt": "तुमचा दहा आकडी मोबाईल नंबर सांगा.",
+          "placeholder": "उदा. 9876543210",
+          "type": "tel"
+        },
+        {
+          "key": "district",
+          "label_mr": "जिल्हा",
+          "spoken_prompt": "तुमचा जिल्हा कोणता आहे?",
+          "placeholder": "उदा. कोल्हापूर, पुणे, नाशिक",
+          "type": "text"
+        },
+        {
+          "key": "taluka_village",
+          "label_mr": "तालुका किंवा गाव",
+          "spoken_prompt": "तुमचा तालुका किंवा गाव सांगा.",
+          "placeholder": "उदा. करवीर / वडगाव",
+          "type": "text"
+        },
+        {
+          "key": "bank_status",
+          "label_mr": "बँक खाते आधार लिंक आहे का?",
+          "spoken_prompt": "तुमचे बँक खाते आधार लिंक आहे का? होय किंवा नाही म्हणा.",
+          "placeholder": "होय / नाही",
+          "type": "select",
+          "options": [
+            "होय (Aadhaar Seeded)",
+            "नाही (करावे लागेल)"
+          ]
+        }
+      ],
+      "faqs": [
+        {
+          "id": "lb-about",
+          "topic": "योजना काय आहे",
+          "topic_key": "about",
+          "questions_mr": [
+            "लाडकी बहीण योजना काय आहे?",
+            "मुख्यमंत्री माझी लाडकी बहीण योजना माहिती",
+            "लाडकी बहीण योजना कशासाठी आहे?",
+            "लाडकी बहीण योजनेबद्दल सांगा"
+          ],
+          "questions_roman": [
+            "ladki bahin yojana kay ahe",
+            "ladki bahin yojana mahiti",
+            "what is ladki bahin yojana",
+            "ladki bahin badal sanga"
+          ],
+          "keywords": [
+            "काय आहे",
+            "माहिती",
+            "योजना",
+            "उद्देश",
+            "कशासाठी",
+            "बद्दल सांगा",
+            "about",
+            "what is",
+            "info",
+            "mahiti"
+          ],
+          "answer_mr": "महाराष्ट्र शासनाची \"मुख्यमंत्री माझी लाडकी बहीण योजना\" ही राज्यातील २१ ते ६५ वयोगटातील पात्र महिलांना दरमहा ₹१,५०० थेट बँक खात्यात आर्थिक साहाय्य देणारी योजना आहे. महिलांचे आरोग्य, पोषण आणि आर्थिक स्वावलंबन वाढवणे हा या योजनेचा मुख्य हेतू आहे.",
+          "answer_en": "Maharashtra's Ladki Bahin Yojana provides ₹1,500 monthly financial aid directly into bank accounts of eligible women aged 21-65.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-benefits",
+          "topic": "लाभ किती/कसा मिळतो",
+          "topic_key": "benefits",
+          "questions_mr": [
+            "लाडकी बहीण योजनेचे पैसे किती मिळतात?",
+            "दरमहा किती रुपये मिळतात?",
+            "लाभ कसा मिळतो?",
+            "पैसे कधी आणि कसे जमा होतात?"
+          ],
+          "questions_roman": [
+            "ladki bahin che paise kiti milatat",
+            "kiti rupaye milnar",
+            "paise kase miltat",
+            "dar maha kiti paise",
+            "benefit amount ladki bahin"
+          ],
+          "keywords": [
+            "पैसे किती",
+            "किती रुपये",
+            "रक्कम",
+            "दरमहा",
+            "लाभ",
+            "हप्ता",
+            "dbt",
+            "paise",
+            "kiti",
+            "amount",
+            "benefit",
+            "installment",
+            "rupess"
+          ],
+          "answer_mr": "या योजनेअंतर्गत पात्र महिलांना दरमहा ₹१,५०० (वर्षाला एकूण ₹१८,०००) दिले जातात. ही रक्कम दरमहा थेट आधार लिंक असलेल्या बँक खात्यात (DBT द्वारे) जमा केली जाते.",
+          "answer_en": "Eligible women receive ₹1,500 per month (total ₹18,000 annually) directly through DBT into their Aadhaar-linked bank account.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-eligible",
+          "topic": "कोण पात्र",
+          "topic_key": "eligible",
+          "questions_mr": [
+            "लाडकी बहीण योजनेसाठी कोण पात्र आहे?",
+            "पात्रतेचे निकष काय आहेत?",
+            "कोणाला लाभ मिळतो?",
+            "मी लाडकी बहीण साठी पात्र आहे का?"
+          ],
+          "questions_roman": [
+            "ladki bahin sathi kon patra ahe",
+            "patrata kay ahe",
+            "who is eligible for ladki bahin",
+            "patrata nikash",
+            "konala labh milto"
+          ],
+          "keywords": [
+            "कोण पात्र",
+            "पात्रता",
+            "निकष",
+            "वय",
+            "अटी",
+            "नियम",
+            "पात्र",
+            "eligible",
+            "patra",
+            "patrata",
+            "criteria",
+            "rules",
+            "eligibility"
+          ],
+          "answer_mr": "पात्रतेचे निकष: १. अर्जदार महिला महाराष्ट्राची रहिवासी असणे आवश्यक आहे. २. वय २१ ते ६५ वर्षे दरम्यान असावे. ३. कुटुंबाचे वार्षिक उत्पन्न ₹२.५० लाखांपेक्षा कमी असावे (पिवळे किंवा केशरी रेशन कार्ड असल्यास उत्पन्न दाखल्याची गरज नसते). ४. महिलेचे स्वतःचे बँक खाते आधार लिंक असणे अनिवार्य आहे.",
+          "answer_en": "Eligibility criteria: Maharashtra resident woman, age 21 to 65, family annual income below ₹2.5 lakh (yellow/orange ration card exempts income proof), and Aadhaar-linked bank account.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-ineligible",
+          "topic": "कोण अपात्र",
+          "topic_key": "ineligible",
+          "questions_mr": [
+            "लाडकी बहीण योजनेसाठी कोण अपात्र आहे?",
+            "कोणाला लाभ मिळत नाही?",
+            "अपात्रतेचे नियम काय आहेत?",
+            "कोण अर्ज करू शकत नाही?"
+          ],
+          "questions_roman": [
+            "ladki bahin kon apatra ahe",
+            "konala labh milat nahi",
+            "who is not eligible",
+            "ineligible criteria ladki bahin"
+          ],
+          "keywords": [
+            "कोण अपात्र",
+            "अपात्र",
+            "लाभ नाही",
+            "मिळत नाही",
+            "नोकरी",
+            "करदाता",
+            "चारचाकी",
+            "गाडी",
+            "ineligible",
+            "apatra",
+            "not eligible",
+            "exclusion"
+          ],
+          "answer_mr": "अपात्रता निकष: १. कुटुंबाचे वार्षिक उत्पन्न ₹२.५ लाखांपेक्षा जास्त असल्यास. २. कुटुंबात कोणी आयकरदाता (Income Tax Payer) असल्यास. ३. कुटुंबात नियमित/कंत्राटी सरकारी नोकरदार किंवा पेन्शनधारक असल्यास. ४. कुटुंबातील सदस्यांच्या नावे चारचाकी वाहन (ट्रॅक्टर वगळून) असल्यास. ५. इतर शासकीय योजनेतून आधीच दरमहा ₹१,५०० किंवा अधिक लाभ घेत असल्यास.",
+          "answer_en": "Ineligibility: Families with annual income above ₹2.5 lakh, income tax payers, government employees or pensioners, owners of four-wheelers (except tractors), or beneficiaries receiving ₹1,500+ monthly from another government scheme.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-documents",
+          "topic": "कागदपत्रे",
+          "topic_key": "documents",
+          "questions_mr": [
+            "लाडकी बहीण योजनेसाठी कोणती कागदपत्रे लागतील?",
+            "कागदपत्रांची यादी द्या",
+            "कोणते पुरावे लागतात?",
+            "लाडकी बहीण साठी कागद काय लागतील?"
+          ],
+          "questions_roman": [
+            "ladki bahin sathi kagadpatre konti",
+            "documents kay lagtil",
+            "kagadpatre list",
+            "documents required for ladki bahin"
+          ],
+          "keywords": [
+            "कागदपत्रे",
+            "कागद",
+            "दाखले",
+            "डॉक्युमेंट",
+            "पुरावे",
+            "यादी",
+            "documents",
+            "kagadpatre",
+            "papers",
+            "docs",
+            "list"
+          ],
+          "answer_mr": "आवश्यक कागदपत्रे: १. आधार कार्ड. २. अधिवास (Domicile) प्रमाणपत्र, शाळा सोडल्याचा दाखला किंवा जन्म दाखला. ३. उत्पन्न प्रमाणपत्र (वार्षिक ₹२.५ लाखांच्या आत) किंवा पिवळे/केशरी रेशन कार्ड. ४. आधार लिंक असलेले स्वतःचे बँक पासबुक. ५. हमीपत्र व पासपोर्ट फोटो.",
+          "answer_en": "Required documents: Aadhaar card, domicile/birth/school leaving certificate, income certificate (up to ₹2.5L) or yellow/orange ration card, Aadhaar-linked bank passbook, undertaking and photo.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-apply",
+          "topic": "अर्ज कसा/कुठे करायचा",
+          "topic_key": "apply",
+          "questions_mr": [
+            "लाडकी बहीण योजनेचा अर्ज कसा करायचा?",
+            "अर्ज कुठे करायचा?",
+            "ऑनलाइन फॉर्म कसा भरायचा?",
+            "लाडकी बहीण नोंदणी कशी करावी?"
+          ],
+          "questions_roman": [
+            "ladki bahin cha araj kasa karaycha",
+            "araj kuthe karaycha",
+            "form kasa bharaycha",
+            "how to apply ladki bahin",
+            "nondani kashi karaychi"
+          ],
+          "keywords": [
+            "अर्ज कसा",
+            "कुठे करायचा",
+            "फॉर्म",
+            "नोंदणी",
+            "पद्धत",
+            "केंद्रावर",
+            "पोर्टलवर",
+            "ॲप",
+            "apply",
+            "how to apply",
+            "registration",
+            "form",
+            "kuthe",
+            "process"
+          ],
+          "answer_mr": "अर्ज करण्याची पद्धत: १. अधिकृत संकेतस्थळ (ladakibahin.maharashtra.gov.in) किंवा नारीशक्ती दूत ॲपवर ऑनलाइन अर्ज करता येतो. २. ऑफलाइन अर्ज करण्यासाठी तुमच्या गावातील अंगणवाडी केंद्र, ग्रामपंचायत किंवा सेतू सुविधा केंद्रावर विनामूल्य अर्ज उपलब्ध आहे. ३. अर्जासोबत आधार व बँक तपशील जोडून पडताळणी पूर्ण करावी.",
+          "answer_en": "How to apply: Apply online via ladakibahin.maharashtra.gov.in or official app, or visit your local Anganwadi center, Gram Panchayat, or Setu Suvidha Kendra for free offline application.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-status",
+          "topic": "अर्जाची स्थिती कशी पाहायची",
+          "topic_key": "status",
+          "questions_mr": [
+            "लाडकी बहीण अर्जाची स्थिती कशी तपासायची?",
+            "फॉर्म मंजूर झाला का कसा पाहायचा?",
+            "स्टेटस कसे चेक करायचे?",
+            "अर्ज अप्रूव्ह झाला का?"
+          ],
+          "questions_roman": [
+            "ladki bahin status kasa baghaycha",
+            "application status check kar",
+            "form manjur jhala ka",
+            "status check online"
+          ],
+          "keywords": [
+            "स्थिती",
+            "स्टेटस",
+            "मंजूर",
+            "पेंडिंग",
+            "चेक",
+            "तपासा",
+            "अप्रूव्ह",
+            "status",
+            "check status",
+            "application status",
+            "approval",
+            "pending"
+          ],
+          "answer_mr": "अर्जाची स्थिती तपासण्यासाठी: १. अधिकृत पोर्टल ladakibahin.maharashtra.gov.in वर जा. २. \"अर्जदार लॉगिन\" वर मोबाईल नंबर व OTP टाकून लॉगिन करा. ३. \"यापूर्वी केलेले अर्ज\" पर्यायामध्ये अर्जाची सद्यस्थिती (मंजूर / प्रलंबित / त्रुटी) दिसेल.",
+          "answer_en": "To check application status: Log in with mobile number and OTP on ladakibahin.maharashtra.gov.in and check \"Submitted Applications\" for approval status.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-payment-issue",
+          "topic": "पैसे/लाभ न मिळाल्यास काय करावे",
+          "topic_key": "payment_issue",
+          "questions_mr": [
+            "लाडकी बहीण योजनेचे पैसे मिळाले नाहीत तर काय करावे?",
+            "हप्ता जमा झाला नाही",
+            "पैसे का आले नाहीत?",
+            "पैसे कधी येणार?"
+          ],
+          "questions_roman": [
+            "ladki bahin che paise milale nahit",
+            "paise kadhi yetat",
+            "hapta jama jhala nahi",
+            "money not received ladki bahin",
+            "paise ka aale nahit"
+          ],
+          "keywords": [
+            "पैसे मिळाले नाहीत",
+            "हप्ता आला नाही",
+            "पैसे जमा झाले नाहीत",
+            "आले नाहीत",
+            "पैसे कधी येणार",
+            "money not received",
+            "payment issue",
+            "pending",
+            "hapta",
+            "not credited"
+          ],
+          "answer_mr": "पैसे मिळाले नसल्यास खालील बाबी तपासा: १. बँक खात्याशी आधार लिंक आणि DBT (NPCI Mapping) सक्रिय आहे का याची बँकेत जाऊन खात्री करा. २. पोर्टलवर लॉगिन करून बँक खात्याची माहिती अचूक असल्याचे तपासा. ३. जर खात्यात कोणतीही त्रुटी नसेल तर जवळच्या अंगणवाडी सेविकेशी किंवा महिला व बालविकास कार्यालयाशी संपर्क साधा.",
+          "answer_en": "If money not received: 1. Confirm with your bank that Aadhaar and DBT (NPCI mapping) are active. 2. Verify account details on portal. 3. If everything is correct, contact your local Anganwadi worker or WCD office.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-rejected",
+          "topic": "अर्ज नाकारला गेल्यास काय करावे",
+          "topic_key": "rejected",
+          "questions_mr": [
+            "लाडकी बहीण अर्ज नाकारला गेला तर काय करावे?",
+            "माझा अर्ज रिजेक्ट झाला आता काय करू?",
+            "अर्ज नामंजूर का झाला?",
+            "नाकारलेला अर्ज पुन्हा कसा करायचा?"
+          ],
+          "questions_roman": [
+            "ladki bahin araj nakarla gela",
+            "majha application reject jhala",
+            "disapproved what to do ladki bahin",
+            "namanjur jhala kay karu"
+          ],
+          "keywords": [
+            "नाकारला",
+            "रिजेक्ट",
+            "नामंजूर",
+            "अपात्र ठरवला",
+            "त्रुटी",
+            "दुरुस्ती",
+            "rejected",
+            "nakarla",
+            "disapproved",
+            "correction",
+            "resubmit"
+          ],
+          "answer_mr": "अर्ज नाकारला गेल्यास: १. पोर्टलवर लॉगिन करून नाकारण्याचे नेमके कारण (उदा. अस्पष्ट कागदपत्र, उत्पन्न किंवा वयाची त्रुटी) तपासा. २. त्रुटी दुरुस्त करून पुन्हा योग्य कागदपत्रे अपलोड करण्याचा पर्याय पोर्टलवर उपलब्ध असतो. ३. दुरुस्तीसाठी अंगणवाडी सेविका किंवा सेतू सुविधा केंद्राची मदत घ्या.",
+          "answer_en": "If application rejected: Log into the portal to check the exact rejection reason, re-upload clear corrected documents, or seek help from the local Anganwadi worker.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-helpline",
+          "topic": "हेल्पलाइन/संपर्क",
+          "topic_key": "helpline",
+          "questions_mr": [
+            "लाडकी बहीण योजनेचा हेल्पलाइन नंबर काय आहे?",
+            "तक्रार कुठे करायची?",
+            "संपर्क कसा करावा?",
+            "लाडकी बहीण मदत कक्ष"
+          ],
+          "questions_roman": [
+            "ladki bahin helpline number",
+            "contact details ladki bahin",
+            "takrar kuthe karaychi",
+            "phone number customer care"
+          ],
+          "keywords": [
+            "हेल्पलाइन",
+            "संपर्क",
+            "फोन नंबर",
+            "तक्रार",
+            "कॉल सेंटर",
+            "मदत कक्ष",
+            "helpline",
+            "contact",
+            "phone",
+            "support",
+            "toll free"
+          ],
+          "answer_mr": "अधिकृत संपर्कासाठी: महिला व बालविकास विभागाच्या अधिकृत पोर्टल ladakibahin.maharashtra.gov.in वरील संपर्क कक्षाशी संपर्क साधा. तसेच तुमच्या भागातील अंगणवाडी सेविका, ग्रामसेवक किंवा बाल विकास प्रकल्प अधिकारी (CDPO) कार्यालयाशी थेट संपर्क साधता येतो.",
+          "answer_en": "Official contact: Visit the contact desk on ladakibahin.maharashtra.gov.in or contact your local Anganwadi worker, Gram Sevak, or CDPO office.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        },
+        {
+          "id": "lb-deadline",
+          "topic": "अंतिम तारीख",
+          "topic_key": "deadline",
+          "questions_mr": [
+            "लाडकी बहीण योजनेची अंतिम तारीख काय आहे?",
+            "अर्ज करण्याची शेवटची मुदत कधी आहे?",
+            "लाडकी बहीण फॉर्म कधीपर्यंत भरता येतो?"
+          ],
+          "questions_roman": [
+            "ladki bahin antim tarikh",
+            "shevat chi mudat",
+            "last date to apply ladki bahin",
+            "deadline ladki bahin"
+          ],
+          "keywords": [
+            "अंतिम तारीख",
+            "शेवटची तारीख",
+            "मुदत",
+            "कधीपर्यंत",
+            "शेवटची मुदत",
+            "last date",
+            "deadline",
+            "antim tarikh",
+            "mudat"
+          ],
+          "answer_mr": "योजनेची नोंदणी शासनाने वेळोवेळी मुदतवाढ देऊन सुरू ठेवली आहे. नवीन अर्ज व दुरुस्तीसाठीची अद्ययावत मुदत अधिकृत संकेतस्थळ ladakibahin.maharashtra.gov.in वर जाहीर केली जाते. कृपया प्रत्यक्ष अर्जापूर्वी अधिकृत संकेतस्थळावर खात्री करा.",
+          "answer_en": "The registration deadline has been extended periodically by the Maharashtra government. Check ladakibahin.maharashtra.gov.in for current cutoff dates.",
+          "source_gr": "GR क्र. मलाब-२०२४/प्र.क्र.१३/का.०२",
+          "last_verified": "2026-09-15",
+          "verified": false
+        }
+      ],
+      "submit_where_mr": "जवळचे सेतू केंद्र, आपले सरकार सेवा केंद्र, ग्रामपंचायत कार्यालय किंवा अंगणवाडी केंद्र [VERIFY]",
+      "after_submit_mr": "१. अर्जाची पावती अथवा ॲप्लिकेशन आयडी नंबर जपून ठेवा.\n२. अंगणवाडी सेविका किंवा वॉर्ड कमिटीमार्फत कागदपत्रांची पडताळणी होते.\n३. मंजुरी मिळाल्यावर दरमहा १५ तारखेपर्यंत आधार-लिंक्ड बँक खात्यात ₹१,५०० थेट जमा होतात. [VERIFY]"
+    },
+    {
+      "id": "pm-kisan",
+      "name_mr": "पीएम किसान सन्मान निधी योजना",
+      "name_en": "PM Kisan Samman Nidhi",
+      "category_mr": "शेतकरी कल्याण",
+      "short_description_mr": "शेतकरी कुटुंबांना शेती खर्चासाठी वर्षाला ₹६,००० (तीन समान हप्त्यांत) थेट मदत.",
+      "benefit_summary_mr": "वर्षाला ₹६,००० (दर ४ महिन्यांनी ₹२,०००) + महाराष्ट्र सरकारचे नमो शेतकरी ₹६,००० अतिरिक्त.",
+      "official_link": "https://pmkisan.gov.in",
+      "last_verified_date": "2026-09-10",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे)",
+      "eligibility_rules": {
+        "is_farmer": true,
+        "has_land_record_7_12": true,
+        "govt_employee_allowed": false,
+        "tax_payer_allowed": false,
+        "pension_above_10k_allowed": false
+      },
+      "eligibility_questions": [
+        {
+          "id": "is_farmer",
+          "field": "is_farmer",
+          "question_mr": "तुमच्या किंवा कुटुंबाच्या नावावर लागवडीयोग्य शेतजमीन (७/१२) आहे का?",
+          "spoken_prompt_mr": "तुमच्या किंवा कुटुंबाच्या नावावर लागवडीयोग्य शेतजमीन आहे का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, शेतजमीन आहे",
+              "value": true
+            },
+            {
+              "label_mr": "नाही, जमीन नाही",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "ही योजना स्वतःच्या नावे शेतजमीन असणाऱ्या शेतकऱ्यांसाठी आहे."
+        },
+        {
+          "id": "ekyc_status",
+          "field": "ekyc_status",
+          "question_mr": "तुमची आधार ई-केवायसी (e-KYC) पूर्ण झाली आहे का?",
+          "spoken_prompt_mr": "तुमची आधार ई-केवायसी पूर्ण झाली आहे का?",
+          "type": "select",
+          "options": [
+            {
+              "label_mr": "होय, e-KYC पूर्ण आहे",
+              "value": "done"
+            },
+            {
+              "label_mr": "अजून झालेली नाही",
+              "value": "pending"
+            },
+            {
+              "label_mr": "माहिती नाही",
+              "value": "unknown"
+            }
+          ],
+          "rule_check": "value === 'done' || value === 'pending' || value === 'unknown'",
+          "fail_reason_mr": "हप्ता मिळण्यासाठी e-KYC बंधनकारक आहे, तुम्ही सेतू केंद्रावर करू शकता."
+        },
+        {
+          "id": "govt_job",
+          "field": "govt_job",
+          "question_mr": "कुटुंबात कोणी क्लास १, २, ३ सरकारी नोकरदार किंवा लोकप्रतिनिधी आहे का?",
+          "spoken_prompt_mr": "कुटुंबात कोणी सरकारी अधिकारी किंवा लोकप्रतिनिधी आहे का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "नाही, कोणीही नाही",
+              "value": false
+            },
+            {
+              "label_mr": "होय, सरकारी नोकरदार आहेत",
+              "value": true
+            }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "संवैधानिक पद भूषविणारे, सरकारी अधिकारी किंवा चतुर्थ श्रेणी वगळता नोकरदार अपात्र ठरतात."
+        },
+        {
+          "id": "income_tax",
+          "field": "income_tax",
+          "question_mr": "कुटुंबातील कोणीही मागील वर्षात इन्कम टॅक्स (आयकर) भरला आहे का?",
+          "spoken_prompt_mr": "कुटुंबातील कोणी मागील वर्षात आयकर भरला आहे का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "नाही, आयकर भरत नाही",
+              "value": false
+            },
+            {
+              "label_mr": "होय, आयकर भरतो",
+              "value": true
+            }
+          ],
+          "rule_check": "value === false",
+          "fail_reason_mr": "आयकर भरणाऱ्या व्यक्ती पीएम किसान योजनेसाठी पात्र नाहीत."
+        }
+      ],
+      "documents_mr": [
+        {
+          "id": "land_7_12",
+          "name": "जमिनीचा ७/१२ उतारा व ८-अ (डिजिटल स्वाक्षरीसह)",
+          "required": true,
+          "note": "स्वतःच्या नावावरील नोंद"
+        },
+        {
+          "id": "aadhaar",
+          "name": "आधार कार्ड (मोबाईल लिंकसह)",
+          "required": true,
+          "note": "OTP साठी मोबाईल चालू असावा"
+        },
+        {
+          "id": "bank_account",
+          "name": "बँक पासबुक (NPCI / आधार मॅप्ड खात्यासह)",
+          "required": true,
+          "note": "डीबीटी सक्रिय खाते"
+        },
+        {
+          "id": "declaration",
+          "name": "स्वयंघोषणा पत्र",
+          "required": true,
+          "note": "इतर शासकीय लाभांबाबत हमी"
+        }
+      ],
+      "how_to_apply_mr": "१. pmkisan.gov.in वर 'Farmer Registration' पर्यायावर जा.\n२. आधार क्रमांक व राज्य 'महाराष्ट्र' निवडून पुढे जा.\n३. ७/१२ खाते क्रमांक व जमिनीचे क्षेत्र नमूद करा.\n४. गावपातळीवर तलाठी किंवा कृषी सहाय्यक यांच्याकडे कागदपत्रे जमा करा.",
+      "form_fields": [
+        {
+          "key": "farmer_name",
+          "label_mr": "शेतकऱ्याचे नाव",
+          "spoken_prompt": "तुमचे पूर्ण नाव सांगा.",
+          "placeholder": "उदा. रमेश तुकाराम शिंदे",
+          "type": "text"
+        },
+        {
+          "key": "mobile_number",
+          "label_mr": "मोबाईल नंबर",
+          "spoken_prompt": "तुमचा मोबाईल नंबर सांगा.",
+          "placeholder": "उदा. 9422334455",
+          "type": "tel"
+        },
+        {
+          "key": "district_taluka",
+          "label_mr": "जिल्हा व तालुका",
+          "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.",
+          "placeholder": "उदा. सोलापूर - पंढरपूर",
+          "type": "text"
+        },
+        {
+          "key": "land_khata_no",
+          "label_mr": "खाते / गट नंबर (७/१२)",
+          "spoken_prompt": "तुमचा जमिनीचा गट क्रमांक किंवा खाते क्रमांक सांगा.",
+          "placeholder": "उदा. गट क्र. १४२",
+          "type": "text"
+        },
+        {
+          "key": "approx_land",
+          "label_mr": "शेतजमीन (एकर / हेक्टर)",
+          "spoken_prompt": "तुमची जमीन किती एकर आहे?",
+          "placeholder": "उदा. २ एकर",
+          "type": "text"
+        }
+      ],
+      "faqs": [
+        {
+          "id": "pmk-about",
+          "topic": "योजना काय आहे",
+          "topic_key": "about",
+          "questions_mr": [
+            "पीएम किसान योजना काय आहे?",
+            "पीएम किसान सन्मान निधी माहिती",
+            "नमो शेतकरी योजना काय आहे?"
+          ],
+          "questions_roman": [
+            "pm kisan yojana kay ahe",
+            "pm kisan mahiti",
+            "what is pm kisan samman nidhi"
+          ],
+          "keywords": [
+            "काय आहे",
+            "माहिती",
+            "शेतकरी योजना",
+            "सन्मान निधी",
+            "नमो शेतकरी",
+            "about",
+            "what is",
+            "pm kisan info"
+          ],
+          "answer_mr": "पीएम किसान सन्मान निधी ही केंद्र शासनाची योजना असून याद्वारे शेतकरी कुटुंबांना शेती खर्चासाठी दरवर्षी ₹६,००० थेट बँक खात्यात दिले जातात. यासोबत महाराष्ट्र शासनाकडून \"नमो शेतकरी महासन्मान निधी\" अंतर्गत अतिरिक्त ₹६,००० दिले जातात, ज्यामुळे महाराष्ट्रातील पात्र शेतकऱ्यांना वर्षाला एकूण ₹१२,००० मिळतात.",
+          "answer_en": "PM Kisan Samman Nidhi provides ₹6,000/year from the Central Govt, and Maharashtra's Namo Shetkari adds ₹6,000/year, totaling ₹12,000/year for eligible farmers.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-benefits",
+          "topic": "लाभ किती/कसा मिळतो",
+          "topic_key": "benefits",
+          "questions_mr": [
+            "पीएम किसानचे पैसे किती मिळतात?",
+            "शेतकऱ्यांना किती रुपये मिळतात?",
+            "हप्ता किती मिळतो?",
+            "पैसे कधी जमा होतात?"
+          ],
+          "questions_roman": [
+            "pm kisan che paise kiti milatat",
+            "pm kisan kiti rupaye miltat",
+            "installment amount pm kisan",
+            "paise kiti yetat"
+          ],
+          "keywords": [
+            "पैसे किती",
+            "किती रुपये",
+            "हप्ता",
+            "रक्कम",
+            "लाभ",
+            "दोन हजार",
+            "बारा हजार",
+            "paise",
+            "kiti",
+            "amount",
+            "installment",
+            "hapta"
+          ],
+          "answer_mr": "पीएम किसान योजनेतून दर ४ महिन्यांनी ₹२,००० याप्रमाणे वर्षाला ₹६,००० (तीन समान हप्त्यांत) मिळतात. तसेच महाराष्ट्र शासनाच्या नमो शेतकरी योजनेतून अतिरिक्त ₹६,००० मिळतात. सर्व रक्कम थेट आधार लिंक बँक खात्यात DBT द्वारे जमा होते.",
+          "answer_en": "Farmers receive ₹2,000 every 4 months (total ₹6,000/year from PM-Kisan) plus ₹6,000 from Namo Shetkari, credited directly via DBT.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-eligible",
+          "topic": "कोण पात्र",
+          "topic_key": "eligible",
+          "questions_mr": [
+            "पीएम किसान योजनेसाठी कोण पात्र आहे?",
+            "पात्रतेचे निकष काय आहेत?",
+            "कोणाला लाभ मिळतो?"
+          ],
+          "questions_roman": [
+            "pm kisan sathi kon patra ahe",
+            "eligibility for pm kisan",
+            "patrata rules pm kisan"
+          ],
+          "keywords": [
+            "कोण पात्र",
+            "पात्रता",
+            "निकष",
+            "शेतकरी",
+            "जमीन",
+            "७/१२",
+            "eligible",
+            "patra",
+            "criteria",
+            "rules"
+          ],
+          "answer_mr": "पात्रतेचे निकष: १. स्वतःच्या नावावर लागवडीयोग्य शेतजमीन (७/१२ व ८-अ नोंद) असणारे शेतकरी. २. बँक खाते आधार लिंक व e-KYC पूर्ण असणे आवश्यक. ३. शेतजमिनीची नोंद भूमी अभिलेखात (Land Seeding) अद्ययावत असावी.",
+          "answer_en": "Eligibility: Landholding farmers with cultivable land in their name (7/12 record), completed e-KYC, and active Aadhaar-linked bank account with land seeding.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-ineligible",
+          "topic": "कोण अपात्र",
+          "topic_key": "ineligible",
+          "questions_mr": [
+            "पीएम किसान योजनेसाठी कोण अपात्र आहे?",
+            "कोणत्या शेतकऱ्यांना पैसे मिळत नाहीत?",
+            "अपात्रतेचे नियम काय आहेत?"
+          ],
+          "questions_roman": [
+            "pm kisan kon apatra ahe",
+            "who is not eligible pm kisan",
+            "ineligibility rules"
+          ],
+          "keywords": [
+            "कोण अपात्र",
+            "अपात्र",
+            "मिळत नाही",
+            "नोकरदार",
+            "पेन्शन",
+            "टॅक्स",
+            "ineligible",
+            "apatra",
+            "not eligible"
+          ],
+          "answer_mr": "अपात्र शेतकरी: १. घटनात्मक पद भूषवणारे किंवा माजी/विद्यमान मंत्री, आमदार, खासदार. २. केंद्र किंवा राज्य सरकारी नोकरदार/अधिकारी (चतुर्थ श्रेणी वगळता). ३. मागील वर्षात आयकर (Income Tax) भरणारे व्यक्ती. ४. दरमहा ₹१०,००० किंवा अधिक निवृत्तीवेतन (Pension) घेणारे निवृत्त कर्मचारी. ५. डॉक्टर, वकील, इंजिनिअर, सीए यांसारखे नोंदणीकृत व्यावसायिक.",
+          "answer_en": "Ineligibility: Constitutional post holders, public representatives, government employees/officers (except Group D), income tax payers, pensioners drawing ₹10,000+ monthly, and registered professionals.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-documents",
+          "topic": "कागदपत्रे",
+          "topic_key": "documents",
+          "questions_mr": [
+            "पीएम किसान साठी कोणती कागदपत्रे लागतील?",
+            "कागदपत्रांची यादी द्या",
+            "पीएम किसानसाठी काय लागते?"
+          ],
+          "questions_roman": [
+            "pm kisan sathi kagadpatre konti",
+            "pm kisan documents list",
+            "kagadpatre pm kisan"
+          ],
+          "keywords": [
+            "कागदपत्रे",
+            "कागद",
+            "दाखले",
+            "७/१२",
+            "८-अ",
+            "आधार",
+            "documents",
+            "kagadpatre",
+            "papers"
+          ],
+          "answer_mr": "आवश्यक कागदपत्रे: १. अद्ययावत ७/१२ उतारा व ८-अ नोंद (डिजिटल स्वाक्षरीसह). २. आधार कार्ड (मोबाईल लिंकसह). ३. बँक पासबुक (NPCI / Aadhaar Seeding सक्रिय खाते). ४. स्वयंघोषणा पत्र.",
+          "answer_en": "Required documents: Updated 7/12 extract and 8-A land record, Aadhaar card with mobile link, bank passbook with NPCI/Aadhaar seeding, and self-declaration form.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-apply",
+          "topic": "अर्ज कसा/कुठे करायचा",
+          "topic_key": "apply",
+          "questions_mr": [
+            "पीएम किसान योजनेचा अर्ज कसा करायचा?",
+            "अर्ज कुठे करावा?",
+            "नवीन शेतकरी नोंदणी कशी करावी?"
+          ],
+          "questions_roman": [
+            "pm kisan araj kasa karaycha",
+            "pm kisan registration kasa karaycha",
+            "how to apply pm kisan",
+            "new farmer registration"
+          ],
+          "keywords": [
+            "अर्ज कसा",
+            "कुठे करायचा",
+            "नोंदणी",
+            "फॉर्म",
+            "csc",
+            "apply",
+            "registration",
+            "how to apply",
+            "kuthe"
+          ],
+          "answer_mr": "अर्ज पद्धत: १. pmkisan.gov.in वरील \"New Farmer Registration\" पर्यायातून ऑनलाइन अर्ज करता येतो. २. जवळच्या CSC किंवा सेतू केंद्रावर जाऊन बायोमेट्रिक पडताळणीने नोंदणी करता येते. ३. गावपातळीवर तलाठी किंवा कृषी सहाय्यक यांच्याकडे कागदपत्रांची पडताळणी करून घेता येते.",
+          "answer_en": "How to apply: Register online at pmkisan.gov.in under \"New Farmer Registration\", or visit a CSC center with land records and Aadhaar, or contact the village Talathi/Krishi Sahayyak.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-status",
+          "topic": "अर्जाची स्थिती कशी पाहायची",
+          "topic_key": "status",
+          "questions_mr": [
+            "पीएम किसान अर्जाची स्थिती कशी पाहायची?",
+            "स्टेटस कसे चेक करायचे?",
+            "हप्ता कधी येणार कसा पाहायचा?"
+          ],
+          "questions_roman": [
+            "pm kisan status kasa baghaycha",
+            "pm kisan status check",
+            "know your status pm kisan",
+            "hapta aala ka kasa baghaycha"
+          ],
+          "keywords": [
+            "स्थिती",
+            "स्टेटस",
+            "हप्ता आला का",
+            "तपासा",
+            "status",
+            "check status",
+            "know your status",
+            "pm kisan status"
+          ],
+          "answer_mr": "अर्जाची स्थिती तपासण्यासाठी: १. pmkisan.gov.in वर \"Know Your Status\" पर्यायावर जा. २. नोंदणी क्रमांक (Registration Number) किंवा मोबाईल नंबर टाका आणि कॅप्चा भरा. ३. तिथे FTO तयार झाला का, e-KYC आणि Land Seeding चे स्टेटस \"Yes\" आहे का ते दिसेल.",
+          "answer_en": "To check status: Go to \"Know Your Status\" on pmkisan.gov.in, enter Registration No. or mobile number, and check if FTO, e-KYC, and Land Seeding are marked \"Yes\".",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-payment-issue",
+          "topic": "पैसे/लाभ न मिळाल्यास काय करावे",
+          "topic_key": "payment_issue",
+          "questions_mr": [
+            "पीएम किसानचे पैसे मिळाले नाहीत तर काय करावे?",
+            "मला पीएम किसानचा हप्ता आला नाही",
+            "पैसे का थांबले आहेत?"
+          ],
+          "questions_roman": [
+            "pm kisan che paise milale nahit",
+            "hapta aala nahi kay karu",
+            "mala paise milale nahit pm kisan",
+            "installment not credited pm kisan"
+          ],
+          "keywords": [
+            "पैसे मिळाले नाहीत",
+            "हप्ता आला नाही",
+            "पैसे का आले नाहीत",
+            "पैसे थांबले",
+            "money not received",
+            "payment issue",
+            "not credited"
+          ],
+          "answer_mr": "हप्ता न आल्यास ३ प्रमुख बाबी तपासा: १. आधार e-KYC पूर्ण आहे का. २. ७/१२ जमिनीची नोंद (Land Seeding) \"Yes\" आहे का. ३. बँक खात्याशी आधार व NPCI मॅपिंग सक्रिय आहे का. यापैकी एकही बाब अपूर्ण असल्यास हप्ता थांबतो; दुरुस्ती केल्यावर रखडलेले हप्ते जमा होतात.",
+          "answer_en": "If installment not received: Verify e-KYC is completed, Land Seeding is Yes, and bank account has active Aadhaar-NPCI mapping. Fixing these releases pending installments.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-rejected",
+          "topic": "अर्ज नाकारला गेल्यास काय करावे",
+          "topic_key": "rejected",
+          "questions_mr": [
+            "पीएम किसान अर्ज नाकारला गेला तर काय करावे?",
+            "माझा अर्ज रिजेक्ट झाला आता काय करू?",
+            "अर्ज नामंजूर का झाला?"
+          ],
+          "questions_roman": [
+            "pm kisan araj nakarla gela",
+            "pm kisan reject jhala",
+            "disapproved what to do pm kisan"
+          ],
+          "keywords": [
+            "नाकारला",
+            "रिजेक्ट",
+            "नामंजूर",
+            "त्रुटी",
+            "दुरुस्ती",
+            "rejected",
+            "nakarla",
+            "correction"
+          ],
+          "answer_mr": "अर्ज नाकारला गेल्यास: १. pmkisan.gov.in वरील \"Status of Self Registered Farmer\" मध्ये नाकारण्याचे कारण तपासा. २. जर नाव किंवा आधार क्रमांकात चूक असेल तर \"Edit Aadhaar Failure Records\" मध्ये दुरुस्ती करा. ३. जमीन नोंदीची अडचण असल्यास संबंधित गावच्या तलाठी किंवा तालुका कृषी अधिकाऱ्यांशी संपर्क साधा.",
+          "answer_en": "If rejected: Check rejection reason under \"Status of Self Registered Farmer\", edit incorrect Aadhaar/name details under \"Edit Aadhaar Failure Records\", or contact Talathi for land record issues.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-helpline",
+          "topic": "हेल्पलाइन/संपर्क",
+          "topic_key": "helpline",
+          "questions_mr": [
+            "पीएम किसानचा हेल्पलाइन नंबर काय आहे?",
+            "तक्रार कुठे करायची?",
+            "पीएम किसान संपर्क नंबर"
+          ],
+          "questions_roman": [
+            "pm kisan helpline number",
+            "pm kisan contact",
+            "customer care pm kisan"
+          ],
+          "keywords": [
+            "हेल्पलाइन",
+            "संपर्क",
+            "फोन नंबर",
+            "टोल फ्री",
+            "helpline",
+            "contact",
+            "phone",
+            "toll free"
+          ],
+          "answer_mr": "पीएम किसान अधिकृत हेल्पलाइन: १५५२६१ किंवा १८००११५५२६ (टोल फ्री). तसेच गावपातळीवर कृषी सहाय्यक, तलाठी किंवा तालुका कृषी अधिकारी कार्यालयाशी संपर्क साधता येतो.",
+          "answer_en": "PM-Kisan official toll-free helpline numbers: 155261 or 1800115526. Local contact: Village Krishi Sahayyak, Talathi, or Taluka Agriculture Officer.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        },
+        {
+          "id": "pmk-deadline",
+          "topic": "अंतिम तारीख",
+          "topic_key": "deadline",
+          "questions_mr": [
+            "पीएम किसानची अंतिम तारीख काय आहे?",
+            "नोंदणी करण्याची शेवटची मुदत कधी आहे?"
+          ],
+          "questions_roman": [
+            "pm kisan antim tarikh",
+            "last date pm kisan",
+            "deadline pm kisan"
+          ],
+          "keywords": [
+            "अंतिम तारीख",
+            "शेवटची तारीख",
+            "मुदत",
+            "last date",
+            "deadline"
+          ],
+          "answer_mr": "पीएम किसान ही निरंतर सुरू असणारी केंद्र शासकीय योजना आहे. यासाठी नोंदणी करण्याची कोणतीही अंतिम तारीख नाही; पात्र शेतकरी वर्षभरात कधीही नवीन नोंदणी करू शकतात.",
+          "answer_en": "PM-Kisan is a continuous scheme with no deadline; eligible farmers can apply at any time during the year.",
+          "source_gr": "केंद्र शासन व महा-डीबीटी मार्गदर्शक तत्त्वे",
+          "last_verified": "2026-09-10",
+          "verified": false
+        }
+      ],
+      "submit_where_mr": "तालुका कृषी अधिकारी कार्यालय, आपले सरकार सेवा केंद्र (CSC), किंवा पीएम किसान पोर्टलद्वारे ऑनलाइन [VERIFY]",
+      "after_submit_mr": "१. अर्जाची संगणकीय पोचपावती व शेतकरी नोंदणी क्रमांक मिळतो.\n२. महसूल व कृषी विभागामार्फत ७/१२ जमिनीची मालकी व आधार ई-केवायसी तपासली जाते.\n३. पडताळणी पूर्ण झाल्यावर दर चार महिन्यांनी ₹२,००० चा हप्ता (वर्षाला ₹६,०००) थेट खात्यात जमा होतो. [VERIFY]"
+    },
+    {
+      "id": "ayushman-mjpjay",
+      "name_mr": "आयुष्यमान भारत - म.ज्यो.फु. जन आरोग्य योजना (MJPJAY)",
+      "name_en": "Ayushman Bharat - MJPJAY",
+      "category_mr": "आरोग्य व वैद्यकीय उपचार",
+      "short_description_mr": "गंभीर आजार व शस्त्रक्रियांसाठी प्रति कुटुंब दरवर्षी ₹५ लाखांपर्यंत मोफत कॅशलेस उपचार.",
+      "benefit_summary_mr": "प्रति कुटुंब दरवर्षी ₹५,००,००० पर्यंत मोफत उपचार, औषधे व शस्त्रक्रिया.",
+      "official_link": "https://www.jeevandayee.gov.in",
+      "last_verified_date": "2026-08-20",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (सार्वजनिक आरोग्य विभाग शासन निर्णय)",
+      "eligibility_rules": {
+        "maharashtra_resident": true,
+        "eligible_ration_card": true,
+        "family_coverage": true
+      },
+      "eligibility_questions": [
+        {
+          "id": "residence",
+          "field": "residence",
+          "question_mr": "तुम्ही महाराष्ट्र राज्याचे नागरिक आहात का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्र राज्याचे नागरिक आहात का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, महाराष्ट्राचे नागरिक",
+              "value": true
+            },
+            {
+              "label_mr": "नाही",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "MJPJAY योजना महाराष्ट्रातील रहिवाशांसाठी लागू आहे."
+        },
+        {
+          "id": "ration_card_color",
+          "field": "ration_card_color",
+          "question_mr": "तुमच्याकडे कोणते रेशन कार्ड आहे?",
+          "spoken_prompt_mr": "तुमच्याकडे पिवळे, केशरी की पांढरे रेशन कार्ड आहे?",
+          "type": "select",
+          "options": [
+            {
+              "label_mr": "पिवळे (Yellow BPL) किंवा अंत्योदय",
+              "value": "yellow"
+            },
+            {
+              "label_mr": "केशरी (Orange)",
+              "value": "orange"
+            },
+            {
+              "label_mr": "पांढरे (White) किंवा नवीन",
+              "value": "white"
+            }
+          ],
+          "rule_check": "['yellow', 'orange', 'white'].includes(value)",
+          "fail_reason_mr": "महाराष्ट्र शासनाने सर्व रेशन कार्ड धारकांना योजनेचा विस्तार केला आहे."
+        },
+        {
+          "id": "has_ayushman_card",
+          "field": "has_ayushman_card",
+          "question_mr": "कुटुंबातील सदस्यांचे आभा कार्ड (ABHA) किंवा आयुष्यमान कार्ड काढले आहे का?",
+          "spoken_prompt_mr": "तुमचे आभा कार्ड किंवा आयुष्यमान कार्ड काढलेले आहे का?",
+          "type": "select",
+          "options": [
+            {
+              "label_mr": "होय, आभा/आयुष्यमान कार्ड आहे",
+              "value": "yes"
+            },
+            {
+              "label_mr": "नाही, अजून काढलेले नाही",
+              "value": "no"
+            },
+            {
+              "label_mr": "माहिती नाही",
+              "value": "unknown"
+            }
+          ],
+          "rule_check": "true",
+          "fail_reason_mr": ""
+        }
+      ],
+      "documents_mr": [
+        {
+          "id": "ration_card",
+          "name": "रेशन कार्ड (पिवळे, केशरी किंवा पांढरे)",
+          "required": true,
+          "note": "कुटुंबातील सर्व सदस्यांची नावे असलेले"
+        },
+        {
+          "id": "aadhaar",
+          "name": "कुटुंबातील आजारी व्यक्तीचे आधार कार्ड",
+          "required": true,
+          "note": "ओळख पडताळणीसाठी"
+        },
+        {
+          "id": "abha_card",
+          "name": "आभा आयडी (ABHA ID) / आयुष्यमान कार्ड",
+          "required": false,
+          "note": "हॉस्पिटलमध्ये जागेवरही काढता येते"
+        },
+        {
+          "id": "doctor_paper",
+          "name": "डॉक्टरांचे निदान पत्र किंवा केसपेपर",
+          "required": true,
+          "note": "रुग्णालयातील आरोग्य मित्राकडे द्यावे"
+        }
+      ],
+      "how_to_apply_mr": "१. कोणत्याही शासकीय किंवा नोंदणीकृत खाजगी अंगीकृत रुग्णालयात जा.\n२. तेथील 'आरोग्य मित्र' कक्षात आधार व रेशन कार्ड दाखवा.\n३. आजाराचे पॅकेज मंजूर झाल्यावर रुग्णाला एकही रुपया न देता उपचार मिळतात.\n४. अधिक माहितीसाठी १०४ किंवा १५५३८८ टोल-फ्री नंबरवर संपर्क करा.",
+      "form_fields": [
+        {
+          "key": "patient_name",
+          "label_mr": "रुग्णाचे / कुटुंबप्रमुखाचे नाव",
+          "spoken_prompt": "तुमचे पूर्ण नाव सांगा.",
+          "placeholder": "उदा. विठ्ठल हरी जाधव",
+          "type": "text"
+        },
+        {
+          "key": "mobile_number",
+          "label_mr": "मोबाईल नंबर",
+          "spoken_prompt": "तुमचा मोबाईल नंबर सांगा.",
+          "placeholder": "उदा. 9822114477",
+          "type": "tel"
+        },
+        {
+          "key": "district",
+          "label_mr": "जिल्हा",
+          "spoken_prompt": "तुमचा जिल्हा कोणता?",
+          "placeholder": "उदा. छत्रपती संभाजीनगर",
+          "type": "text"
+        },
+        {
+          "key": "ration_card_type",
+          "label_mr": "रेशन कार्ड रंग",
+          "spoken_prompt": "तुमचे रेशन कार्ड पिवळे आहे की केशरी?",
+          "placeholder": "उदा. पिवळे / केशरी",
+          "type": "text"
+        },
+        {
+          "key": "treatment_needed",
+          "label_mr": "कोणत्या आजारासाठी उपचार हवेत?",
+          "spoken_prompt": "कोणत्या आजारावर उपचार हवे आहेत ते सांगा.",
+          "placeholder": "उदा. हृदय शस्त्रक्रिया / मोतीबिंदू / हाडांची दुखापत",
+          "type": "text"
+        }
+      ],
+      "faqs": [
+        {
+          "id": "mjp-about",
+          "topic": "योजना काय आहे",
+          "topic_key": "about",
+          "questions_mr": [
+            "आयुष्यमान भारत - MJPJAY योजना काय आहे?",
+            "महात्मा जोतीराव फुले जन आरोग्य योजना माहिती",
+            "आयुष्यमान भारत योजनेबद्दल सांगा"
+          ],
+          "questions_roman": [
+            "ayushman bharat mjpjay kay ahe",
+            "mjpjay yojana mahiti",
+            "what is ayushman bharat mjpjay"
+          ],
+          "keywords": [
+            "काय आहे",
+            "माहिती",
+            "आरोग्य योजना",
+            "दवाखाना",
+            "mjpjay",
+            "ayushman",
+            "about",
+            "what is"
+          ],
+          "answer_mr": "आयुष्यमान भारत - महात्मा जोतीराव फुले जन आरोग्य योजना (MJPJAY) ही महाराष्ट्र शासनाची आरोग्य विमा योजना आहे. या योजनेद्वारे राज्यातील पात्र कुटुंबांना गंभीर आजार व शस्त्रक्रियांसाठी दरवर्षी प्रति कुटुंब ₹५ लाखांपर्यंत मोफत व कॅशलेस उपचार नोंदणीकृत रुग्णालयांत मिळतात.",
+          "answer_en": "Ayushman Bharat - MJPJAY is Maharashtra's health assurance scheme offering up to ₹5 lakh/year cashless medical treatment per family at empaneled hospitals.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-benefits",
+          "topic": "लाभ किती/कसा मिळतो",
+          "topic_key": "benefits",
+          "questions_mr": [
+            "आयुष्यमान भारत मध्ये किती रुपयांपर्यंत उपचार मोफत मिळतात?",
+            "लाभ किती मिळतो?",
+            "उपचार कॅशलेस कसे होतात?"
+          ],
+          "questions_roman": [
+            "ayushman bharat kiti labh milto",
+            "kiti lakh che upchar",
+            "free treatment limit mjpjay"
+          ],
+          "keywords": [
+            "लाभ किती",
+            "पाच लाख",
+            "उपचार",
+            "कॅशलेस",
+            "मोफत",
+            "limit",
+            "benefit",
+            "cashless",
+            "5 lakh"
+          ],
+          "answer_mr": "या योजनेअंतर्गत प्रति कुटुंब दरवर्षी ₹५,००,००० पर्यंत मोफत उपचार, औषधे, तपासण्या, आयसीयू आणि शस्त्रक्रिया मिळतात. अंगीकृत रुग्णालयात रुग्णाला एकही रुपया स्वतः भरावा लागत नाही (पूर्णपणे कॅशलेस सेवा).",
+          "answer_en": "Families receive free cashless treatment up to ₹5,00,000 per year covering surgeries, ICU, medicines, diagnostics, and doctor consultation.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-eligible",
+          "topic": "कोण पात्र",
+          "topic_key": "eligible",
+          "questions_mr": [
+            "आयुष्यमान भारत - MJPJAY साठी कोण पात्र आहे?",
+            "पात्रतेचे नियम काय आहेत?",
+            "कोणाचे कार्ड चालते?"
+          ],
+          "questions_roman": [
+            "mjpjay sathi kon patra ahe",
+            "ayushman bharat eligibility",
+            "who is eligible for mjpjay"
+          ],
+          "keywords": [
+            "कोण पात्र",
+            "पात्रता",
+            "रेशन कार्ड रंग",
+            "पिवळे",
+            "केशरी",
+            "पांढरे",
+            "eligible",
+            "patra",
+            "criteria"
+          ],
+          "answer_mr": "पात्रता निकष: महाराष्ट्र शासनाने योजनेचा विस्तार केला असून राज्यातील सर्व वैध रेशन कार्डधारक (पिवळे, केशरी किंवा पांढरे रेशन कार्डधारक) कुटुंब या योजनेसाठी पात्र आहेत. तसेच कुटुंबाचे आधार कार्ड आणि आभा (ABHA) किंवा आयुष्यमान कार्ड असणे आवश्यक आहे.",
+          "answer_en": "Eligibility: All valid ration card holders in Maharashtra (Yellow, Orange, or White ration cards) are eligible. Aadhaar and ABHA ID / Ayushman card are required.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-ineligible",
+          "topic": "कोण अपात्र",
+          "topic_key": "ineligible",
+          "questions_mr": [
+            "आयुष्यमान भारत योजनेसाठी कोण अपात्र आहे?",
+            "कोणते उपचार मिळत नाहीत?"
+          ],
+          "questions_roman": [
+            "mjpjay kon apatra ahe",
+            "who is not eligible mjpjay",
+            "what is not covered"
+          ],
+          "keywords": [
+            "कोण अपात्र",
+            "अपात्र",
+            "मिळत नाही",
+            "खाजगी दवाखाना",
+            "ineligible",
+            "apatra",
+            "exclusions"
+          ],
+          "answer_mr": "अपात्रता: १. महाराष्ट्राबाहेरील रहिवासी. २. योजनेत अंगीकृत नसलेल्या अनधिकृत खाजगी रुग्णालयात घेतलेले उपचार. ३. साध्या ओपीडी तपासण्या किंवा कॉस्मेटिक शस्त्रक्रिया यांसारख्या योजनेबाहेरील बाबी.",
+          "answer_en": "Ineligible: Non-residents of Maharashtra, treatments sought at non-empaneled private hospitals, OPD consultations, and excluded cosmetic procedures.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-documents",
+          "topic": "कागदपत्रे",
+          "topic_key": "documents",
+          "questions_mr": [
+            "आयुष्यमान भारत - MJPJAY साठी कोणती कागदपत्रे लागतील?",
+            "हॉस्पिटलमध्ये जाताना काय सोबत न्यावे?"
+          ],
+          "questions_roman": [
+            "mjpjay sathi kagadpatre konti",
+            "ayushman bharat documents",
+            "hospital documents required"
+          ],
+          "keywords": [
+            "कागदपत्रे",
+            "कागद",
+            "दाखले",
+            "रेशन कार्ड",
+            "आधार",
+            "आभा",
+            "केसपेपर",
+            "documents",
+            "kagadpatre"
+          ],
+          "answer_mr": "आवश्यक कागदपत्रे: १. रेशन कार्ड (पिवळे, केशरी किंवा पांढरे). २. आजारी व्यक्तीचे आधार कार्ड. ३. डॉक्टरांचे निदान पत्र किंवा हॉस्पिटल केसपेपर. ४. आभा कार्ड / आयुष्यमान कार्ड (नसल्यास हॉस्पिटलमध्ये आरोग्य मित्र जागेवरही काढून देतात).",
+          "answer_en": "Required documents: Ration card (yellow/orange/white), patient's Aadhaar card, medical diagnosis report/case paper, and ABHA/Ayushman card (can be created at the hospital).",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-apply",
+          "topic": "अर्ज कसा/कुठे करायचा",
+          "topic_key": "apply",
+          "questions_mr": [
+            "आयुष्यमान भारत योजनेचा लाभ कसा घ्यायचा?",
+            "रुग्णालयात उपचार कसे मिळतात?",
+            "आरोग्य मित्र कुठे भेटतो?"
+          ],
+          "questions_roman": [
+            "ayushman bharat labh kasa ghyaycha",
+            "mjpjay araj kasa karaycha",
+            "how to get treatment under mjpjay",
+            "aarogya mitra"
+          ],
+          "keywords": [
+            "अर्ज कसा",
+            "लाभ कसा घ्यायचा",
+            "रुग्णालयात",
+            "आरोग्य मित्र",
+            "नोंदणी",
+            "कशी करावी",
+            "how to apply",
+            "process",
+            "hospital"
+          ],
+          "answer_mr": "उपचार मिळण्याची पद्धत: १. योजनेत समाविष्ट असलेल्या कोणत्याही शासकीय किंवा खाजगी रुग्णालयात जा. २. रुग्णालयातील \"आरोग्य मित्र\" कक्षात आधार व रेशन कार्ड दाखवा. ३. आरोग्य मित्र रुग्णाची मोफत ऑनलाइन पूर्वनोंदणी करतात व थेट कॅशलेस उपचार सुरू होतात.",
+          "answer_en": "How to avail: Visit any empaneled hospital, approach the \"Arogya Mitra\" helpdesk with Aadhaar and ration card for pre-authorization and cashless admission.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-status",
+          "topic": "अर्जाची स्थिती कशी पाहायची",
+          "topic_key": "status",
+          "questions_mr": [
+            "MJPJAY प्री-ऑथोरायझेशन स्थिती कशी पाहायची?",
+            "उपचाराची मंजुरी मिळाली का कशी तपासायची?"
+          ],
+          "questions_roman": [
+            "mjpjay status kasa baghaycha",
+            "pre auth status mjpjay",
+            "approval status"
+          ],
+          "keywords": [
+            "स्थिती",
+            "स्टेटस",
+            "मंजुरी",
+            "प्री-ऑथ",
+            "status",
+            "approval",
+            "preauth"
+          ],
+          "answer_mr": "रुग्णालयात दाखल झाल्यावर आरोग्य मित्राकडून प्री-ऑथोरायझेशन विनंती राज्य आरोग्य हमी सोसायटीकडे पाठवली जाते. मंजुरीची स्थिती रुग्णालयातील आरोग्य मित्र कक्षातून किंवा jeevandayee.gov.in वर पाहता येते.",
+          "answer_en": "Pre-authorization status submitted by Arogya Mitra can be checked directly at the Arogya Mitra desk in the hospital or via jeevandayee.gov.in.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-payment-issue",
+          "topic": "पैसे/लाभ न मिळाल्यास काय करावे",
+          "topic_key": "payment_issue",
+          "questions_mr": [
+            "हॉस्पिटलने पैसे मागितले तर काय करावे?",
+            "MJPJAY मध्ये मोफत उपचार न मिळाल्यास काय करावे?",
+            "कॅशलेस उपचार नाकारले तर कुठे तक्रार करावी?"
+          ],
+          "questions_roman": [
+            "hospital paise magat ahe kay karu",
+            "free treatment naakarlyas takrar",
+            "hospital asking for money mjpjay"
+          ],
+          "keywords": [
+            "पैसे मागितले",
+            "लाभ नाही दिला",
+            "तक्रार",
+            "पैसे घेतले",
+            "हॉस्पिटल तक्रार",
+            "money asked",
+            "complaint",
+            "refused"
+          ],
+          "answer_mr": "जर नोंदणीकृत रुग्णालयाने उपचारांसाठी पैसे मागितले तर: त्वरित रुग्णालयातील आरोग्य मित्राकडे लेखी तक्रार करा किंवा राज्य शासनाच्या १०४ / १५५३८८ या टोल-फ्री क्रमांकावर संपर्क करून हॉस्पिटलविरुद्ध तत्काळ तक्रार नोंदवा.",
+          "answer_en": "If an empaneled hospital demands money, immediately register a complaint with the hospital Arogya Mitra or call the 104 / 155388 toll-free grievance helpline.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-rejected",
+          "topic": "अर्ज नाकारला गेल्यास काय करावे",
+          "topic_key": "rejected",
+          "questions_mr": [
+            "MJPJAY उपचार नाकारला गेला तर काय करावे?",
+            "रुग्णालयाने ॲडमिट करून घेण्यास नकार दिला तर काय करावे?"
+          ],
+          "questions_roman": [
+            "mjpjay treatment reject jhala",
+            "hospital naakarle काय करू"
+          ],
+          "keywords": [
+            "नाकारला",
+            "रिजेक्ट",
+            "नकार",
+            "दाखल केले नाही",
+            "rejected",
+            "refusal"
+          ],
+          "answer_mr": "जर उपचाराची मंजुरी नाकारली गेली तर: आजार योजनेच्या पॅकेजमध्ये समाविष्ट आहे का ते तपासा. इतर अंगीकृत रुग्णालयाचा पर्याय निवडा किंवा १०४ हेल्पलाइनवर संपर्क साधून जिल्हा समन्वयकांकडे दाद मागा.",
+          "answer_en": "If pre-authorization is rejected: Check if the condition falls under covered packages, visit another empaneled hospital, or escalate via the 104 helpline.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-helpline",
+          "topic": "हेल्पलाइन/संपर्क",
+          "topic_key": "helpline",
+          "questions_mr": [
+            "आयुष्यमान भारत - MJPJAY हेल्पलाइन नंबर काय आहे?",
+            "आरोग्य मित्राचा टोल फ्री नंबर काय आहे?",
+            "तक्रार संपर्क क्रमांक"
+          ],
+          "questions_roman": [
+            "mjpjay helpline number",
+            "ayushman bharat toll free number",
+            "104 helpline"
+          ],
+          "keywords": [
+            "हेल्पलाइन",
+            "टोल फ्री",
+            "१०४",
+            "१५५३८८",
+            "संपर्क",
+            "helpline",
+            "toll free",
+            "phone",
+            "104"
+          ],
+          "answer_mr": "MJPJAY अधिकृत टोल-फ्री हेल्पलाइन: १०४ किंवा १५५३८८ किंवा १८०० १२० ५५५ ५५५. अधिक माहितीसाठी अधिकृत संकेतस्थळ jeevandayee.gov.in ला भेट द्या.",
+          "answer_en": "MJPJAY official toll-free helpline numbers: 104 or 155388 or 1800 120 555 555. Official portal: jeevandayee.gov.in.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-deadline",
+          "topic": "अंतिम तारीख",
+          "topic_key": "deadline",
+          "questions_mr": [
+            "आयुष्यमान भारत योजनेची अंतिम तारीख काय आहे?",
+            "आरोग्य कार्ड काढण्याची मुदत कधी आहे?"
+          ],
+          "questions_roman": [
+            "mjpjay last date",
+            "ayushman bharat deadline",
+            "antim tarikh mjpjay"
+          ],
+          "keywords": [
+            "अंतिम तारीख",
+            "मुदत",
+            "कधीपर्यंत",
+            "last date",
+            "deadline"
+          ],
+          "answer_mr": "या आरोग्य हमी योजनेसाठी कोणतीही अंतिम तारीख नाही. ही योजना वर्षभर अखंड सुरू असते आणि आजारपण उद्भवल्यास तत्काळ रुग्णालयात जाऊन लाभ घेता येतो.",
+          "answer_en": "There is no deadline for MJPJAY; it is a year-round emergency and planned healthcare assurance program.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        },
+        {
+          "id": "mjp-diseases",
+          "topic": "कोणते आजार येतात / उपचार",
+          "topic_key": "diseases",
+          "questions_mr": [
+            "MJPJAY मध्ये कोणते आजार येतात?",
+            "आयुष्यमान भारत मध्ये कोणत्या उपचारांचा समावेश आहे?",
+            "कोणते ऑपरेशन मोफत होतात?",
+            "कोणत्या आजारावर उपचार मिळतात?"
+          ],
+          "questions_roman": [
+            "MJPJAY madhye konte aajar yetat",
+            "konte aajar cover ahet",
+            "diseases covered in mjpjay",
+            "ayushman bharat operations list"
+          ],
+          "keywords": [
+            "कोणते आजार",
+            "आजार",
+            "उपचार",
+            "शस्त्रक्रिया",
+            "हार्ट",
+            "कॅन्सर",
+            "ऑपरेशन",
+            "दवाखाना",
+            "किडनी",
+            "डायलिसिस",
+            "diseases",
+            "treatments",
+            "surgeries",
+            "aajar",
+            "operations"
+          ],
+          "answer_mr": "MJPJAY व आयुष्यमान भारत अंतर्गत १,३०० हून अधिक गंभीर आजार व शस्त्रक्रियांचा समावेश आहे. यामध्ये हृदयविकार व बायपास शस्त्रक्रिया, कर्करोग (कॅन्सर) उपचार व केमोथेरपी, किडनी आजार व डायलिसिस, मेंदूचे विकार, मणक्याचे आजार, हाडांची मोठी फ्रॅक्चर ऑपरेशन्स, डोळ्यांचे आजार, बालरोग शस्त्रक्रिया व अतिदक्षता उपचार यांचा समावेश आहे.",
+          "answer_en": "Over 1,300 critical illnesses and surgeries are covered including heart bypass, cancer chemotherapy/radiation, kidney failure/dialysis, neurosurgeries, orthopedic fractures, and pediatric ICU care.",
+          "source_gr": "सार्वजनिक आरोग्य विभाग शासन निर्णय",
+          "last_verified": "2026-08-20",
+          "verified": false
+        }
+      ],
+      "submit_where_mr": "जिल्हा सामान्य रुग्णालय, उपजिल्हा रुग्णालय किंवा योजनेशी संलग्न सरकारी/खाजगी रुग्णालयातील 'आरोग्यमित्र' कक्ष [VERIFY]",
+      "after_submit_mr": "१. रुग्णालयातील आरोग्यमित्र कक्षात रेशन कार्ड व आधार कार्ड सादर करा.\n२. आरोग्यमित्र बायोमेट्रिक ई-केवायसी करून आयुष्मान गोल्डन कार्ड व प्री-ऑथोरायझेशन मंजुरी मिळवून देतात.\n३. मंजुरीनंतर रुग्णालयात उपचाराचा ₹५ लाखांपर्यंतचा संपूर्ण खर्च मोफत (कॅशलेस) केला जातो. [VERIFY]"
+    },
+    {
+      "id": "ration-card",
+      "name_mr": "रेशन कार्ड - अंत्योदय व प्राधान्य कुटुंब अन्न योजना",
+      "name_en": "Maharashtra Ration Card Food Security",
+      "category_mr": "अन्नधान्य व सार्वजनिक वितरण",
+      "short_description_mr": "सवलतीच्या किंवा मोफत दरात गहू, तांदूळ व धान्य मिळवण्यासाठी अधिकृत रेशन कार्ड.",
+      "benefit_summary_mr": "मोफत / सवलतीच्या दरात गहू व तांदूळ थेट रास्त भाव दुकानातून (Fair Price Shop).",
+      "official_link": "https://rcms.mahafood.gov.in",
+      "last_verified_date": "2026-07-15",
+      "verification_tag": "VERIFY AGAINST OFFICIAL SOURCE (अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग)",
+      "eligibility_rules": {
+        "maharashtra_resident": true,
+        "antyodaya_income_limit": 59000,
+        "priority_household_income_limit": 100000
+      },
+      "eligibility_questions": [
+        {
+          "id": "resident",
+          "field": "resident",
+          "question_mr": "तुम्ही महाराष्ट्रात कायमस्वरूपी राहता का?",
+          "spoken_prompt_mr": "तुम्ही महाराष्ट्रात कायमस्वरूपी राहता का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, कायमस्वरूपी रहिवासी",
+              "value": true
+            },
+            {
+              "label_mr": "नाही",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "रेशन कार्ड मिळण्यासाठी महाराष्ट्रातील रहिवासी असणे आवश्यक आहे."
+        },
+        {
+          "id": "existing_card",
+          "field": "existing_card",
+          "question_mr": "तुमचे नाव इतर कोणत्याही अस्तित्वातील रेशन कार्डातून वगळले आहे का?",
+          "spoken_prompt_mr": "तुमचे नाव जुन्या रेशन कार्डातून कमी केले आहे का?",
+          "type": "boolean",
+          "options": [
+            {
+              "label_mr": "होय, नाव कमी केले आहे किंवा नवीन कुटुंब आहे",
+              "value": true
+            },
+            {
+              "label_mr": "नाही, अजून जुन्या कार्डात नाव आहे",
+              "value": false
+            }
+          ],
+          "rule_check": "value === true",
+          "fail_reason_mr": "एकाच व्यक्तीचे नाव दोन रेशन कार्डमध्ये असणे कायदेशीर गुन्हा आहे. आधी नाव कमी करण्याचा दाखला घ्या."
+        },
+        {
+          "id": "annual_income_level",
+          "field": "annual_income_level",
+          "question_mr": "तुमचे वार्षिक कौटुंबिक उत्पन्न किती आहे?",
+          "spoken_prompt_mr": "तुमचे वार्षिक उत्पन्न ५९ हजारांच्या आत आहे, एक लाखाच्या आत आहे की जास्त?",
+          "type": "select",
+          "options": [
+            {
+              "label_mr": "₹५९,००० पर्यंत (अंत्योदय BPL)",
+              "value": "antyodaya"
+            },
+            {
+              "label_mr": "₹१,००,००० पर्यंत (प्राधान्य कुटुंब)",
+              "value": "priority"
+            },
+            {
+              "label_mr": "₹१,००,००० पेक्षा जास्त (शुभ्र / केशरी)",
+              "value": "above_1lakh"
+            }
+          ],
+          "rule_check": "['antyodaya', 'priority', 'above_1lakh'].includes(value)",
+          "fail_reason_mr": ""
+        }
+      ],
+      "documents_mr": [
+        {
+          "id": "aadhaar_all",
+          "name": "कुटुंबातील सर्व सदस्यांची आधार कार्डे",
+          "required": true,
+          "note": "नावे अचूक असावीत"
+        },
+        {
+          "id": "residence_proof",
+          "name": "रहिवासी पुरावा (लाईट बिल किंवा घरपट्टी पावती)",
+          "required": true,
+          "note": "सध्याच्या पत्त्याचा पुरावा"
+        },
+        {
+          "id": "income_cert",
+          "name": "तहसीलदार किंवा अधिकृत उत्पन्नाचा दाखला",
+          "required": true,
+          "note": "सवलतीचे धान्य मिळण्यासाठी"
+        },
+        {
+          "id": "surrender_cert",
+          "name": "नाव वगळल्याचा दाखला (Surrender Certificate)",
+          "required": false,
+          "note": "विवाह किंवा स्थलांतर झाले असल्यास"
+        },
+        {
+          "id": "family_photo",
+          "name": "कुटुंब प्रमुखासह एकत्र फोटो",
+          "required": true,
+          "note": "पासपोर्ट आकार"
+        }
+      ],
+      "how_to_apply_mr": "१. rcms.mahafood.gov.in किंवा तहसील कार्यालयातील पुरवठा शाखेत नमुना अर्ज 'अ' भरा.\n२. कुटुंबातील सर्वांचे आधार व रहिवासी पुरावा जोडा.\n३. कागदपत्रांची पडताळणी झाल्यावर रेशन कार्ड पुरवठा निरीक्षकांकडून वितरित केले जाते.",
+      "form_fields": [
+        {
+          "key": "head_name",
+          "label_mr": "कुटुंबप्रमुखाचे नाव",
+          "spoken_prompt": "कुटुंब प्रमुखाचे पूर्ण नाव सांगा.",
+          "placeholder": "उदा. पार्वतीबाई लक्ष्मण कांबळे",
+          "type": "text"
+        },
+        {
+          "key": "mobile_number",
+          "label_mr": "मोबाईल नंबर",
+          "spoken_prompt": "मोबाईल नंबर सांगा.",
+          "placeholder": "उदा. 9765432100",
+          "type": "tel"
+        },
+        {
+          "key": "district_taluka",
+          "label_mr": "जिल्हा व तालुका",
+          "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.",
+          "placeholder": "उदा. नांदेड - लोहा",
+          "type": "text"
+        },
+        {
+          "key": "members_count",
+          "label_mr": "कुटुंबातील एकूण सदस्य संख्या",
+          "spoken_prompt": "कुटुंबात एकूण किती सदस्य आहेत?",
+          "placeholder": "उदा. 4",
+          "type": "number"
+        },
+        {
+          "key": "address",
+          "label_mr": "पूर्ण घरचा पत्ता",
+          "spoken_prompt": "घरचा पत्ता सांगा.",
+          "placeholder": "उदा. घर क्र. १२, मुख्य गल्ली",
+          "type": "text"
+        }
+      ],
+      "faqs": [
+        {
+          "id": "rc-about",
+          "topic": "योजना काय आहे",
+          "topic_key": "about",
+          "questions_mr": [
+            "महाराष्ट्र रेशन कार्ड योजना काय आहे?",
+            "अन्न सुरक्षा रेशन कार्ड माहिती",
+            "रेशन कार्ड बद्दल सांगा"
+          ],
+          "questions_roman": [
+            "ration card yojana kay ahe",
+            "ration card mahiti",
+            "what is ration card scheme"
+          ],
+          "keywords": [
+            "काय आहे",
+            "माहिती",
+            "रेशन कार्ड",
+            "अन्नधान्य",
+            "रास्त भाव",
+            "about",
+            "what is",
+            "ration card info"
+          ],
+          "answer_mr": "महाराष्ट्र रेशन कार्ड योजना ही राष्ट्रीय अन्न सुरक्षा कायद्यांतर्गत राज्यातील गरीब व गरजू कुटुंबांना रास्त भाव दुकानांमधून (Fair Price Shops) मोफत किंवा सवलतीच्या दरात गहू, तांदूळ आणि इतर आवश्यक अन्नधान्य उपलब्ध करून देणारी योजना आहे.",
+          "answer_en": "Maharashtra's Ration Card food security scheme provides subsidized or free food grains (wheat, rice) through Fair Price Shops under the National Food Security Act.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-benefits",
+          "topic": "लाभ किती/कसा मिळतो",
+          "topic_key": "benefits",
+          "questions_mr": [
+            "रेशन कार्डवर किती धान्य मिळते?",
+            "रेशन किती किलो मिळते?",
+            "रेशन दुकानातून काय लाभ मिळतो?"
+          ],
+          "questions_roman": [
+            "ration card var kiti dhanya milte",
+            "kiti kilo ration milnar",
+            "ration card benefit amount"
+          ],
+          "keywords": [
+            "किती धान्य",
+            "किती किलो",
+            "गहू",
+            "तांदूळ",
+            "अन्नधान्य",
+            "लाभ किती",
+            "dhanya",
+            "kilo",
+            "rice",
+            "wheat",
+            "ration quota"
+          ],
+          "answer_mr": "अंत्योदय (AAY) कार्डधारकांना प्रति कुटुंब दरमहा ३५ किलो अन्नधान्य मोफत दिले जाते. तर प्राधान्य कुटुंब (PHH) कार्डधारकांना दरमहा प्रति व्यक्ती ५ किलो धान्य मोफत किंवा सवलतीत मिळते. धान्य मिळवण्यासाठी रास्त भाव दुकानात ई-पॉस (e-PoS) मशीनवर बायोमेट्रिक अंगठा द्यावा लागतो.",
+          "answer_en": "Antyodaya (AAY) cardholders get 35 kg food grains per family monthly for free. Priority Household (PHH) cards receive 5 kg grains per person monthly.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-eligible",
+          "topic": "कोण पात्र",
+          "topic_key": "eligible",
+          "questions_mr": [
+            "रेशन कार्डसाठी कोण पात्र आहे?",
+            "नवीन रेशन कार्ड कोणाला मिळते?",
+            "पात्रतेचे नियम काय आहेत?"
+          ],
+          "questions_roman": [
+            "ration card sathi kon patra ahe",
+            "eligibility for ration card",
+            "who is eligible for ration card"
+          ],
+          "keywords": [
+            "कोण पात्र",
+            "पात्रता",
+            "उत्पन्न",
+            "अंत्योदय",
+            "प्राधान्य",
+            "eligible",
+            "patra",
+            "criteria"
+          ],
+          "answer_mr": "पात्रता: १. अर्जदार महाराष्ट्राचा कायमस्वरूपी रहिवासी असावा. २. वार्षिक उत्पन्न ₹५९,००० पर्यंत असणाऱ्यांना अंत्योदय BPL कार्ड; तर ₹१ लाखापर्यंत असणाऱ्यांना प्राधान्य कुटुंब रेशन कार्ड मिळते. ३. कुटुंबातील कोणत्याही सदस्याचे नाव दुसऱ्या रेशन कार्डात नसावे.",
+          "answer_en": "Eligibility: Permanent resident of Maharashtra; family income up to ₹59,000 for Antyodaya card, and up to ₹1,00,000 for Priority Household card. Names must not exist in any other card.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-ineligible",
+          "topic": "कोण अपात्र",
+          "topic_key": "ineligible",
+          "questions_mr": [
+            "रेशन कार्डसाठी कोण अपात्र आहे?",
+            "कोणाला रेशन कार्ड मिळत नाही?"
+          ],
+          "questions_roman": [
+            "ration card kon apatra ahe",
+            "who is not eligible for ration card"
+          ],
+          "keywords": [
+            "कोण अपात्र",
+            "अपात्र",
+            "मिळत नाही",
+            "दोन नावे",
+            "ineligible",
+            "apatra"
+          ],
+          "answer_mr": "अपात्रता: १. एकाच व्यक्तीचे नाव दोन वेगवेगळ्या रेशन कार्डमध्ये असल्यास तो कायद्याने गुन्हा ठरतो. २. सवलतीच्या धान्यासाठी कुटुंबाचे उत्पन्न विहित मर्यादेपेक्षा जास्त असल्यास शुभ्र (पांढरे) रेशन कार्ड मिळते, त्यावर सवलतीचे धान्य मिळत नाही.",
+          "answer_en": "Ineligibility: Possessing duplicate registrations across two ration cards, or exceeding income thresholds for subsidized grains.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-documents",
+          "topic": "कागदपत्रे",
+          "topic_key": "documents",
+          "questions_mr": [
+            "रेशन कार्डसाठी कोणती कागदपत्रे लागतील?",
+            "नवीन रेशन कार्डसाठी काय लागेल?",
+            "कागदपत्रांची यादी द्या"
+          ],
+          "questions_roman": [
+            "ration card sathi kagadpatre konti",
+            "new ration card documents",
+            "ration card sathi kay lagel"
+          ],
+          "keywords": [
+            "कागदपत्रे",
+            "कागद",
+            "दाखले",
+            "लाईट बिल",
+            "उत्पन्नाचा दाखला",
+            "आधार",
+            "documents",
+            "kagadpatre",
+            "papers"
+          ],
+          "answer_mr": "आवश्यक कागदपत्रे: १. कुटुंबातील सर्व सदस्यांची आधार कार्डे. २. रहिवासी पुरावा (लाईट बिल किंवा घरपट्टी पावती). ३. उत्पन्नाचा अधिकृत दाखला (तहसीलदार / तलाठी). ४. पूर्वीच्या रेशन कार्डातून नाव वगळल्याचा दाखला (Surrender Certificate - लागू असल्यास). ५. कुटुंबप्रमुखासह कुटुंबाचा एकत्र पासपोर्ट फोटो.",
+          "answer_en": "Required documents: Aadhaar cards of all family members, residence proof (electricity bill/house tax receipt), income certificate, surrender certificate (if transferring), and family photo.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-apply",
+          "topic": "अर्ज कसा/कुठे करायचा",
+          "topic_key": "apply",
+          "questions_mr": [
+            "नवीन रेशन कार्डचा अर्ज कसा करायचा?",
+            "रेशन कार्डसाठी अर्ज कुठे करावा?",
+            "रेशन कार्ड कुठे मिळते?"
+          ],
+          "questions_roman": [
+            "ration card araj kasa karaycha",
+            "ration card kuthe milte",
+            "how to apply ration card",
+            "new ration card apply"
+          ],
+          "keywords": [
+            "अर्ज कसा",
+            "कुठे करायचा",
+            "तहसील",
+            "पुरवठा शाखा",
+            "फॉर्म",
+            "apply",
+            "how to apply",
+            "kuthe"
+          ],
+          "answer_mr": "अर्ज पद्धत: १. rcms.mahafood.gov.in या अधिकृत पोर्टलवर ऑनलाइन अर्ज करता येतो. २. ऑफलाइन अर्ज करण्यासाठी तहसील कार्यालयातील पुरवठा शाखा (Food & Civil Supplies) किंवा सेतू केंद्रावर नमुना \"अ\" अर्ज भरून कागदपत्रांसह सादर करावा.",
+          "answer_en": "How to apply: Apply online on rcms.mahafood.gov.in or visit the Food and Civil Supplies branch at your local Tahsil office/Setu center to submit Form A with proofs.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-status",
+          "topic": "अर्जाची स्थिती कशी पाहायची",
+          "topic_key": "status",
+          "questions_mr": [
+            "रेशन कार्ड अर्जाची स्थिती कशी पाहायची?",
+            "रेशन कार्ड झाले का कसे पाहायचे?",
+            "स्टेटस कसे चेक करायचे?"
+          ],
+          "questions_roman": [
+            "ration card status kasa baghaycha",
+            "check ration card status online",
+            "application status ration card"
+          ],
+          "keywords": [
+            "स्थिती",
+            "स्टेटस",
+            "तपासा",
+            "झाले का",
+            "status",
+            "check status",
+            "track application"
+          ],
+          "answer_mr": "रेशन कार्ड अर्जाची स्थिती तपासण्यासाठी: rcms.mahafood.gov.in वर \"Track Application Status\" मध्ये अर्ज क्रमांक (Application Number) टाकून तपासणी करता येते. तसेच तहसील कार्यालयात पावती दाखवून चौकशी करता येते.",
+          "answer_en": "To check ration card status: Visit rcms.mahafood.gov.in under \"Track Application Status\" using application reference number.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-payment-issue",
+          "topic": "पैसे/लाभ न मिळाल्यास काय करावे",
+          "topic_key": "payment_issue",
+          "questions_mr": [
+            "रेशन दुकानात धान्य मिळाले नाही तर काय करावे?",
+            "दुकानदाराने रेशन देण्यास नकार दिला तर कुठे तक्रार करावी?",
+            "धान्य कमी मिळाले"
+          ],
+          "questions_roman": [
+            "ration milale nahi kay karu",
+            "ration dukan takrar",
+            "grain not distributed what to do"
+          ],
+          "keywords": [
+            "धान्य मिळाले नाही",
+            "रेशन मिळाले नाही",
+            "तक्रार",
+            "दुकानदार",
+            "ration not received",
+            "grain complaint"
+          ],
+          "answer_mr": "धान्य न मिळाल्यास किंवा रेशन दुकानदाराने धान्य देण्यास नकार दिल्यास: १. ई-पॉस पावती तपासा. २. तालुका पुरवठा निरीक्षक (Supply Inspector) किंवा तहसीलदारांकडे लेखी तक्रार करा. ३. अन्न व नागरी पुरवठा विभागाच्या १९६७ या टोल-फ्री क्रमांकावर तक्रार नोंदवा.",
+          "answer_en": "If grains not received or denied by shopkeeper: Verify e-PoS biometric slip, lodge written complaint with Taluka Supply Inspector/Tahsil, or dial 1967 toll-free.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-rejected",
+          "topic": "अर्ज नाकारला गेल्यास काय करावे",
+          "topic_key": "rejected",
+          "questions_mr": [
+            "रेशन कार्ड अर्ज नाकारला गेला तर काय करावे?",
+            "माझा रेशन कार्ड अर्ज रिजेक्ट झाला आता काय करू?"
+          ],
+          "questions_roman": [
+            "ration card araj nakarla gela",
+            "ration card reject jhala",
+            "disapproved ration card"
+          ],
+          "keywords": [
+            "नाकारला",
+            "रिजेक्ट",
+            "नामंजूर",
+            "त्रुटी",
+            "rejected",
+            "correction"
+          ],
+          "answer_mr": "अर्ज नाकारल्यास: पुरवठा निरीक्षकांकडून अर्जातील त्रुटी (उदा. जुन्या कार्डातून नाव कमी न होणे, उत्पन्नाची विसंगती) समजून घ्या. त्रुटींची पूर्तता करून तहसीलदारांकडे फेरपडताळणीसाठी अर्ज सादर करता येतो.",
+          "answer_en": "If ration card is rejected: Inquire with the Supply Inspector for exact discrepancies (e.g., duplicate names, income mismatch), rectify and submit an appeal to the Tahsildar.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-helpline",
+          "topic": "हेल्पलाइन/संपर्क",
+          "topic_key": "helpline",
+          "questions_mr": [
+            "रेशन कार्ड हेल्पलाइन नंबर काय आहे?",
+            "अन्न पुरवठा तक्रार नंबर",
+            "रेशन संपर्क क्रमांक"
+          ],
+          "questions_roman": [
+            "ration card helpline number",
+            "mahafood helpline",
+            "ration toll free 1967"
+          ],
+          "keywords": [
+            "हेल्पलाइन",
+            "टोल फ्री",
+            "१९६७",
+            "संपर्क",
+            "फोन नंबर",
+            "helpline",
+            "contact",
+            "toll free",
+            "1967"
+          ],
+          "answer_mr": "अन्न व नागरी पुरवठा विभाग टोल-फ्री हेल्पलाइन: १९६७ किंवा १८०० २२ ४९५०. अधिकृत संकेतस्थळ: rcms.mahafood.gov.in किंवा जवळच्या तहसील कार्यालयातील पुरवठा शाखेशी संपर्क साधा.",
+          "answer_en": "Food & Civil Supplies Department toll-free helpline numbers: 1967 or 1800 22 4950. Portal: rcms.mahafood.gov.in.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        },
+        {
+          "id": "rc-deadline",
+          "topic": "अंतिम तारीख",
+          "topic_key": "deadline",
+          "questions_mr": [
+            "रेशन कार्ड काढण्याची अंतिम तारीख काय आहे?",
+            "रेशन कार्डसाठी शेवटची तारीख कधी आहे?"
+          ],
+          "questions_roman": [
+            "ration card antim tarikh",
+            "last date ration card",
+            "deadline ration card"
+          ],
+          "keywords": [
+            "अंतिम तारीख",
+            "शेवटची तारीख",
+            "मुदत",
+            "last date",
+            "deadline"
+          ],
+          "answer_mr": "नवीन रेशन कार्ड काढण्यासाठी किंवा कार्डामध्ये नाव जोडणे/कमी करण्यासाठी कोणतीही अंतिम तारीख नाही. नागरिक वर्षभरात कधीही तहसील कार्यालयात किंवा ऑनलाइन अर्ज करू शकतात.",
+          "answer_en": "There is no cutoff deadline for applying or updating ration cards; applications are accepted continuously throughout the year.",
+          "source_gr": "अन्न, नागरी पुरवठा व ग्राहक संरक्षण विभाग",
+          "last_verified": "2026-07-15",
+          "verified": false
+        }
+      ],
+      "submit_where_mr": "तालुका तहसीलदार कार्यालय (पुरवठा विभाग), अन्नधान्य वितरण अधिकारी (FDO) कार्यालय किंवा आपले सरकार सेवा केंद्र [VERIFY]",
+      "after_submit_mr": "१. सादर केलेल्या अर्जाची संगणकीकृत पोचपावती व टोकन क्रमांक घ्या.\n२. पुरवठा निरीक्षकांकडून पत्ता, कुटुंबातील सदस्य व उत्पन्नाची स्थळ पाहणी/पडताळणी होते.\n३. अहवाल मंजूर झाल्यावर ३० दिवसांच्या आत नवीन रेशन कार्ड मुद्रित होऊन वितरित केले जाते. [VERIFY]"
+    }
+  ]
+}

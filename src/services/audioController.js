@@ -6,11 +6,12 @@
  * route through this controller.
  * 
  * Features:
- * - Sentence chunking with generation counter to eliminate Chrome's 15s freeze and zombie chunks.
- * - 100ms post-cancel delay so Chrome does not swallow subsequent utterances.
- * - Resumes audio queue before cancelling to prevent stuck Web Speech API states.
- * - Global listeners for tab visibilitychange, beforeunload, pagehide, and Escape key.
- * - Reactive subscription mechanism for UI components (Stop button, waveforms, etc.).
+ * - Generation counter that only allows newer speech to supersede older speech.
+ * - Automatic stop() never cancels a newly started speak() generation.
+ * - First-load autoplay rule: handles browser autoplay restrictions gracefully by
+ *   attempting immediate speech and, if blocked (not-allowed or no onstart within 1s),
+ *   queuing the welcome message to speak automatically on the very first touch/click.
+ * - Sentence chunking to eliminate Chrome's 15s freeze and zombie chunks.
  * - Preserves echo-prevention cooldown and debouncing contracts.
  */
 
@@ -74,11 +75,21 @@ class AudioController {
     this._currentId = null;
     this._lastSpoken = null; // { text, id, options }
     this._wasStoppedByUser = false;
+    
+    // Generation counters
     this.generation = 0;
+    this.activeGen = 0;
+    this.stoppedGen = 0;
+
     this.subscribers = new Set();
     this.chunkTimeout = null;
     this.watchdogTimer = null;
     this.currentUtterance = null;
+
+    // First-load autoplay queue & interaction handling
+    this.hasUserInteracted = false;
+    this.pendingWelcomeUtterance = null;
+    this.welcomeStarted = false;
 
     this.loadVoices();
 
@@ -87,9 +98,13 @@ class AudioController {
         this.loadVoices();
       };
 
+      // Set up global first-interaction listeners for autoplay unlock
+      this._setupInteractionListeners();
+
       // Automatic stopping on tab switch (visibilitychange)
       document.addEventListener('visibilitychange', () => {
         if (document.hidden && this._isSpeaking) {
+          console.debug('[audioController] stop: tab hidden');
           this.stop({ userInitiated: false, reason: 'visibilitychange' });
         }
       });
@@ -111,6 +126,35 @@ class AudioController {
     }
   }
 
+  _setupInteractionListeners() {
+    if (typeof window === 'undefined') return;
+    const events = ['pointerdown', 'touchstart', 'keydown', 'click'];
+    this._firstInteractionHandler = () => {
+      this.hasUserInteracted = true;
+      this._removeInteractionListeners();
+
+      // If welcome was blocked by browser autoplay, play it now on first interaction!
+      if (this.pendingWelcomeUtterance) {
+        const pending = this.pendingWelcomeUtterance;
+        this.pendingWelcomeUtterance = null;
+        console.debug('[audioController] First interaction detected. Playing queued welcome utterance:', pending.text);
+        this.speak(pending.text, { ...pending.options, force: true, isWelcome: false });
+      }
+    };
+
+    events.forEach(evt => {
+      window.addEventListener(evt, this._firstInteractionHandler, { capture: true, passive: true });
+    });
+  }
+
+  _removeInteractionListeners() {
+    if (typeof window === 'undefined' || !this._firstInteractionHandler) return;
+    const events = ['pointerdown', 'touchstart', 'keydown', 'click'];
+    events.forEach(evt => {
+      window.removeEventListener(evt, this._firstInteractionHandler, { capture: true });
+    });
+  }
+
   loadVoices() {
     if (!this.synth) return;
     this.voices = this.synth.getVoices();
@@ -121,7 +165,7 @@ class AudioController {
       v.name.toLowerCase().includes('marathi')
     );
 
-    // If Marathi is not installed, fallback to Hindi voice (handles Devanagari phonology well)
+    // Fallback to Hindi voice (handles Devanagari phonology well)
     const hindiVoice = this.voices.find(v => 
       v.lang.toLowerCase().includes('hi') || 
       v.name.toLowerCase().includes('hindi')
@@ -158,7 +202,6 @@ class AudioController {
   subscribe(listener) {
     if (typeof listener !== 'function') return () => {};
     this.subscribers.add(listener);
-    // Provide initial state immediately
     listener(this._getState());
     return () => {
       this.subscribers.delete(listener);
@@ -197,22 +240,58 @@ class AudioController {
   }
 
   /**
-   * Stops any ongoing speech immediately.
-   * Cancels synth, clears queued chunks, increments generation, and resets isSpeaking.
+   * Stops ongoing speech.
+   * If userInitiated is true, cancels everything immediately.
+   * If userInitiated is false (e.g. unmount, route-change), only cancels if no newer speak()
+   * has been called, ensuring background cleanups do NOT kill freshly started question speech.
    */
-  stop({ userInitiated = false, reason = '', clearLastSpoken = false } = {}) {
-    // Increment generation counter so all future chunks of any previous speech run are instantly aborted
-    this.generation++;
+  stop({ userInitiated = false, reason = '', clearLastSpoken = false, targetGen = null } = {}) {
+    // User-initiated stop (e.g. tapping "आवाज थांबवा", mic button, or Escape key)
+    if (userInitiated) {
+      this.stoppedGen = this.generation;
+      this.pendingWelcomeUtterance = null;
+      this._clearTimers();
+
+      const wasActive = this._isSpeaking;
+
+      if (this.synth) {
+        try {
+          if (this.synth.paused) this.synth.resume();
+          this.synth.cancel();
+        } catch (e) {
+          console.warn('Error in speechSynthesis.cancel:', e);
+        }
+      }
+
+      this._isSpeaking = false;
+      this._currentId = null;
+      this.currentUtterance = null;
+      this._wasStoppedByUser = true;
+      if (clearLastSpoken) this._lastSpoken = null;
+
+      console.debug(`[audioController] audio stopped by user (reason: "${reason}", stoppedGen: ${this.stoppedGen})`);
+      this._notify({ userInitiated: true, reason, wasSpeaking: wasActive });
+      return wasActive;
+    }
+
+    // Automatic stop (route_change, component unmount, etc.)
+    // Only cancel audio that started BEFORE a new speak() was called.
+    const genToCancel = targetGen !== null ? targetGen : this.activeGen;
+
+    // If a new speak() generation was already created, do NOT cancel it!
+    if (this.generation > genToCancel) {
+      console.debug(`[audioController] automatic stop ("${reason}") ignored: newer speak gen ${this.generation} > target ${genToCancel}`);
+      return false;
+    }
+
+    this.stoppedGen = this.generation;
     this._clearTimers();
 
     const wasActive = this._isSpeaking;
 
     if (this.synth) {
       try {
-        // Resume first in case Chromium's audio queue was paused
-        if (this.synth.paused) {
-          this.synth.resume();
-        }
+        if (this.synth.paused) this.synth.resume();
         this.synth.cancel();
       } catch (e) {
         console.warn('Error in speechSynthesis.cancel:', e);
@@ -222,25 +301,15 @@ class AudioController {
     this._isSpeaking = false;
     this._currentId = null;
     this.currentUtterance = null;
-    if (typeof window !== 'undefined') {
-      window.__sarkar_mitra_active_utterance = null;
-    }
 
-    if (userInitiated) {
-      this._wasStoppedByUser = true;
-    }
-
-    if (clearLastSpoken) {
-      this._lastSpoken = null;
-    }
-
-    this._notify({ userInitiated, reason, wasSpeaking: wasActive });
+    console.debug(`[audioController] audio stopped automatically (reason: "${reason}")`);
+    this._notify({ userInitiated: false, reason, wasSpeaking: wasActive });
     return wasActive;
   }
 
   /**
    * Speaks text using sentence-level chunking and Chrome utterance protection.
-   * Replaces any existing speech (never overlaps).
+   * Automatically supersedes any previous utterance without clipping new speech.
    */
   async speak(text, { 
     id = null, 
@@ -250,38 +319,54 @@ class AudioController {
     onEnd, 
     onError, 
     force = false, 
-    lowBandwidth = false 
+    lowBandwidth = false,
+    isWelcome = false 
   } = {}) {
     if (!this.synth || !text || !text.trim()) {
       if (onEnd) onEnd();
       return;
     }
 
-    // In low bandwidth mode, don't auto-speak unless explicitly forced by clicking replay/play
+    // In low bandwidth mode, don't auto-speak unless explicitly forced
     if (lowBandwidth && !force) {
+      console.debug('[audioController] speak blocked: lowBandwidth mode active');
+      if (onEnd) onEnd();
+      return;
+    }
+
+    // If this is a duplicate welcome message and welcome already started, ignore
+    if (isWelcome && this.welcomeStarted) {
+      console.debug('[audioController] speak skipped: welcome already played');
       if (onEnd) onEnd();
       return;
     }
 
     // Capture and increment generation counter for this specific speak invocation
     const currentGen = ++this.generation;
+    this.activeGen = currentGen;
+    console.debug(`[audioController] speak requested (gen ${currentGen}): "${text.slice(0, 50)}..."`);
+
     this._clearTimers();
 
-    // Cancel any active speech
+    // Check if browser was actively speaking
+    const wasSpeaking = this._isSpeaking || (this.synth.speaking || this.synth.pending);
+
+    // Cancel older audio
     try {
-      if (this.synth.paused) {
-        this.synth.resume();
-      }
+      if (this.synth.paused) this.synth.resume();
       this.synth.cancel();
     } catch (e) {
       console.warn('Speech cancellation error:', e);
     }
 
-    // 100ms delay between cancel() and speak() so Chrome doesn't swallow the new utterance
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // If audio was actively speaking, give Chrome a brief 60ms to flush pipeline
+    if (wasSpeaking) {
+      await new Promise(resolve => setTimeout(resolve, 60));
+    }
 
-    // If another speak() or stop() was called during the 100ms delay, abort
-    if (this.generation !== currentGen) {
+    // Verify generation: if a newer speak() or user stop occurred during cooldown, abort
+    if (this.generation !== currentGen || this.stoppedGen >= currentGen) {
+      console.debug(`[audioController] speak gen ${currentGen} aborted before playback: newer gen ${this.generation} or stoppedGen ${this.stoppedGen}`);
       return;
     }
 
@@ -295,14 +380,6 @@ class AudioController {
     this._currentId = id;
     this._isSpeaking = true;
     this._notify({ started: true });
-
-    if (onStart) {
-      try {
-        onStart();
-      } catch (err) {
-        console.error('Error in onStart callback:', err);
-      }
-    }
 
     // Split text into short, natural sentence chunks
     const chunks = splitIntoSentenceChunks(text);
@@ -318,12 +395,29 @@ class AudioController {
       this.loadVoices();
     }
 
+    // First-load autoplay watchdog:
+    // If this is the welcome message and onstart doesn't fire within 1s, browser blocked autoplay
+    let hasChunkStarted = false;
+    let autoplayWatchdog = null;
+
+    if (isWelcome && !this.hasUserInteracted) {
+      autoplayWatchdog = setTimeout(() => {
+        if (!hasChunkStarted && this.generation === currentGen && !this.hasUserInteracted) {
+          console.debug('[audioController] Autoplay watchdog: onstart did not fire within 1s. Queuing welcome for first interaction.');
+          this.pendingWelcomeUtterance = { text, options: { id, rate, lang, force: true } };
+          this._isSpeaking = false;
+          this._notify();
+        }
+      }, 1000);
+    }
+
     // Sequentially play chunks
     let chunkIndex = 0;
 
     const playNextChunk = () => {
-      // Verify generation: if cancelled or replaced, abort immediately
-      if (this.generation !== currentGen) {
+      // Verify generation: if superseded or stopped, abort immediately
+      if (this.generation !== currentGen || this.stoppedGen >= currentGen) {
+        console.debug(`[audioController] chunk aborted: gen ${currentGen} (current: ${this.generation}, stoppedGen: ${this.stoppedGen})`);
         return;
       }
 
@@ -331,6 +425,8 @@ class AudioController {
         this._isSpeaking = false;
         this._currentId = null;
         this.currentUtterance = null;
+        if (autoplayWatchdog) clearTimeout(autoplayWatchdog);
+        console.debug(`[audioController] speak completed (gen ${currentGen})`);
         this._notify({ completed: true });
         if (onEnd) onEnd();
         return;
@@ -342,9 +438,6 @@ class AudioController {
       try {
         const utterance = new SpeechSynthesisUtterance(chunkText);
         this.currentUtterance = utterance;
-        if (typeof window !== 'undefined') {
-          window.__sarkar_mitra_active_utterance = utterance;
-        }
 
         if (this.selectedVoice) {
           utterance.voice = this.selectedVoice;
@@ -362,31 +455,65 @@ class AudioController {
 
         this._clearTimers();
         this.watchdogTimer = setTimeout(() => {
-          if (this.generation === currentGen && this._isSpeaking) {
-            console.warn('Watchdog timed out on chunk, advancing to next chunk.');
+          if (this.generation === currentGen && this._isSpeaking && this.stoppedGen < currentGen) {
+            console.warn('[audioController] Watchdog timed out on chunk, advancing to next chunk.');
             playNextChunk();
           }
         }, estimatedMs);
 
+        utterance.onstart = () => {
+          if (this.generation !== currentGen || this.stoppedGen >= currentGen) return;
+          hasChunkStarted = true;
+          if (autoplayWatchdog) {
+            clearTimeout(autoplayWatchdog);
+            autoplayWatchdog = null;
+          }
+          if (isWelcome) {
+            this.welcomeStarted = true;
+            this.pendingWelcomeUtterance = null;
+            this._removeInteractionListeners();
+          }
+          console.debug(`[audioController] speak started (gen ${currentGen}, chunk ${chunkIndex}/${chunks.length})`);
+          if (onStart && chunkIndex === 1) {
+            try { onStart(); } catch (err) {}
+          }
+        };
+
         utterance.onend = () => {
-          if (this.generation !== currentGen) return;
+          if (this.generation !== currentGen || this.stoppedGen >= currentGen) return;
           this._clearTimers();
-          // Short 50ms pause between sentences for natural cadence
+          // Short 40ms pause between sentences for natural cadence
           this.chunkTimeout = setTimeout(() => {
-            if (this.generation === currentGen) {
+            if (this.generation === currentGen && this.stoppedGen < currentGen) {
               playNextChunk();
             }
-          }, 50);
+          }, 40);
         };
 
         utterance.onerror = (event) => {
-          if (this.generation !== currentGen) return;
-          console.warn('Speech synthesis utterance error on chunk:', event);
+          if (this.generation !== currentGen || this.stoppedGen >= currentGen) return;
           this._clearTimers();
-          // If error was not an intentional cancel, continue to next chunk or finish
+
+          // Handle browser autoplay restriction (not-allowed)
+          if (event.error === 'not-allowed') {
+            console.debug('[audioController] speak blocked by browser autoplay (not-allowed).');
+            if (autoplayWatchdog) clearTimeout(autoplayWatchdog);
+            if (isWelcome && !this.welcomeStarted) {
+              console.debug('[audioController] Queued welcome for first user interaction.');
+              this.pendingWelcomeUtterance = { text, options: { id, rate, lang, force: true } };
+            }
+            this._isSpeaking = false;
+            this._notify();
+            if (onError) onError(event);
+            return;
+          }
+
           if (event.error === 'canceled' || event.error === 'interrupted') {
             return;
           }
+
+          console.warn('[audioController] Speech utterance error on chunk:', event);
+
           if (chunkIndex >= chunks.length) {
             this._isSpeaking = false;
             this._currentId = null;
@@ -405,7 +532,7 @@ class AudioController {
 
         this.synth.speak(utterance);
       } catch (err) {
-        console.error('Exception during utterance play:', err);
+        console.error('[audioController] Exception during utterance play:', err);
         if (this.generation === currentGen) {
           this._clearTimers();
           this._isSpeaking = false;
@@ -425,6 +552,7 @@ class AudioController {
    */
   replayLast() {
     if (!this._lastSpoken || !this._lastSpoken.text) return false;
+    console.debug('[audioController] Replaying last spoken message:', this._lastSpoken.text.slice(0, 40));
     this.speak(this._lastSpoken.text, {
       ...this._lastSpoken.options,
       force: true
