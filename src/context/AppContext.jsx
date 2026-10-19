@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import uiTranslations from '../data/uiTranslations.json';
 import schemesData from '../data/schemes.json';
 
@@ -113,6 +113,37 @@ export function AppProvider({ children }) {
     return 'home';
   });
 
+  // 4-step progress bar reached state: 1 (योजना निवड) | 2 (पात्रता) | 3 (कागदपत्रे) | 4 (अर्ज)
+  const [maxReachedStep, setMaxReachedStep] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = sessionStorage.getItem('sarkar_mitra_max_step');
+        return saved ? Math.max(1, parseInt(saved, 10)) : 1;
+      }
+    } catch (e) {}
+    return 1;
+  });
+
+  const unlockStep = useCallback((stepNumber) => {
+    setMaxReachedStep(prev => {
+      const next = Math.max(prev, stepNumber);
+      try {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('sarkar_mitra_max_step', String(next));
+        }
+      } catch (e) {}
+      return next;
+    });
+  }, []);
+
+  // Update maxReachedStep automatically as screens change
+  useEffect(() => {
+    if (activeScreen === 'home') unlockStep(1);
+    else if (activeScreen === 'eligibility') unlockStep(2);
+    else if (activeScreen === 'documents') unlockStep(3);
+    else if (activeScreen === 'form') unlockStep(4);
+  }, [activeScreen, unlockStep]);
+
   // Currently selected or focused scheme
   const [selectedScheme, setSelectedScheme] = useState(() => {
     return schemesData.schemes[0]; // default to Ladki Bahin
@@ -215,7 +246,9 @@ export function AppProvider({ children }) {
         openMicCheck,
         closeMicCheck,
         showWelcomeModal,
-        dismissWelcomeModal
+        dismissWelcomeModal,
+        maxReachedStep,
+        unlockStep
       }}
     >
       {children}

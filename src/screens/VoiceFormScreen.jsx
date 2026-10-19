@@ -18,7 +18,7 @@ import {
   Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
-import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
+import WhatNextView from '../components/WhatNextView';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { generateApplicationPDF } from '../services/pdfGenerator';
@@ -270,14 +270,17 @@ export default function VoiceFormScreen() {
       if (res && res.success) {
         setPdfGenerated(res);
         showToast(`PDF तयार झाली: ${res.filename}`, 'success');
-        speak('तुमची पूर्व-अर्ज सारांशाची PDF डाऊनलोड झाली आहे. ही प्रत घेऊन जवळच्या सेतू केंद्र किंवा अधिकृत कार्यालयात प्रत्यक्ष अर्ज सादर करू शकता.');
+        setStage('what_next');
+        speak('तुमची पूर्व-अर्ज सारांशाची PDF डाऊनलोड झाली आहे. आता पुढे काय करायचे आणि प्रत्यक्ष अर्ज कुठे सादर करायचा याची माहिती समोर दिली आहे.');
       } else {
         showToast('प्रिंट किंवा सेव्ह विंडो उघडली आहे.', 'info');
+        setStage('what_next');
       }
     } catch (err) {
       console.error('PDF generation error:', err);
       showToast('प्रिंट विंडो उघडली आहे.', 'warning');
       window.print();
+      setStage('what_next');
     }
   }, [selectedScheme, formData, showToast, speak]);
 
@@ -310,11 +313,19 @@ export default function VoiceFormScreen() {
         return true;
       }
 
-      // 1. In 'completed' stage: voice-driven download, print, restart, edit
-      if (stageRef.current === 'completed') {
+      // 1. In 'completed' or 'what_next' stage: voice-driven download, what-next, summary, print, restart, edit
+      if (stageRef.current === 'completed' || stageRef.current === 'what_next') {
         const norm = raw.toLowerCase();
         if (norm.includes('pdf') || norm.includes('डाऊनलोड') || norm.includes('download') || norm.includes('सेव्ह')) {
           handleDownloadPDF();
+          return true;
+        }
+        if (norm.includes('पुढे काय') || norm.includes('what next') || norm.includes('मार्गदर्शन') || norm.includes('पुढे')) {
+          setStage('what_next');
+          return true;
+        }
+        if (norm.includes('सारांश') || norm.includes('summary') || (stageRef.current === 'what_next' && (norm.includes('मागे') || norm.includes('back')))) {
+          setStage('completed');
           return true;
         }
         if (norm.includes('प्रिंट') || norm.includes('print')) {
@@ -442,9 +453,6 @@ export default function VoiceFormScreen() {
           })}
         </div>
       </div>
-
-      {/* 4-Stage Citizen Journey Stepper */}
-      <CitizenJourneyStepper currentStage="form" />
 
       {/* Live Audio / Interim Waveform Visualizer */}
       <VoiceWaveVisualizer 
@@ -752,6 +760,14 @@ export default function VoiceFormScreen() {
               <span>{t('download_pdf')}</span>
             </button>
 
+            <button
+              onClick={() => setStage('what_next')}
+              className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg rounded-2xl shadow-md transition-transform active:scale-95 flex items-center justify-center gap-2.5 min-h-[52px]"
+            >
+              <span>आता पुढे काय करायचे? (What Next?)</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => window.print()}
@@ -800,6 +816,15 @@ export default function VoiceFormScreen() {
             📢 ही पूर्व-अर्ज सारांश PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अर्ज सादर करू शकता. (तुम्ही थेट माईकमध्ये "डाऊनलोड करा" बोलू शकता.)
           </div>
         </div>
+      )}
+
+      {/* Stage 4: What Next Screen (Official Portal Link, Office to Visit, Documents to Carry, 3-Step Process) */}
+      {stage === 'what_next' && (
+        <WhatNextView 
+          onBackToSummary={() => setStage('completed')}
+          onDownloadAgain={handleDownloadPDF}
+          onRestartForm={handleRestartForm}
+        />
       )}
 
     </div>

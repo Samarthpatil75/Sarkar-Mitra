@@ -17,7 +17,6 @@ import {
   Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
-import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { 
@@ -387,9 +386,6 @@ export default function EligibilityScreen() {
           })}
         </div>
       </div>
-
-      {/* 4-Stage Citizen Journey Stepper */}
-      <CitizenJourneyStepper currentStage="eligibility" />
 
       {/* Live Audio / Interim Waveform Visualizer */}
       <VoiceWaveVisualizer 

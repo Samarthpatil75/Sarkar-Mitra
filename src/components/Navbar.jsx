@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
+import CitizenJourneyStepper from './CitizenJourneyStepper';
 
 export default function Navbar() {
   const { 
@@ -318,6 +319,9 @@ export default function Navbar() {
           </button>
         </div>
       )}
+
+      {/* Sticky 4-Step Citizen Journey Progress Bar */}
+      <CitizenJourneyStepper />
     </header>
   );
 }

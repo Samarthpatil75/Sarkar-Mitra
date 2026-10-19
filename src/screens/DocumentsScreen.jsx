@@ -14,7 +14,6 @@ import {
   RotateCcw
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
-import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { isCancelOrBackIntent, isStopIntent } from '../services/marathiVoiceMatcher';
@@ -146,9 +145,6 @@ export default function DocumentsScreen() {
           })}
         </div>
       </div>
-
-      {/* 4-Stage Citizen Journey Stepper */}
-      <CitizenJourneyStepper currentStage="documents" />
 
       {/* Live Audio / Interim Waveform Visualizer */}
       <VoiceWaveVisualizer 
