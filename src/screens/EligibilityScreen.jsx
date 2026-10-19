@@ -13,7 +13,8 @@ import {
   FileCheck,
   FileText,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
@@ -22,6 +23,7 @@ import { useSpeech } from '../context/SpeechContext';
 import { 
   isYesIntent, 
   isNoIntent, 
+  isStopIntent,
   extractNumberFromMarathi, 
   isPreviousOrBackIntent,
   isCancelOrBackIntent,
@@ -42,6 +44,10 @@ export default function EligibilityScreen() {
     isListening, 
     isSpeaking, 
     speak, 
+    stopSpeaking,
+    wasStoppedByUser,
+    lastSpoken,
+    replayLastAudio,
     interimTranscript, 
     registerVoiceHandler,
     isSpeechSupported,
@@ -159,6 +165,7 @@ export default function EligibilityScreen() {
 
   // Answer handler
   const handleAnswer = useCallback((value) => {
+    stopSpeaking();
     const q = currentQuestionRef.current;
     if (!q) return;
 
@@ -175,10 +182,11 @@ export default function EligibilityScreen() {
     } else {
       evaluateEligibility(updated);
     }
-  }, [answers, currentStep, questions.length, evaluateEligibility]);
+  }, [answers, currentStep, questions.length, evaluateEligibility, stopSpeaking]);
 
   // Go back to the previous eligibility question
   const handleGoBack = useCallback(() => {
+    stopSpeaking();
     if (currentStep > 0) {
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
@@ -190,13 +198,27 @@ export default function EligibilityScreen() {
       const prevQ = questions[prevStep];
       speak(`मागील प्रश्नावर परत आलो आहोत: ${prevQ.spoken_prompt_mr || prevQ.question_mr}`);
     }
-  }, [currentStep, questions, speak]);
+  }, [currentStep, questions, speak, stopSpeaking]);
+
+  // Cleanup on unmount so nothing keeps speaking after screen closes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [stopSpeaking]);
 
   // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim();
       if (!raw) return true;
+
+      // 0. Spoken stop command: recognize Marathi/English stop words ("थांबा", "थांब", "बंद कर", "stop")
+      // Cease playback immediately and NEVER treat it as an answer or navigation
+      if (isStopIntent(raw)) {
+        stopSpeaking({ userInitiated: true });
+        return true;
+      }
 
       // 1. Handle go back to previous question
       if (isPreviousOrBackIntent(raw)) {
@@ -208,7 +230,7 @@ export default function EligibilityScreen() {
 
       // 2. Handle cancel / exit to home
       const normRaw = normalizeMarathiSpeech(raw);
-      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'थांबवा', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw.includes(k))) {
+      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw === k || normRaw.includes(k))) {
         speak('पात्रता तपासणी थांबवली आहे. मुख्य पानावर जात आहोत.');
         setActiveScreen('home');
         return true;
@@ -415,14 +437,29 @@ export default function EligibilityScreen() {
               </span>
             </div>
 
-            <button
-              onClick={() => speak(currentQuestion.spoken_prompt_mr || currentQuestion.question_mr, { force: true })}
-              className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
-              aria-label="हा प्रश्न पुन्हा ऐका"
-              title="प्रश्न ऐका"
-            >
-              <Volume2 className="w-5 h-5" />
-            </button>
+            {isSpeaking ? (
+              <button
+                type="button"
+                onClick={() => stopSpeaking({ userInitiated: true })}
+                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black min-h-[44px] flex items-center gap-1.5 shadow-md animate-pulse focus:ring-4 focus:ring-red-400 cursor-pointer"
+                role="button"
+                aria-label="आवाज थांबवा"
+                title="आवाज थांबवा"
+              >
+                <Square className="w-4 h-4 fill-current" />
+                <span>⏹ आवाज थांबवा</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => speak(currentQuestion.spoken_prompt_mr || currentQuestion.question_mr, { force: true })}
+                className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
+                aria-label="हा प्रश्न पुन्हा ऐका"
+                title="प्रश्न ऐका"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           {/* Friendly Speech Fallback Banner (when speech unsupported or denied) */}

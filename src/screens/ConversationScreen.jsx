@@ -19,7 +19,8 @@ import {
   Trash2, 
   X, 
   HelpCircle, 
-  Database 
+  Database,
+  Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
@@ -43,6 +44,10 @@ export default function ConversationScreen() {
   const { 
     isListening, 
     isSpeaking, 
+    currentId,
+    wasStoppedByUser,
+    lastSpoken,
+    replayLastAudio,
     interimTranscript, 
     speak, 
     stopSpeaking, 
@@ -75,11 +80,19 @@ export default function ConversationScreen() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, interimTranscript, isTyping]);
 
-  const handleReplay = (text) => {
-    speak(text, { force: true });
+  // Cleanup on unmount so nothing keeps speaking after screen closes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [stopSpeaking]);
+
+  const handleReplay = (text, msgId = null) => {
+    speak(text, { id: msgId || text, force: true });
   };
 
   const handleAction = (screenId, scheme) => {
+    stopSpeaking();
     if (scheme) setSelectedScheme(scheme);
     setActiveScreen(screenId);
   };
@@ -87,6 +100,8 @@ export default function ConversationScreen() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
+    // Automatic stopping when user types or sends a message
+    stopSpeaking();
     const query = inputText.trim();
     setInputText('');
 
@@ -100,6 +115,7 @@ export default function ConversationScreen() {
   };
 
   const handleQuickChipClick = (query) => {
+    stopSpeaking();
     setIsTyping(true);
     setTimeout(() => {
       processInput(query);
@@ -140,6 +156,21 @@ export default function ConversationScreen() {
         {/* Toolbar Controls */}
         <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-700">
           
+          {/* Prominent Stop Button when speaking */}
+          {isSpeaking && (
+            <button
+              type="button"
+              onClick={() => stopSpeaking({ userInitiated: true })}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black shadow-md animate-pulse focus:ring-4 focus:ring-red-400 cursor-pointer"
+              role="button"
+              aria-label="आवाज थांबवा"
+              title="आवाज थांबवा"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span>⏹ आवाज थांबवा</span>
+            </button>
+          )}
+
           {/* 'उत्तर ऐका' Auto-Speak Toggle Switch */}
           <button
             onClick={() => setAutoSpeakAnswers(!autoSpeakAnswers)}
@@ -301,15 +332,30 @@ export default function ConversationScreen() {
                       {msg.timestamp}
                     </span>
                     {isAssistant && (
-                      <button
-                        onClick={() => handleReplay(msg.text_mr)}
-                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-saffron-800 dark:text-saffron-300 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-xl transition-all shadow-sm focus:ring-2 focus:ring-saffron-400 min-h-[34px]"
-                        aria-label="हे उत्तर पुन्हा ऐका"
-                        title="पुन्हा ऐका"
-                      >
-                        <span className="text-xs">🔁</span>
-                        <span>पुन्हा ऐका</span>
-                      </button>
+                      isSpeaking && currentId === (msg.id || msg.text_mr) ? (
+                        <button
+                          type="button"
+                          onClick={() => stopSpeaking({ userInitiated: true })}
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-black text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-md animate-pulse min-h-[34px] cursor-pointer"
+                          role="button"
+                          aria-label="आवाज थांबवा"
+                          title="आवाज थांबवा"
+                        >
+                          <Square className="w-3.5 h-3.5 fill-current" />
+                          <span>⏹ थांबवा</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleReplay(msg.text_mr, msg.id)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-saffron-800 dark:text-saffron-300 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-xl transition-all shadow-sm focus:ring-2 focus:ring-saffron-400 min-h-[34px]"
+                          aria-label="हे उत्तर पुन्हा ऐका"
+                          title="पुन्हा ऐका"
+                        >
+                          <span className="text-xs">🔁</span>
+                          <span>पुन्हा ऐका</span>
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -480,7 +526,10 @@ export default function ConversationScreen() {
               ref={inputRef}
               type="text"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={(e) => {
+                if (isSpeaking) stopSpeaking();
+                setInputText(e.target.value);
+              }}
               placeholder="योजनेबद्दल कोणतीही शंका विचारा... (उदा. लाडकी बहीण पैसे कधी येतात?)"
               className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 focus:border-saffron-500 dark:focus:border-saffron-400 rounded-2xl text-base text-slate-900 dark:text-white outline-none min-h-[50px]"
             />

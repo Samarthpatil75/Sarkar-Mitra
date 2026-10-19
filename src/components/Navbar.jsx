@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Volume2, 
+  VolumeX,
   Wifi, 
   WifiOff, 
   Moon, 
@@ -15,7 +16,9 @@ import {
   BarChart2, 
   Languages,
   PlayCircle,
-  Mic
+  Mic,
+  Square,
+  RotateCcw
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
@@ -37,7 +40,16 @@ export default function Navbar() {
     t 
   } = useApp();
 
-  const { isSpeaking, stopSpeaking } = useSpeech();
+  const { 
+    isSpeaking, 
+    stopSpeaking, 
+    wasStoppedByUser, 
+    lastSpoken, 
+    replayLastAudio,
+    autoSpeakAnswers,
+    setAutoSpeakAnswers
+  } = useSpeech();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -52,8 +64,19 @@ export default function Navbar() {
   ];
 
   const handleNavClick = (id) => {
+    stopSpeaking();
     setActiveScreen(id);
     setMobileMenuOpen(false);
+  };
+
+  const handleLanguageToggle = () => {
+    stopSpeaking();
+    toggleLanguage();
+  };
+
+  const handleLowBandwidthToggle = () => {
+    stopSpeaking();
+    toggleLowBandwidth();
   };
 
   return (
@@ -101,22 +124,39 @@ export default function Navbar() {
             <span>डेमो पहा</span>
           </button>
 
-          {/* Speaking Audio Stop Indicator */}
+          {/* Prominent Speaking Audio Stop Button */}
           {isSpeaking && (
             <button
-              onClick={stopSpeaking}
-              className="flex items-center gap-1.5 px-3 py-2 bg-saffron-500 hover:bg-saffron-600 text-white text-sm font-semibold rounded-full animate-pulse min-h-[48px] focus:ring-4 focus:ring-saffron-300"
+              type="button"
+              onClick={() => stopSpeaking({ userInitiated: true })}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-black rounded-2xl animate-pulse min-h-[48px] focus:ring-4 focus:ring-red-400 shadow-lg cursor-pointer"
+              role="button"
               aria-label="आवाज थांबवा"
               title="आवाज थांबवा"
             >
-              <Volume2 className="w-5 h-5" />
-              <span className="hidden md:inline">थांबवा</span>
+              <Square className="w-4 h-4 fill-current" />
+              <span>⏹ आवाज थांबवा</span>
+            </button>
+          )}
+
+          {/* Replay Last Button if stopped by user */}
+          {!isSpeaking && wasStoppedByUser && lastSpoken && (
+            <button
+              type="button"
+              onClick={replayLastAudio}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-saffron-600 hover:bg-saffron-700 text-white text-xs sm:text-sm font-bold rounded-2xl min-h-[48px] shadow-sm cursor-pointer"
+              role="button"
+              aria-label="पुन्हा ऐका"
+              title="शेवटचा आवाज पुन्हा ऐका"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>🔁 पुन्हा ऐका</span>
             </button>
           )}
 
           {/* Low Bandwidth Toggle */}
           <button
-            onClick={toggleLowBandwidth}
+            onClick={handleLowBandwidthToggle}
             className={`p-2.5 rounded-xl border flex items-center gap-1 min-h-[48px] min-w-[48px] justify-center transition-colors focus:ring-4 focus:ring-saffron-400 ${
               lowBandwidth 
                 ? 'bg-amber-100 border-amber-400 text-amber-900 dark:bg-amber-950/70 dark:border-amber-600 dark:text-amber-200' 
@@ -173,7 +213,7 @@ export default function Navbar() {
 
           {/* Language Toggle (UI Labels: mr/en) */}
           <button
-            onClick={toggleLanguage}
+            onClick={handleLanguageToggle}
             className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 font-bold text-sm min-h-[48px] min-w-[48px] flex items-center gap-1 text-slate-800 dark:text-slate-100 focus:ring-4 focus:ring-saffron-400 transition-colors"
             aria-label="भाषा बदला (मराठी / English)"
             title="UI भाषा बदला"
@@ -247,6 +287,23 @@ export default function Navbar() {
               </button>
             );
           })}
+
+          {/* 'उत्तर ऐका' Auto-read toggle in mobile drawer */}
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setAutoSpeakAnswers(!autoSpeakAnswers)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-bold min-h-[48px] bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+            >
+              <div className="flex items-center gap-2.5">
+                {autoSpeakAnswers ? <Volume2 className="w-5 h-5 text-saffron-600" /> : <VolumeX className="w-5 h-5 text-slate-400" />}
+                <span>उत्तर ऐका (Auto-read answers)</span>
+              </div>
+              <span className={`px-2.5 py-1 text-xs rounded-full font-extrabold ${autoSpeakAnswers ? 'bg-saffron-600 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>
+                {autoSpeakAnswers ? 'चालू' : 'बंद'}
+              </span>
+            </button>
+          </div>
 
           {/* Mobile Mic Check Button */}
           <button

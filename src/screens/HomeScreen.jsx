@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle } from 'lucide-react';
+import { Mic, Sparkles, ShieldCheck, HeartHandshake, HelpCircle, ArrowRight, Workflow, Volume2, PlayCircle, Square } from 'lucide-react';
 import SchemeCard from '../components/SchemeCard';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
@@ -8,7 +8,7 @@ import { DEMO_PERSONAS } from '../data/demoPersonas';
 
 export default function HomeScreen() {
   const { schemes, setSelectedScheme, setActiveScreen, t, lowBandwidth } = useApp();
-  const { isListening, isSpeaking, toggleListening, interimTranscript, processInput } = useSpeech();
+  const { isListening, isSpeaking, toggleListening, stopSpeaking, interimTranscript, processInput } = useSpeech();
 
   const rotatingChips = [
     'लाडकी बहीण योजनेबद्दल सांगा',
@@ -83,6 +83,22 @@ export default function HomeScreen() {
             {isListening ? 'आम्ही ऐकत आहोत... तुमची शंका बोला' : '👆 वरील बटण दाबून मराठीत बोला'}
           </p>
 
+          {/* Prominent Stop Button on Hero when speaking */}
+          {isSpeaking && (
+            <div className="mt-4 animate-fadeIn">
+              <button
+                type="button"
+                onClick={() => stopSpeaking({ userInitiated: true })}
+                className="min-h-[48px] px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-2xl shadow-xl ring-4 ring-red-300 dark:ring-red-950 animate-pulse flex items-center justify-center gap-2 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400 cursor-pointer"
+                role="button"
+                aria-label="आवाज थांबवा"
+              >
+                <Square className="w-5 h-5 fill-current" />
+                <span>⏹ आवाज थांबवा</span>
+              </button>
+            </div>
+          )}
+
           {/* Rotating "असे म्हणा" example chips under big mic button */}
           <div className="mt-5 w-full max-w-lg flex flex-col items-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-saffron-100 dark:bg-saffron-950/80 border border-saffron-300 dark:border-saffron-700 text-xs sm:text-sm font-extrabold text-saffron-900 dark:text-saffron-200 mb-2.5">
@@ -92,7 +108,10 @@ export default function HomeScreen() {
 
             {/* Featured Rotating Example Chip Button */}
             <button
-              onClick={() => processInput(rotatingChips[currentChipIdx])}
+              onClick={() => {
+                stopSpeaking();
+                processInput(rotatingChips[currentChipIdx]);
+              }}
               className="group w-full max-w-md py-3 px-5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-saffron-400 dark:border-saffron-500 shadow-md hover:shadow-lg hover:border-saffron-500 text-left flex items-center justify-between gap-3 transition-all transform hover:scale-[1.02] active:scale-95"
               aria-label={`असे म्हणा: ${rotatingChips[currentChipIdx]}`}
             >

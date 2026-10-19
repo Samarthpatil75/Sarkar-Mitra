@@ -10,13 +10,14 @@ import {
   ShieldCheck, 
   ExternalLink,
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  RotateCcw
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
-import { isCancelOrBackIntent } from '../services/marathiVoiceMatcher';
+import { isCancelOrBackIntent, isStopIntent } from '../services/marathiVoiceMatcher';
 
 export default function DocumentsScreen() {
   const { selectedScheme, setSelectedScheme, schemes, setActiveScreen, lowBandwidth } = useApp();
@@ -25,6 +26,10 @@ export default function DocumentsScreen() {
     isSpeaking, 
     interimTranscript, 
     speak, 
+    stopSpeaking,
+    wasStoppedByUser,
+    lastSpoken,
+    replayLastAudio,
     registerVoiceHandler 
   } = useSpeech();
 
@@ -67,11 +72,24 @@ export default function DocumentsScreen() {
     }
   }, [selectedScheme, lowBandwidth, speak]);
 
+  // Cleanup on unmount to prevent any speaking after screen closes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [stopSpeaking]);
+
   // Pure Voice Navigation handler on Documents screen
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim().toLowerCase();
       if (!raw) return true;
+
+      // Spoken stop command interception
+      if (isStopIntent(raw)) {
+        stopSpeaking({ userInitiated: true });
+        return true;
+      }
 
       // Check if user says to read documents aloud
       if (raw.includes('ऐका') || raw.includes('वाचून') || raw.includes('सांगा') || raw.includes('read')) {
@@ -97,7 +115,7 @@ export default function DocumentsScreen() {
     });
 
     return () => unregister();
-  }, [handleReadAllAloud, registerVoiceHandler, setActiveScreen, speak]);
+  }, [handleReadAllAloud, registerVoiceHandler, setActiveScreen, speak, stopSpeaking]);
 
   const checkedCount = Object.values(checkedDocs).filter(Boolean).length;
 
@@ -156,15 +174,46 @@ export default function DocumentsScreen() {
             </h2>
           </div>
 
-          {/* Read All Button */}
-          <button
-            onClick={handleReadAllAloud}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-civic-900 hover:bg-civic-800 text-white rounded-2xl font-bold text-sm min-h-[48px] transition-colors focus:ring-4 focus:ring-civic-400"
-            aria-label="सर्व कागदपत्रांची यादी मराठी आवाजात ऐका"
-          >
-            <Volume2 className="w-5 h-5 text-saffron-400" />
-            <span>सर्व कागदपत्रे ऐका</span>
-          </button>
+          {/* Action Buttons: Read All, Stop, Replay */}
+          <div className="flex flex-wrap items-center gap-2">
+            {isSpeaking ? (
+              <button
+                type="button"
+                onClick={() => stopSpeaking({ userInitiated: true })}
+                className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-sm min-h-[48px] shadow-lg ring-4 ring-red-300 dark:ring-red-950 transition-all cursor-pointer animate-pulse"
+                role="button"
+                aria-label="आवाज थांबवा"
+              >
+                <Square className="w-5 h-5 fill-current" />
+                <span>⏹ आवाज थांबवा</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleReadAllAloud}
+                  className="flex items-center justify-center gap-2 px-5 py-3 bg-civic-900 hover:bg-civic-800 text-white rounded-2xl font-bold text-sm min-h-[48px] transition-colors focus:ring-4 focus:ring-civic-400"
+                  aria-label="सर्व कागदपत्रांची यादी मराठी आवाजात ऐका"
+                >
+                  <Volume2 className="w-5 h-5 text-saffron-400" />
+                  <span>सर्व कागदपत्रे ऐका</span>
+                </button>
+                {wasStoppedByUser && lastSpoken && (
+                  <button
+                    type="button"
+                    onClick={replayLastAudio}
+                    className="flex items-center justify-center gap-1.5 px-4 py-3 bg-saffron-600 hover:bg-saffron-700 text-white rounded-2xl font-bold text-xs min-h-[48px] shadow-sm transition-colors cursor-pointer"
+                    role="button"
+                    aria-label="पुन्हा ऐका"
+                    title="शेवटचा आवाज पुन्हा ऐका"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>🔁 पुन्हा ऐका</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         {/* Interactive Documents Tickable List */}

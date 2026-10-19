@@ -14,7 +14,10 @@ export default function FirstLaunchWelcomeModal() {
     if (showWelcomeModal) {
       speak(welcomeText, { force: true });
     }
-  }, [showWelcomeModal, speak]);
+    return () => {
+      stopSpeaking();
+    };
+  }, [showWelcomeModal, speak, stopSpeaking]);
 
   if (!showWelcomeModal) return null;
 

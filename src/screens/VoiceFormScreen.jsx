@@ -14,7 +14,8 @@ import {
   Sparkles,
   HelpCircle,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import CitizenJourneyStepper from '../components/CitizenJourneyStepper';
@@ -24,6 +25,7 @@ import { generateApplicationPDF } from '../services/pdfGenerator';
 import { 
   isYesIntent, 
   isNoIntent, 
+  isStopIntent,
   extractNumberFromMarathi, 
   parseSpokenPhoneNumber,
   detectSpokenLanguage,
@@ -40,6 +42,9 @@ export default function VoiceFormScreen() {
     isSpeaking, 
     speak, 
     stopSpeaking,
+    wasStoppedByUser,
+    lastSpoken,
+    replayLastAudio,
     interimTranscript, 
     startListening, 
     registerVoiceHandler,
@@ -111,6 +116,7 @@ export default function VoiceFormScreen() {
 
   // Go back to the previous question (allows user to correct mistaken answers)
   const handleGoBack = useCallback(() => {
+    stopSpeaking();
     if (currentFieldIndex <= 0) {
       showToast('हा पहिलाच प्रश्न आहे.', 'info');
       speak('हा पहिलाच प्रश्न आहे.');
@@ -131,7 +137,7 @@ export default function VoiceFormScreen() {
     });
 
     speak(`मागील प्रश्नावर परत आलो आहोत: ${targetField.spoken_prompt}. तुमचे योग्य उत्तर सांगा.`);
-  }, [currentFieldIndex, formFields, formData, speak, showToast]);
+  }, [currentFieldIndex, formFields, formData, speak, stopSpeaking, showToast]);
 
   // Jump to edit a specific field directly from the summary screen
   const handleEditFieldFromSummary = useCallback((index) => {
@@ -207,6 +213,7 @@ export default function VoiceFormScreen() {
 
   // Confirm answer as YES
   const handleConfirmYes = useCallback(() => {
+    stopSpeaking();
     if (!currentField) return;
     const updatedData = {
       ...formData,
@@ -236,10 +243,11 @@ export default function VoiceFormScreen() {
       setStage('completed');
       speak('अभिनंदन! तुमचे सर्व तपशील नोंदवले गेले आहेत. खाली दिलेले PDF डाउनलोड करा बटण दाबून अर्जाचा सारांश जतन करा.');
     }
-  }, [currentField, formData, pendingAnswer, isEditingFromSummary, currentFieldIndex, formFields.length, speak]);
+  }, [currentField, formData, pendingAnswer, isEditingFromSummary, currentFieldIndex, formFields.length, speak, stopSpeaking]);
 
   // Reject answer as NO (retry / "i dont want" / cancel)
   const handleConfirmNo = useCallback(() => {
+    stopSpeaking();
     setPendingAnswer('');
     setSpeechFeedback({
       text: 'उत्तर रद्द केले (Cancelled). कृपया तुमचे उत्तर पुन्हा सांगा.',
@@ -247,7 +255,7 @@ export default function VoiceFormScreen() {
     });
     setStage('asking');
     speak('ठीक आहे, उत्तर रद्द केले. कृपया पुन्हा सांगा.');
-  }, [speak]);
+  }, [speak, stopSpeaking]);
 
   // Download PDF handler
   const handleDownloadPDF = useCallback(async () => {
@@ -282,11 +290,25 @@ export default function VoiceFormScreen() {
     setSpeechFeedback(null);
   }, []);
 
+  // Cleanup on unmount so nothing keeps speaking after screen closes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [stopSpeaking]);
+
   // Voice handler for answering, confirming, and completed summary actions
   useEffect(() => {
     const unregister = registerVoiceHandler((speechText) => {
       const raw = speechText.trim();
       if (!raw) return true;
+
+      // 0. Spoken stop command: recognize Marathi/English stop words ("थांबा", "थांब", "बंद कर", "stop")
+      // Cease playback immediately and NEVER treat it as an answer or navigation
+      if (isStopIntent(raw)) {
+        stopSpeaking({ userInitiated: true });
+        return true;
+      }
 
       // 1. In 'completed' stage: voice-driven download, print, restart, edit
       if (stageRef.current === 'completed') {
@@ -324,7 +346,7 @@ export default function VoiceFormScreen() {
 
       // 3. Check if user explicitly wants to cancel or exit completely to home
       const normRaw = normalizeMarathiSpeech(raw);
-      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'थांबवा', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw.includes(k))) {
+      if (['रद्द करा', 'कॅन्सल करा', 'कॅन्सल', 'मुख्य पान', 'होम', 'exit', 'quit'].some(k => normRaw === k || normRaw.includes(k))) {
         speak('फॉर्म थांबवला आहे. मुख्य पानावर जात आहोत.');
         setActiveScreen('home');
         return true;
@@ -471,13 +493,28 @@ export default function VoiceFormScreen() {
               </span>
             </div>
 
-            <button
-              onClick={() => speak(currentField.spoken_prompt, { force: true })}
-              className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
-              aria-label="प्रश्न पुन्हा ऐका"
-            >
-              <Volume2 className="w-5 h-5" />
-            </button>
+            {isSpeaking ? (
+              <button
+                type="button"
+                onClick={() => stopSpeaking({ userInitiated: true })}
+                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black min-h-[44px] flex items-center gap-1.5 shadow-md animate-pulse focus:ring-4 focus:ring-red-400 cursor-pointer"
+                role="button"
+                aria-label="आवाज थांबवा"
+                title="आवाज थांबवा"
+              >
+                <Square className="w-4 h-4 fill-current" />
+                <span>⏹ आवाज थांबवा</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => speak(currentField.spoken_prompt, { force: true })}
+                className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
+                aria-label="प्रश्न पुन्हा ऐका"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2 leading-snug">

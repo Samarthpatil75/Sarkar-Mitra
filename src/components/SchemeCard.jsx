@@ -1,13 +1,14 @@
 import React from 'react';
-import { CheckCircle2, FileText, Send, Volume2, ShieldCheck, ExternalLink, ArrowRight } from 'lucide-react';
+import { CheckCircle2, FileText, Send, Volume2, ShieldCheck, ExternalLink, ArrowRight, Square } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 
 export default function SchemeCard({ scheme, onSelectAction }) {
   const { setSelectedScheme, setActiveScreen, t } = useApp();
-  const { speak } = useSpeech();
+  const { speak, stopSpeaking, isSpeaking, currentId } = useSpeech();
 
   const handleAction = (screenId) => {
+    stopSpeaking();
     setSelectedScheme(scheme);
     setActiveScreen(screenId);
     if (onSelectAction) onSelectAction(screenId, scheme);
@@ -16,7 +17,7 @@ export default function SchemeCard({ scheme, onSelectAction }) {
   const handleReadAloud = (e) => {
     e.stopPropagation();
     const speechText = `${scheme.name_mr}. ${scheme.short_description_mr}. मुख्य लाभ: ${scheme.benefit_summary_mr}. अधिक माहितीसाठी पात्रता तपासा किंवा अर्ज करा बटण दाबा.`;
-    speak(speechText, { force: true });
+    speak(speechText, { id: scheme.id, force: true });
   };
 
   return (
@@ -35,14 +36,30 @@ export default function SchemeCard({ scheme, onSelectAction }) {
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>सत्यापित {scheme.last_verified_date}</span>
             </span>
-            <button
-              onClick={handleReadAloud}
-              className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors focus:ring-2 focus:ring-saffron-400"
-              aria-label={`${scheme.name_mr} बद्दल माहिती आवाजात ऐका`}
-              title="माहिती ऐका"
-            >
-              <Volume2 className="w-5 h-5" />
-            </button>
+            {isSpeaking && currentId === scheme.id ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stopSpeaking({ userInitiated: true });
+                }}
+                className="p-2 text-white bg-red-600 hover:bg-red-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors shadow-sm animate-pulse focus:ring-2 focus:ring-red-400 cursor-pointer"
+                aria-label="आवाज थांबवा"
+                title="आवाज थांबवा"
+              >
+                <Square className="w-5 h-5 fill-current" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleReadAloud}
+                className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors focus:ring-2 focus:ring-saffron-400"
+                aria-label={`${scheme.name_mr} बद्दल माहिती आवाजात ऐका`}
+                title="माहिती ऐका"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 

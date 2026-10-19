@@ -139,10 +139,47 @@ export function normalizeMarathiSpeech(text) {
 }
 
 /**
+ * Detects if the utterance is a STOP / SILENCE command
+ * Recognized Marathi: "थांब", "थांबा", "थांबवा", "बंद कर", "पुरे", "शांत राहा", "बस करा"
+ * Recognized English: "stop", "shut up", "quiet", "silence", "stop audio"
+ */
+export const STOP_WORDS = [
+  'थांब', 'थांबा', 'थांबवा', 'थांब रे', 'थांब ग', 'थांबा जरा',
+  'बंद कर', 'बंद करा', 'आवाज बंद', 'बोलणे थांबवा', 'बोलू नको', 'बोलू नका',
+  'पुरे', 'पुरे झाले', 'पुरे झालं', 'बस', 'बस करा',
+  'शांत राहा', 'शांत रहा', 'शांत बस', 'गप्प राहा', 'गप्प बस',
+  'stop', 'stop it', 'stop talking', 'stop audio', 'shut up', 'quiet', 'silence'
+];
+
+export function isStopIntent(text) {
+  if (!text) return false;
+  const norm = normalizeMarathiSpeech(text);
+  if (!norm) return false;
+
+  for (const sw of STOP_WORDS) {
+    if (norm === sw || norm.startsWith(sw + ' ') || norm.endsWith(' ' + sw) || norm.includes(' ' + sw + ' ')) {
+      return true;
+    }
+  }
+
+  if (['थांब', 'थांबा', 'बंद कर', 'पुरे', 'stop', 'shut up', 'शांत राहा', 'शांत रहा'].some(k => norm.includes(k))) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Detects if the utterance conveys NO / NEGATION / REJECTION / "I DON'T WANT"
  * Checked FIRST before YES so "नाही आहे" or "नको आहे" is never misread as YES.
+ * NOTE: Stop commands ("थांबा", "बंद कर", "stop") are excluded so they don't register as "No" answers.
  */
 export function isNoIntent(text) {
+  // If user is issuing a stop command, it is handled separately and NOT as a form answer
+  if (isStopIntent(text)) {
+    return false;
+  }
+
   const norm = normalizeMarathiSpeech(text);
   if (!norm) return false;
 
@@ -155,13 +192,13 @@ export function isNoIntent(text) {
     'नाही नको', 'नाही पाहिजे', 'नको पाहिजे', 'पाहिजे नाही', 'नाय', 'नाय पाहिजे', 'नाय नको',
     // Wrong / error / change
     'चूक', 'चुकीचे', 'चुकीचं', 'चूक आहे', 'चुकीचा', 'बदला', 'बदल करा', 'नाव बदला',
-    // Cancel / Stop
-    'रद्द', 'रद्द करा', 'कॅन्सल', 'थांबा', 'थांबवा', 'नको करू', 'नका करू',
+    // Cancel
+    'रद्द', 'रद्द करा', 'कॅन्सल', 'नको करू', 'नका करू',
     // Repeat / Retry
     'पुन्हा सांगा', 'पुन्हा विचार', 'परत विचार', 'परत सांगा', 'पुन्हा',
     // English & Romanized transliterations
     'no', 'nope', 'nah', 'not', 'dont want', "don't want", 'i dont want', "i don't want",
-    'do not want', 'wrong', 'incorrect', 'cancel', 'change', 'retry', 'stop',
+    'do not want', 'wrong', 'incorrect', 'cancel', 'change', 'retry',
     'nahi', 'naahi', 'nako', 'nakoy', 'nako mala', 'mala nako', 'chook', 'chuki'
   ];
 

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import speechRecognizer from '../services/speechRecognition';
-import speechSynthesizer from '../services/speechSynthesis';
-import { parseIntent, detectScheme } from '../services/intentParser';
+import audioController from '../services/audioController';
+import { parseIntent } from '../services/intentParser';
+import { isStopIntent } from '../services/marathiVoiceMatcher';
 import { useApp } from './AppContext';
 
 const SpeechContext = createContext();
@@ -19,11 +20,31 @@ export function SpeechProvider({ children }) {
   } = useApp();
 
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(() => audioController.isSpeaking);
+  const [currentId, setCurrentId] = useState(() => audioController.currentId);
+  const [lastSpoken, setLastSpoken] = useState(() => audioController.lastSpoken);
+  const [wasStoppedByUser, setWasStoppedByUser] = useState(() => audioController.wasStoppedByUser);
+
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
   const [micStatus, setMicStatus] = useState('idle'); // 'idle' | 'listening' | 'denied' | 'unsupported' | 'processing'
   const [errorMessage, setErrorMessage] = useState(null);
+
+  // Subscribe to central audioController state changes
+  useEffect(() => {
+    const unsubscribe = audioController.subscribe((state) => {
+      setIsSpeaking(state.isSpeaking);
+      setCurrentId(state.currentId);
+      setLastSpoken(state.lastSpoken);
+      setWasStoppedByUser(state.wasStoppedByUser);
+
+      if (state.userInitiated && state.wasSpeaking) {
+        showToast('आवाज थांबवला', 'info');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [showToast]);
 
   // Speech speed control: 'slow' | 'normal' | 'fast' (saved in localStorage inside try/catch)
   const [speechSpeed, setSpeechSpeedState] = useState(() => {
@@ -86,6 +107,7 @@ export function SpeechProvider({ children }) {
 
   // Anti-lag, anti-echo & debouncing references
   const isSpeakingRef = useRef(false);
+  isSpeakingRef.current = isSpeaking;
   const hasProcessedFinalInSessionRef = useRef(false);
   const lastProcessedTextRef = useRef('');
   const lastProcessedTimeRef = useRef(0);
@@ -93,7 +115,29 @@ export function SpeechProvider({ children }) {
 
   // Speech support flags
   const isSpeechSupported = speechRecognizer.isSupported();
-  const isTtsSupported = speechSynthesizer.isSupported();
+  const isTtsSupported = audioController.isSupported();
+
+  // Stop speaking wrapper
+  const stopSpeaking = useCallback((options = {}) => {
+    audioController.stop(options);
+    isSpeakingRef.current = false;
+    setIsSpeaking(false);
+  }, []);
+
+  // Replay last spoken utterance
+  const replayLastAudio = useCallback(() => {
+    return audioController.replayLast();
+  }, []);
+
+  // Automatic stopping when screen/route changes
+  useEffect(() => {
+    stopSpeaking({ reason: 'route_change' });
+  }, [activeScreen, stopSpeaking]);
+
+  // Automatic stopping when lowBandwidth mode changes
+  useEffect(() => {
+    stopSpeaking({ reason: 'setting_change' });
+  }, [lowBandwidth, stopSpeaking]);
 
   // Register screen-specific voice handler (for wizard step answers like "होय", "28", "नाही")
   const registerVoiceHandler = useCallback((handler) => {
@@ -105,16 +149,11 @@ export function SpeechProvider({ children }) {
     };
   }, []);
 
-  const stopSpeaking = useCallback(() => {
-    speechSynthesizer.stop();
-    isSpeakingRef.current = false;
-    setIsSpeaking(false);
-  }, []);
-
+  // Central speak method routing to audioController
   const speak = useCallback((text, options = {}) => {
     if (!text) return;
 
-    // Immediately stop listening so mic doesn't hear the speaker output
+    // Immediately stop listening so mic doesn't hear the speaker output (echo guard)
     speechRecognizer.abort();
     setIsListening(false);
     setMicStatus('idle');
@@ -124,10 +163,12 @@ export function SpeechProvider({ children }) {
 
     const speedRate = options.rate || getSpeedMultiplier(speechSpeed);
 
-    speechSynthesizer.speak(text, {
+    audioController.speak(text, {
+      id: options.id || null,
       lowBandwidth,
       force: options.force || false,
       rate: speedRate,
+      lang: options.lang || 'mr-IN',
       onStart: () => {
         isSpeakingRef.current = true;
         setIsSpeaking(true);
@@ -157,7 +198,7 @@ export function SpeechProvider({ children }) {
     if (!rawText || !rawText.trim()) return;
     const text = rawText.trim();
 
-    // Debounce rapid duplicate calls (e.g. from race conditions between onResult and onEnd)
+    // Debounce rapid duplicate calls (650ms window)
     const now = Date.now();
     if (now - lastProcessedTimeRef.current < 650 && lastProcessedTextRef.current === text) {
       return;
@@ -165,13 +206,21 @@ export function SpeechProvider({ children }) {
     lastProcessedTimeRef.current = now;
     lastProcessedTextRef.current = text;
 
-    // Echo guard: if device is speaking, reject spurious microphone pickups
+    // 1. Spoken stop command: recognize Marathi and English stop words ("थांब", "थांबा", "बंद कर", "पुरे", "stop", "shut up")
+    // When heard, stop playback immediately and DO NOT treat it as an answer to any question
+    if (isStopIntent(text)) {
+      stopSpeaking({ userInitiated: true, reason: 'spoken_command' });
+      setMicStatus('idle');
+      return;
+    }
+
+    // 2. Echo guard: if device is actively speaking, drop spurious microphone reflections
     if (isSpeakingRef.current) {
       console.warn('Dropped microphone input received while assistant was speaking (echo prevention):', text);
       return;
     }
 
-    // Check if an active wizard screen has registered a step-level handler
+    // 3. Check if an active wizard screen has registered a step-level handler
     if (screenVoiceHandlerRef.current) {
       const handled = screenVoiceHandlerRef.current(text);
       if (handled) {
@@ -180,7 +229,7 @@ export function SpeechProvider({ children }) {
       }
     }
 
-    // Default global NLP intent parser
+    // 4. Default global NLP intent parser
     const parsed = parseIntent(text, selectedScheme);
 
     // Add user message to conversation history
@@ -219,7 +268,7 @@ export function SpeechProvider({ children }) {
 
     // Speak reply aloud only if autoSpeakAnswers is enabled and not low bandwidth
     if (autoSpeakAnswers) {
-      speak(parsed.reply_mr);
+      speak(parsed.reply_mr, { id: assistantMsg.id });
     }
 
     // Perform navigation actions based on intent
@@ -240,7 +289,7 @@ export function SpeechProvider({ children }) {
       }
     }
     setMicStatus('idle');
-  }, [selectedScheme, addMessage, speak, setActiveScreen, activeScreen, setSelectedScheme]);
+  }, [selectedScheme, addMessage, speak, stopSpeaking, setActiveScreen, activeScreen, setSelectedScheme, autoSpeakAnswers]);
 
   const startListening = useCallback(() => {
     if (!isSpeechSupported) {
@@ -312,19 +361,35 @@ export function SpeechProvider({ children }) {
     setMicStatus('idle');
   }, []);
 
+  // Mic tap handler:
+  // If assistant is speaking -> stop immediately, and turn on mic after 350ms cooldown
+  // If mic is active -> stop listening
+  // Otherwise -> start listening
   const toggleListening = useCallback(() => {
+    if (isSpeaking) {
+      stopSpeaking({ userInitiated: true });
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+      cooldownTimerRef.current = setTimeout(() => {
+        startListening();
+      }, 350);
+      return;
+    }
+
     if (isListening) {
       stopListening();
     } else {
       startListening();
     }
-  }, [isListening, stopListening, startListening]);
+  }, [isSpeaking, isListening, stopSpeaking, startListening, stopListening]);
 
   return (
     <SpeechContext.Provider
       value={{
         isListening,
         isSpeaking,
+        currentId,
+        lastSpoken,
+        wasStoppedByUser,
         interimTranscript,
         finalTranscript,
         micStatus,
@@ -336,12 +401,15 @@ export function SpeechProvider({ children }) {
         toggleListening,
         speak,
         stopSpeaking,
+        stop: stopSpeaking,
+        replayLastAudio,
         processInput,
         registerVoiceHandler,
         speechSpeed,
         setSpeechSpeed,
         autoSpeakAnswers,
-        setAutoSpeakAnswers
+        setAutoSpeakAnswers,
+        audioController
       }}
     >
       {children}

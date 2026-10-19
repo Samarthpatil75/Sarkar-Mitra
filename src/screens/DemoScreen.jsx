@@ -101,6 +101,14 @@ export default function DemoScreen() {
     };
   }, [currentStepIndex, isPlaying, playbackSpeed, currentStep, handleNextStep, playCurrentStepAudio, triggerConfetti]);
 
+  // Cleanup on unmount so demo audio never bleeds into other screens
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [stopSpeaking]);
+
   // Start persona demo
   const handleSelectPersona = (persona) => {
     stopSpeaking();

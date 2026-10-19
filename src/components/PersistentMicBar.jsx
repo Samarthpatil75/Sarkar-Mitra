@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Send, Keyboard, X, Sparkles, ChevronUp, AlertTriangle, AlertCircle } from 'lucide-react';
+import { 
+  Mic, 
+  MicOff, 
+  Send, 
+  Keyboard, 
+  X, 
+  Sparkles, 
+  Square, 
+  RotateCcw, 
+  Volume2, 
+  VolumeX, 
+  AlertCircle 
+} from 'lucide-react';
 import { useSpeech } from '../context/SpeechContext';
 import { useApp } from '../context/AppContext';
 
 export default function PersistentMicBar() {
   const { 
     isListening, 
+    isSpeaking,
     toggleListening, 
     interimTranscript, 
     micStatus, 
-    errorMessage, 
     processInput,
     isSpeechSupported,
     speechSpeed,
-    setSpeechSpeed
+    setSpeechSpeed,
+    stopSpeaking,
+    wasStoppedByUser,
+    lastSpoken,
+    replayLastAudio,
+    autoSpeakAnswers,
+    setAutoSpeakAnswers
   } = useSpeech();
 
   const { t, lowBandwidth } = useApp();
@@ -37,6 +55,8 @@ export default function PersistentMicBar() {
   const handleManualSubmit = (e) => {
     e.preventDefault();
     if (manualText.trim()) {
+      // Automatic stopping on typing or sending a message
+      stopSpeaking();
       processInput(manualText);
       setManualText('');
       setShowTypeBox(false);
@@ -44,6 +64,7 @@ export default function PersistentMicBar() {
   };
 
   const handleQuickPromptClick = (prompt) => {
+    stopSpeaking();
     processInput(prompt);
     setShowTypeBox(false);
   };
@@ -64,6 +85,39 @@ export default function PersistentMicBar() {
             <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
               "{interimTranscript}"
             </p>
+          </div>
+        )}
+
+        {/* Prominent High-Contrast Stop Button whenever isSpeaking is true */}
+        {isSpeaking && (
+          <div className="mb-2 flex items-center justify-center animate-fadeIn">
+            <button
+              type="button"
+              onClick={() => stopSpeaking({ userInitiated: true })}
+              className="min-h-[48px] px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-2xl shadow-xl ring-4 ring-red-300 dark:ring-red-950 flex items-center gap-2.5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400 cursor-pointer"
+              role="button"
+              aria-label="आवाज थांबवा"
+            >
+              <Square className="w-5 h-5 fill-current" />
+              <span>⏹ आवाज थांबवा</span>
+            </button>
+          </div>
+        )}
+
+        {/* After stopping audio, button changes to "🔁 पुन्हा ऐका" for last spoken message */}
+        {!isSpeaking && wasStoppedByUser && lastSpoken && lastSpoken.text && (
+          <div className="mb-2 flex items-center justify-center animate-fadeIn">
+            <button
+              type="button"
+              onClick={replayLastAudio}
+              className="min-h-[48px] px-6 py-2.5 bg-saffron-600 hover:bg-saffron-700 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-md flex items-center gap-2 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-saffron-400 cursor-pointer"
+              role="button"
+              aria-label="पुन्हा ऐका"
+              title="शेवटचा आवाज पुन्हा ऐका"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span>🔁 पुन्हा ऐका</span>
+            </button>
           </div>
         )}
 
@@ -92,6 +146,7 @@ export default function PersistentMicBar() {
                 <Keyboard className="w-4 h-4 text-saffron-600" /> मजकूर टाईप करा:
               </span>
               <button 
+                type="button"
                 onClick={() => setShowTypeBox(false)}
                 className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg"
                 aria-label="टाईपिंग बंद करा"
@@ -104,7 +159,10 @@ export default function PersistentMicBar() {
               <input
                 type="text"
                 value={manualText}
-                onChange={(e) => setManualText(e.target.value)}
+                onChange={(e) => {
+                  if (isSpeaking) stopSpeaking();
+                  setManualText(e.target.value);
+                }}
                 placeholder={t('type_placeholder')}
                 className="flex-1 px-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus:border-saffron-500 dark:focus:border-saffron-400 rounded-xl text-base text-slate-900 dark:text-white outline-none"
                 autoFocus
@@ -143,7 +201,11 @@ export default function PersistentMicBar() {
 
           {/* Toggle Type / Prompt Drawer Button */}
           <button
-            onClick={() => setShowTypeBox(prev => !prev)}
+            type="button"
+            onClick={() => {
+              if (isSpeaking) stopSpeaking();
+              setShowTypeBox(prev => !prev);
+            }}
             className={`p-3 rounded-2xl border flex items-center gap-2 min-h-[48px] min-w-[48px] transition-colors focus:ring-4 focus:ring-saffron-400 ${
               showTypeBox
                 ? 'bg-saffron-100 border-saffron-400 text-saffron-900 dark:bg-saffron-950 dark:text-saffron-200'
@@ -161,6 +223,7 @@ export default function PersistentMicBar() {
           {/* Center Giant Mic Button */}
           <div className="flex-1 flex justify-center">
             <button
+              type="button"
               onClick={toggleListening}
               className={`group relative flex items-center justify-center gap-3 px-6 sm:px-8 py-3 rounded-full font-extrabold text-lg sm:text-xl transition-all shadow-lg min-h-[58px] min-w-[200px] focus:outline-none focus:ring-4 ${
                 isListening
@@ -190,10 +253,30 @@ export default function PersistentMicBar() {
             </button>
           </div>
 
-          {/* Helper Chip & Speech Speed Quick Toggle */}
-          <div className="hidden sm:flex flex-col items-end gap-1 text-xs">
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">वेग:</span>
+          {/* Helper Chip, Auto-Speak Toggle & Speech Speed */}
+          <div className="hidden sm:flex flex-col items-end gap-1.5 text-xs">
+            <div className="flex items-center gap-1.5">
+              {/* 'उत्तर ऐका' quick toggle */}
+              <button
+                type="button"
+                onClick={() => setAutoSpeakAnswers(!autoSpeakAnswers)}
+                className={`px-2 py-0.5 rounded-lg font-bold text-xs border transition-colors flex items-center gap-1 ${
+                  autoSpeakAnswers
+                    ? 'bg-saffron-50 dark:bg-saffron-950 text-saffron-900 dark:text-saffron-200 border-saffron-300 dark:border-saffron-700'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
+                }`}
+                title="उत्तर ऐकणे (आवाज) चालू किंवा बंद करा"
+                aria-label="उत्तर ऐका टॉगल"
+              >
+                {autoSpeakAnswers ? (
+                  <Volume2 className="w-3.5 h-3.5 text-saffron-600 dark:text-saffron-400" />
+                ) : (
+                  <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+                )}
+                <span>उत्तर ऐका</span>
+              </button>
+
+              {/* Speed control */}
               <button
                 type="button"
                 onClick={() => {
