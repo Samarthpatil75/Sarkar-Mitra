@@ -142,7 +142,7 @@ export default function ConversationScreen() {
             <div>
               <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <span>सरकारी योजना प्रश्नोत्तरे</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-saffron-100 dark:bg-saffron-950 text-saffron-800 dark:text-saffron-300 font-bold border border-saffron-300">
+                <span className="app-pill-accent text-[16px] px-3 py-0.5 rounded-full font-black border border-amber-400 dark:border-amber-600">
                   अधिकृत माहिती
                 </span>
               </h2>
@@ -174,24 +174,24 @@ export default function ConversationScreen() {
           {/* 'उत्तर ऐका' Auto-Speak Toggle Switch */}
           <button
             onClick={() => setAutoSpeakAnswers(!autoSpeakAnswers)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[16px] font-bold transition-all border shadow-sm ${
               autoSpeakAnswers
-                ? 'bg-saffron-600 text-white border-saffron-700 ring-2 ring-saffron-300 dark:ring-saffron-900'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-200'
+                ? 'bg-civic-900 text-white border-civic-950 ring-2 ring-saffron-400'
+                : 'bg-slate-100 dark:bg-slate-700 text-[#1F2937] dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:bg-slate-200'
             }`}
             title="नवीन उत्तरे आपोआप आवाजात ऐकणे चालू/बंद करा"
             aria-label="उत्तर ऐका टॉगल"
           >
-            {autoSpeakAnswers ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            {autoSpeakAnswers ? <Volume2 className="w-4 h-4 text-saffron-400" /> : <VolumeX className="w-4 h-4 text-slate-500" />}
             <span>उत्तर ऐका: {autoSpeakAnswers ? 'सुरू' : 'बंद'}</span>
           </button>
 
           {/* Speech Speed Controls */}
-          <div className="flex items-center rounded-xl p-0.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600">
+          <div className="flex items-center rounded-xl p-0.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-300 dark:border-slate-600">
             <button
               onClick={() => setSpeechSpeed('slow')}
-              className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
-                speechSpeed === 'slow' ? 'bg-saffron-600 text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900'
+              className={`px-2.5 py-1 text-[16px] font-bold rounded-lg transition-all ${
+                speechSpeed === 'slow' ? 'bg-saffron-600 text-white shadow-sm' : 'text-[#1F2937] dark:text-slate-200 hover:text-black'
               }`}
               title="हळू आवाज"
             >
@@ -199,8 +199,8 @@ export default function ConversationScreen() {
             </button>
             <button
               onClick={() => setSpeechSpeed('normal')}
-              className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
-                speechSpeed === 'normal' ? 'bg-saffron-600 text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900'
+              className={`px-2.5 py-1 text-[16px] font-bold rounded-lg transition-all ${
+                speechSpeed === 'normal' ? 'bg-saffron-600 text-white shadow-sm' : 'text-[#1F2937] dark:text-slate-200 hover:text-black'
               }`}
               title="सामान्य आवाज"
             >
@@ -208,8 +208,8 @@ export default function ConversationScreen() {
             </button>
             <button
               onClick={() => setSpeechSpeed('fast')}
-              className={`px-2 py-1 text-xs font-bold rounded-lg transition-all ${
-                speechSpeed === 'fast' ? 'bg-saffron-600 text-white shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900'
+              className={`px-2.5 py-1 text-[16px] font-bold rounded-lg transition-all ${
+                speechSpeed === 'fast' ? 'bg-saffron-600 text-white shadow-sm' : 'text-[#1F2937] dark:text-slate-200 hover:text-black'
               }`}
               title="जलद आवाज"
             >
@@ -223,13 +223,13 @@ export default function ConversationScreen() {
               refreshUnanswered();
               setShowInsightsModal(true);
             }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[16px] font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-200 border border-slate-300 dark:border-slate-600 transition-colors"
             title="सत्रातील अनुत्तरीत प्रश्न व CSV निर्यात"
             aria-label="न मिळालेले प्रश्न पहा"
           >
-            <Database className="w-3.5 h-3.5 text-saffron-600" />
+            <Database className="w-4 h-4 text-saffron-600" />
             <span className="hidden sm:inline">न मिळालेले प्रश्न</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-saffron-500 text-white text-[10px] font-black">
+            <span className="px-1.5 py-0.2 rounded-full bg-saffron-500 text-white text-[12px] font-black">
               {unansweredList.length}
             </span>
           </button>
@@ -244,8 +244,8 @@ export default function ConversationScreen() {
       />
 
       {/* Scheme Quick Switch Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold scrollbar-none">
-        <span className="text-slate-500 dark:text-slate-400 shrink-0">योजना निवडा:</span>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-[16px] font-bold scrollbar-none">
+        <span className="text-slate-700 dark:text-slate-300 font-extrabold shrink-0">योजना निवडा:</span>
         {schemes.map((s) => {
           const isSelected = selectedScheme && selectedScheme.id === s.id;
           return (
@@ -255,10 +255,10 @@ export default function ConversationScreen() {
                 setSelectedScheme(s);
                 handleQuickChipClick(`${s.name_mr} बद्दल सांगा`);
               }}
-              className={`px-3 py-1.5 rounded-full shrink-0 transition-all border ${
+              className={`px-4 py-2 rounded-full shrink-0 transition-all border-2 text-[16px] ${
                 isSelected
-                  ? 'bg-civic-900 text-white border-civic-950 dark:bg-saffron-600 dark:border-saffron-500 shadow-sm'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-saffron-400'
+                  ? 'bg-amber-200 border-amber-600 text-[#1F2937] font-black shadow-sm'
+                  : 'bg-white dark:bg-slate-800 text-[#1F2937] dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:border-amber-500 font-bold'
               }`}
             >
               {s.name_mr}
@@ -276,18 +276,18 @@ export default function ConversationScreen() {
           if (msg.isPrivacyWarning) {
             return (
               <div key={msg.id} className="flex items-start gap-3 justify-start animate-fadeIn">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
+                <div className="w-10 h-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm mt-1">
                   <ShieldAlert className="w-6 h-6" />
                 </div>
-                <div className="max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-700 text-amber-950 dark:text-amber-100 shadow-sm rounded-tl-sm space-y-2">
-                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-black text-sm">
-                    <ShieldAlert className="w-4 h-4" />
+                <div className="max-w-[85%] sm:max-w-[75%] rounded-3xl p-5 bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-700 text-[#1F2937] dark:text-amber-100 shadow-sm rounded-tl-sm space-y-2">
+                  <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200 font-black text-[16px]">
+                    <ShieldAlert className="w-5 h-5 text-amber-700 dark:text-amber-300" />
                     <span>सुरक्षा व गोपनीयता सूचना (Privacy Protection)</span>
                   </div>
-                  <p className="font-bold text-base leading-relaxed">
+                  <p className="font-bold text-base leading-relaxed text-[#1F2937] dark:text-white">
                     {msg.text_mr}
                   </p>
-                  <p className="text-xs text-amber-900/80 dark:text-amber-300/80">
+                  <p className="text-[14px] text-amber-950 dark:text-amber-200 font-semibold">
                     टीप: सरकार मित्र तुमचा कोणताही वैयक्तिक डेटा साठवत नाही.
                   </p>
                 </div>
@@ -315,20 +315,20 @@ export default function ConversationScreen() {
                 }`}
               >
                 {/* Assistant Card Header: Sender Name, Timestamp, Replay Button */}
-                <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-slate-100 dark:border-slate-700/60">
+                <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-slate-200 dark:border-slate-700/60">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-slate-600 dark:text-slate-300">
+                    <span className="text-[14px] font-black text-slate-800 dark:text-slate-200">
                       {isAssistant ? 'सरकार मित्र Q&A' : 'तुम्ही बोललात'}
                     </span>
                     {isAssistant && msg.topic && (
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold">
+                      <span className="text-[14px] px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-[#1F2937] dark:text-slate-200 font-bold border border-slate-300 dark:border-slate-600">
                         विषय: {msg.topic}
                       </span>
                     )}
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[13px] text-slate-500 dark:text-slate-400 font-medium">
                       {msg.timestamp}
                     </span>
                     {isAssistant && (
@@ -336,23 +336,23 @@ export default function ConversationScreen() {
                         <button
                           type="button"
                           onClick={() => stopSpeaking({ userInitiated: true })}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-black text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-md animate-pulse min-h-[34px] cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[16px] font-black text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-md animate-pulse min-h-[40px] cursor-pointer"
                           role="button"
                           aria-label="आवाज थांबवा"
                           title="आवाज थांबवा"
                         >
-                          <Square className="w-3.5 h-3.5 fill-current" />
+                          <Square className="w-4 h-4 fill-current" />
                           <span>थांबवा</span>
                         </button>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleReplay(msg.text_mr, msg.id)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-saffron-800 dark:text-saffron-300 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-xl transition-all shadow-sm focus:ring-2 focus:ring-saffron-400 min-h-[34px]"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-[16px] font-bold text-[#1B2A5C] dark:text-amber-200 bg-amber-100 hover:bg-amber-200 dark:bg-slate-700 dark:hover:bg-slate-600 border border-amber-400 dark:border-slate-600 rounded-xl transition-all shadow-sm focus:ring-2 focus:ring-amber-400 min-h-[40px]"
                           aria-label="हे उत्तर पुन्हा ऐका"
                           title="पुन्हा ऐका"
                         >
-                          <span className="text-xs">🔁</span>
+                          <span className="text-[16px]">🔁</span>
                           <span>पुन्हा ऐका</span>
                         </button>
                       )
@@ -363,19 +363,19 @@ export default function ConversationScreen() {
                 {/* Source Verification Chip */}
                 {isAssistant && (msg.source_gr || msg.scheme) && (
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300">
-                      <span className="text-saffron-600 font-black">योजना:</span>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-700 text-[14px] font-bold text-[#1F2937] dark:text-slate-200">
+                      <span className="text-amber-700 dark:text-amber-400 font-black">योजना:</span>
                       <span>{msg.scheme?.name_mr || 'शासकीय योजना'}</span>
-                      <span className="text-slate-300 dark:text-slate-600">•</span>
-                      <span className="text-slate-500 font-semibold">GR: {msg.source_gr || msg.scheme?.verification_tag || 'अधिकृत शासन परिपत्रक'}</span>
-                      <span className="text-slate-300 dark:text-slate-600">•</span>
-                      <span className="text-slate-500 font-semibold">शेवटची पडताळणी: {msg.last_verified || msg.scheme?.last_verified_date || '2026-09-15'}</span>
+                      <span className="text-slate-400 dark:text-slate-600">•</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">GR: {msg.source_gr || msg.scheme?.verification_tag || 'अधिकृत शासन परिपत्रक'}</span>
+                      <span className="text-slate-400 dark:text-slate-600">•</span>
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">शेवटची पडताळणी: {msg.last_verified || msg.scheme?.last_verified_date || '2026-09-15'}</span>
                     </div>
 
                     {/* Development Mode Notice for Unverified Draft Entries */}
                     {msg.verified === false && import.meta.env.DEV && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 text-[10px] font-extrabold border border-amber-300">
-                        <AlertTriangle className="w-3 h-3 text-amber-600" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 text-[12px] font-extrabold border border-amber-300">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                         <span>अपडेट करणे बाकी (पडताळणी बाकी)</span>
                       </span>
                     )}
@@ -412,8 +412,8 @@ export default function ConversationScreen() {
                 {/* Tappable Follow-Up Question Chips */}
                 {isAssistant && msg.follow_ups && msg.follow_ups.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-saffron-600" />
+                    <span className="text-[14px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>सुचवलेले पुढील प्रश्न:</span>
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -421,9 +421,9 @@ export default function ConversationScreen() {
                         <button
                           key={idx}
                           onClick={() => handleQuickChipClick(fu.query)}
-                          className="px-3 py-1.5 bg-slate-50 hover:bg-saffron-50 dark:bg-slate-700/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:border-saffron-400 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 transition-all shadow-sm flex items-center gap-1.5 text-left active:scale-95"
+                          className="px-3.5 py-2 bg-white hover:bg-amber-50 dark:bg-slate-700/80 dark:hover:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-xl text-[16px] font-bold text-[#1F2937] dark:text-slate-100 transition-all shadow-sm flex items-center gap-1.5 text-left active:scale-95"
                         >
-                          <span className="text-saffron-600">💬</span>
+                          <span className="text-amber-700 dark:text-amber-400">💬</span>
                           <span>{fu.label_mr}</span>
                         </button>
                       ))}
@@ -434,8 +434,8 @@ export default function ConversationScreen() {
                 {/* Disambiguation / Scheme Selection Chips */}
                 {isAssistant && msg.options && msg.options.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
-                    <span className="text-xs font-bold text-saffron-800 dark:text-saffron-300 flex items-center gap-1.5">
-                      <HelpCircle className="w-3.5 h-3.5 text-saffron-600" />
+                    <span className="text-[16px] font-black text-[#1B2A5C] dark:text-amber-300 flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>खालीलपैकी एका पर्यायावर स्पर्श करा:</span>
                     </span>
                     <div className="flex flex-col sm:flex-row flex-wrap gap-2">
@@ -443,9 +443,9 @@ export default function ConversationScreen() {
                         <button
                           key={optIdx}
                           onClick={() => handleQuickChipClick(opt.query || opt.label_mr)}
-                          className="px-3.5 py-2.5 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-300 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm flex items-center gap-2 text-left active:scale-95"
+                          className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 border-2 border-amber-300 dark:border-slate-600 rounded-2xl text-[16px] font-bold text-[#1F2937] dark:text-white transition-all shadow-sm flex items-center gap-2 text-left active:scale-95"
                         >
-                          <span className="text-saffron-600 dark:text-saffron-400">👉</span>
+                          <span className="text-amber-700 dark:text-amber-400">👉</span>
                           <span>{opt.label_mr}</span>
                         </button>
                       ))}
@@ -460,10 +460,10 @@ export default function ConversationScreen() {
                       href={msg.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-saffron-50 dark:bg-saffron-950/60 border border-saffron-300 dark:border-saffron-800 text-saffron-800 dark:text-saffron-300 rounded-xl text-xs font-bold hover:underline"
+                      className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-100 hover:bg-amber-200 dark:bg-slate-800 border-2 border-amber-400 dark:border-slate-700 text-[#1B2A5C] dark:text-amber-200 rounded-xl text-[16px] font-bold hover:underline"
                     >
                       <span>{msg.link_text || 'अधिकृत संकेतस्थळ उघडा'}</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
                 )}

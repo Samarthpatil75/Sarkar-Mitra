@@ -135,7 +135,7 @@ export default function WhatNextView({
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-xs font-extrabold text-saffron-600 dark:text-saffron-400 uppercase tracking-wider">
+              <span className="text-[14px] font-black text-[#B45309] dark:text-amber-400 uppercase tracking-wider">
                 प्रत्यक्ष अर्ज केंद्र (Physical Center)
               </span>
               <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-0.5">
@@ -145,7 +145,7 @@ export default function WhatNextView({
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
               जर ऑनलाईन अर्ज करणे शक्य नसेल किंवा प्रत्यक्ष मदत हवी असल्यास खालील ठिकाणी भेट द्या:
             </p>
-            <div className="p-3.5 bg-saffron-50/80 dark:bg-saffron-950/40 rounded-xl border border-saffron-300 dark:border-saffron-800 text-sm font-extrabold text-saffron-950 dark:text-saffron-200 leading-relaxed">
+            <div className="p-4 bg-amber-100/90 dark:bg-amber-950/60 rounded-xl border-2 border-amber-400 dark:border-amber-700 text-[16px] font-black text-[#1B2A5C] dark:text-amber-100 leading-relaxed">
               📍 {cleanOffice}
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function WhatNextView({
           ))}
         </div>
 
-        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-300 dark:border-amber-800 text-xs font-bold text-amber-900 dark:text-amber-200">
+        <div className="p-4 bg-amber-100/90 dark:bg-amber-950/60 rounded-xl border-2 border-amber-400 dark:border-amber-700 text-[14px] font-extrabold text-[#1F2937] dark:text-amber-100">
           ⚠️ महत्त्वाची सूचना: सर्व कागदपत्रांची मूळ प्रत (Originals) आणि किमान २ स्व-साक्षांकित (Self-attested) झेरॉक्स प्रती सोबत ठेवाव्यात.
         </div>
       </div>

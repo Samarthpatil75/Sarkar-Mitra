@@ -261,7 +261,7 @@ export default function DemoScreen() {
                   </div>
                 </div>
 
-                <div className="inline-block px-2.5 py-1 bg-saffron-50 dark:bg-saffron-950/60 text-saffron-800 dark:text-saffron-300 text-xs font-bold rounded-lg border border-saffron-200 dark:border-saffron-800 mb-2">
+                <div className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-950/80 text-[#1B2A5C] dark:text-amber-200 text-[14px] font-black rounded-lg border border-amber-300 dark:border-amber-700 mb-2">
                   योजना: {persona.scheme_name_mr}
                 </div>
 
@@ -285,10 +285,10 @@ export default function DemoScreen() {
         {/* Active Stage & Progress Bar */}
         <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-extrabold">
-            <span className="text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950 px-3 py-1 rounded-full border border-saffron-300">
+            <span className="app-pill-accent text-[16px] font-black px-3.5 py-1 rounded-full border border-amber-400">
               {currentStep.stageName_mr}
             </span>
-            <span className="text-slate-600 dark:text-slate-400 font-mono">
+            <span className="text-slate-800 dark:text-slate-200 font-mono text-[14px] font-bold">
               पायरी {currentStepIndex + 1} / {selectedPersona.steps.length} ({progressPercentage}%)
             </span>
           </div>
@@ -310,14 +310,14 @@ export default function DemoScreen() {
               स
             </div>
             <div className="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none border-2 border-saffron-200 dark:border-saffron-900 shadow-sm">
-              <span className="text-xs font-black text-saffron-700 dark:text-saffron-400 uppercase tracking-wide block mb-1">
+              <span className="text-[14px] font-black text-[#B45309] dark:text-amber-300 uppercase tracking-wide block mb-1">
                 सरकार मित्र (आवाज सहाय्यक):
               </span>
               <p className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-relaxed">
                 "{currentStep.assistantSpeech}"
               </p>
               {currentStep.assistantConfirm && (
-                <p className="mt-2 text-sm font-bold text-amber-800 dark:text-amber-300 pt-2 border-t border-slate-100 dark:border-slate-700">
+                <p className="mt-2 text-[14px] font-bold text-amber-950 dark:text-amber-200 pt-2 border-t border-slate-100 dark:border-slate-700">
                   {currentStep.assistantConfirm}
                 </p>
               )}
@@ -327,14 +327,14 @@ export default function DemoScreen() {
           {/* Citizen's Simulated Speech Bubble */}
           <div className="flex items-start gap-3 justify-end animate-fadeIn">
             <div className="flex-1 max-w-xl bg-emerald-50 dark:bg-emerald-950/60 p-4 rounded-2xl rounded-tr-none border-2 border-emerald-400 dark:border-emerald-700 shadow-sm text-right">
-              <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wide block mb-1">
+              <span className="text-[14px] font-black text-emerald-950 dark:text-emerald-300 uppercase tracking-wide block mb-1">
                 {selectedPersona.name_mr} (सिम्युलेटेड भाषण):
               </span>
               <p className="text-base sm:text-lg font-black text-emerald-950 dark:text-emerald-100 leading-relaxed">
                 "{currentStep.userSpeech}"
               </p>
               {currentStep.userConfirm && (
-                <p className="mt-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-300">
+                <p className="mt-1 text-[14px] font-extrabold text-emerald-800 dark:text-emerald-300">
                   ✓ {currentStep.userConfirm}
                 </p>
               )}
@@ -347,7 +347,7 @@ export default function DemoScreen() {
           {/* Live Highlight Tag */}
           {currentStep.highlight && (
             <div className="text-center pt-1">
-              <span className="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200 text-xs font-black rounded-full border border-amber-300">
+              <span className="inline-block px-3.5 py-1 bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-100 text-[14px] font-black rounded-full border border-amber-400">
                 ★ {currentStep.highlight}
               </span>
             </div>
@@ -377,7 +377,7 @@ export default function DemoScreen() {
               </div>
             </div>
 
-            <p className="text-xs text-red-700 dark:text-red-300 font-bold bg-white/80 dark:bg-slate-900/60 p-2.5 rounded-xl border border-red-200 dark:border-red-800">
+            <p className="text-[14px] text-red-950 dark:text-red-200 font-bold bg-white/90 dark:bg-slate-900/80 p-3 rounded-xl border-2 border-red-300 dark:border-red-800">
               महत्त्वाची सूचना: ही सरकार मित्रने तयार केलेली पूर्व-अर्ज सारांश पत्रिका आहे. हा अधिकृत शासकीय दस्तऐवज नाही.
             </p>
 

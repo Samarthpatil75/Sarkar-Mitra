@@ -420,8 +420,8 @@ export default function VoiceFormScreen() {
     <div className="max-w-3xl mx-auto px-4 pt-2 pb-32 space-y-6">
 
       {/* Scheme Selector */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border-2 border-slate-300 dark:border-slate-700 shadow-sm">
+        <label className="block text-[16px] font-black text-slate-800 dark:text-slate-200 mb-2">
           योजना निवडा:
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -434,10 +434,10 @@ export default function VoiceFormScreen() {
                   setSelectedScheme(s);
                   handleRestartForm();
                 }}
-                className={`px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center min-h-[48px] flex items-center justify-center ${
+                className={`px-3 py-2.5 rounded-2xl text-[16px] font-bold transition-all text-center min-h-[48px] flex items-center justify-center border-2 ${
                   isSelected
-                    ? 'bg-saffron-600 text-white shadow-md'
-                    : 'bg-slate-100 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-amber-200 border-amber-600 text-[#1F2937] font-black shadow-sm'
+                    : 'bg-white dark:bg-slate-700/60 text-[#1F2937] dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:border-amber-500'
                 }`}
               >
                 {s.name_mr.split(' ')[0]} {s.name_mr.split(' ')[1] || ''}
@@ -456,17 +456,17 @@ export default function VoiceFormScreen() {
 
       {/* Synchronized Feedback Notice Banner */}
       {speechFeedback && (
-        <div className={`p-3.5 rounded-2xl border-2 flex items-center gap-2 text-sm font-bold animate-fadeIn ${
+        <div className={`p-4 rounded-2xl border-2 flex items-center gap-2.5 text-[16px] font-bold animate-fadeIn ${
           speechFeedback.type === 'warning'
-            ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-400 text-amber-900 dark:text-amber-200'
+            ? 'bg-amber-100 dark:bg-amber-950/70 border-amber-400 text-amber-950 dark:text-amber-100'
             : speechFeedback.type === 'success'
-            ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200'
-            : 'bg-civic-50 dark:bg-civic-950/50 border-civic-400 text-civic-900 dark:text-civic-200'
+            ? 'bg-emerald-100 dark:bg-emerald-950/70 border-emerald-400 text-emerald-950 dark:text-emerald-100'
+            : 'bg-civic-100 dark:bg-civic-950/70 border-civic-400 text-civic-950 dark:text-civic-100'
         }`}>
           {speechFeedback.type === 'warning' ? (
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-700 dark:text-amber-300" />
           ) : (
-            <Sparkles className="w-5 h-5 flex-shrink-0 text-emerald-600" />
+            <Sparkles className="w-5 h-5 flex-shrink-0 text-emerald-700 dark:text-emerald-300" />
           )}
           <span>{speechFeedback.text}</span>
         </div>
@@ -481,15 +481,15 @@ export default function VoiceFormScreen() {
               {currentFieldIndex > 0 && (
                 <button
                   onClick={handleGoBack}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl border border-slate-300 dark:border-slate-600 transition-colors min-h-[38px]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-100 text-[16px] font-bold rounded-xl border border-slate-300 dark:border-slate-600 transition-colors min-h-[38px]"
                   aria-label="मागील प्रश्नावर जा"
                   title="मागील प्रश्न दुरुस्त करा"
                 >
-                  <ArrowLeft className="w-4 h-4 text-saffron-600" />
+                  <ArrowLeft className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                   <span>मागील प्रश्न (Go Back)</span>
                 </button>
               )}
-              <span className="text-xs sm:text-sm font-extrabold text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-950/60 px-3 py-1 rounded-full border border-saffron-200">
+              <span className="app-pill-accent text-[16px] font-black px-3.5 py-1 rounded-full border border-amber-400">
                 माहिती विचारत आहे {currentFieldIndex + 1} / {formFields.length}
               </span>
             </div>
@@ -498,7 +498,7 @@ export default function VoiceFormScreen() {
               <button
                 type="button"
                 onClick={() => stopSpeaking({ userInitiated: true })}
-                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-black min-h-[44px] flex items-center gap-1.5 shadow-md animate-pulse focus:ring-4 focus:ring-red-400 cursor-pointer"
+                className="px-3.5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[16px] font-black min-h-[44px] flex items-center gap-1.5 shadow-md animate-pulse focus:ring-4 focus:ring-red-400 cursor-pointer"
                 role="button"
                 aria-label="आवाज थांबवा"
                 title="आवाज थांबवा"
@@ -513,7 +513,7 @@ export default function VoiceFormScreen() {
                 className="p-2 text-saffron-600 hover:text-saffron-700 hover:bg-saffron-50 dark:hover:bg-slate-700 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors"
                 aria-label="प्रश्न पुन्हा ऐका"
               >
-                <Volume2 className="w-5 h-5" />
+                <Volume2 className="w-6 h-6" />
               </button>
             )}
           </div>
@@ -521,10 +521,10 @@ export default function VoiceFormScreen() {
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2 leading-snug">
             {currentField.spoken_prompt}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            फील्ड नाव: <span className="font-bold text-slate-700 dark:text-slate-300">{currentField.label_mr}</span>
+          <p className="text-[16px] text-slate-600 dark:text-slate-300 mb-6">
+            फील्ड नाव: <span className="font-extrabold text-slate-900 dark:text-white">{currentField.label_mr}</span>
             {(currentField.type === 'tel' || currentField.key?.includes('mobile')) && (
-              <span className="ml-2 inline-block px-2.5 py-0.5 rounded-md bg-saffron-100 dark:bg-saffron-950 text-saffron-800 dark:text-saffron-300 text-xs font-bold">
+              <span className="ml-2 inline-block px-3 py-0.5 rounded-full app-pill-accent border border-amber-400 text-[16px] font-black">
                 मराठी किंवा इंग्रजीत बोला (English or Marathi)
               </span>
             )}
@@ -532,8 +532,8 @@ export default function VoiceFormScreen() {
 
           {/* Friendly Speech Fallback Banner */}
           {(!isSpeechSupported || micStatus === 'denied') && (
-            <div className="mb-4 p-3.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-2xl flex items-center gap-2.5 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold animate-fadeIn">
-              <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+            <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/70 border-2 border-amber-400 dark:border-amber-700 rounded-2xl flex items-center gap-2.5 text-[#1F2937] dark:text-amber-100 text-[16px] font-bold animate-fadeIn">
+              <AlertCircle className="w-5 h-5 text-amber-700 dark:text-amber-300 flex-shrink-0" />
               <div>
                 <span>
                   {micStatus === 'denied'
@@ -557,7 +557,7 @@ export default function VoiceFormScreen() {
 
               <button
                 onClick={() => setIsEditingManually(prev => !prev)}
-                className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
+                className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-[#1F2937] dark:text-slate-100 font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px] text-[16px]"
               >
                 <Edit3 className="w-5 h-5 text-saffron-600" />
                 <span>{isEditingManually ? 'माईक वापरा' : 'टाईप करा'}</span>
@@ -566,8 +566,8 @@ export default function VoiceFormScreen() {
 
             {/* Always Visible Tap-to-Answer Buttons (beside / below the mic) */}
             <div className="pt-2">
-              <span className="text-xs font-black text-slate-500 dark:text-slate-400 block mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-saffron-500" />
+              <span className="text-[14px] font-black text-slate-800 dark:text-slate-200 block mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>थेट पर्याय निवडून पुढे जा (Tap to Answer):</span>
               </span>
               <div className="flex flex-wrap gap-2">
@@ -575,7 +575,7 @@ export default function VoiceFormScreen() {
                   <button
                     key={cIdx}
                     onClick={() => handleAnswerCaptured(choice)}
-                    className="px-3.5 py-2.5 bg-slate-100 hover:bg-saffron-100 dark:bg-slate-700/80 dark:hover:bg-saffron-950/70 border-2 border-slate-200 dark:border-slate-600 hover:border-saffron-400 text-slate-900 dark:text-white rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
+                    className="px-4 py-2.5 bg-white hover:bg-amber-100 dark:bg-slate-700/80 dark:hover:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 text-[#1F2937] dark:text-white rounded-xl text-[16px] font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
                   >
                     {choice}
                   </button>
@@ -629,18 +629,18 @@ export default function VoiceFormScreen() {
       {stage === 'confirming' && currentField && (
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border-4 border-amber-400 dark:border-amber-500 shadow-xl animate-fadeIn">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-extrabold text-sm">
-              <Sparkles className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-amber-950 dark:text-amber-300 font-black text-[16px]">
+              <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               <span>उत्तर पडताळणी:</span>
             </div>
 
             {currentFieldIndex > 0 && (
               <button
                 onClick={handleGoBack}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 hover:bg-amber-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl border border-amber-300 dark:border-slate-600 transition-colors min-h-[36px]"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-200 text-[16px] font-bold rounded-xl border border-amber-400 dark:border-slate-600 transition-colors min-h-[36px]"
                 title="मागील प्रश्नावर जा"
               >
-                <ArrowLeft className="w-3.5 h-3.5 text-saffron-600" />
+                <ArrowLeft className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                 <span>मागील प्रश्न (Go Back)</span>
               </button>
             )}
@@ -650,9 +650,9 @@ export default function VoiceFormScreen() {
             तुम्ही दिलेले उत्तर:
           </h3>
 
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-300 dark:border-amber-800 my-4 text-center">
+          <div className="p-5 bg-amber-100/80 dark:bg-amber-950/50 rounded-2xl border-2 border-amber-400 dark:border-amber-700 my-4 text-center">
             {detectedLang === 'en' && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone')) && (
-              <span className="text-xs font-bold text-saffron-700 dark:text-saffron-400 block mb-1">
+              <span className="text-[14px] font-black text-amber-950 dark:text-amber-300 block mb-1">
                 इंग्रजीत नोंदवलेला मोबाईल नंबर (English Mobile Number):
               </span>
             )}
@@ -731,11 +731,11 @@ export default function VoiceFormScreen() {
                   </div>
                   <button
                     onClick={() => handleEditFieldFromSummary(idx)}
-                    className="px-3 py-1.5 bg-slate-200/80 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-saffron-950/60 text-slate-800 hover:text-saffron-700 dark:text-slate-200 dark:hover:text-saffron-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
+                    className="px-3.5 py-1.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-xl text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
                     aria-label={`${field.label_mr} दुरुस्त करा`}
                     title="माहिती दुरुस्त करा"
                   >
-                    <Edit3 className="w-3.5 h-3.5 text-saffron-600" />
+                    <Edit3 className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                     <span>दुरुस्त करा (Edit)</span>
                   </button>
                 </div>
@@ -764,21 +764,21 @@ export default function VoiceFormScreen() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <button
                 onClick={() => window.print()}
-                className="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
+                className="py-3 px-4 bg-white dark:bg-slate-700 text-[#1F2937] dark:text-white font-bold rounded-2xl border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center gap-2 min-h-[48px] text-[16px] hover:border-civic-500"
               >
                 <Printer className="w-5 h-5 text-civic-600" />
                 <span>{t('print_form')}</span>
               </button>
               <button
                 onClick={() => handleEditFieldFromSummary(0)}
-                className="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
+                className="py-3 px-4 bg-white dark:bg-slate-700 text-[#1F2937] dark:text-white font-bold rounded-2xl border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center gap-2 min-h-[48px] text-[16px] hover:border-amber-500"
               >
                 <Edit3 className="w-5 h-5 text-saffron-600" />
                 <span>माहिती दुरुस्त करा</span>
               </button>
               <button
                 onClick={handleRestartForm}
-                className="py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px]"
+                className="py-3 px-4 bg-white dark:bg-slate-700 text-[#1F2937] dark:text-white font-bold rounded-2xl border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center gap-2 min-h-[48px] text-[16px] hover:border-amber-500"
               >
                 <RotateCcw className="w-5 h-5 text-saffron-600" />
                 <span>पुन्हा भरा</span>
@@ -788,24 +788,24 @@ export default function VoiceFormScreen() {
 
           {/* Visible Mandatory Disclaimer Notice (Non-Government Document) */}
           <div className="p-4 sm:p-5 bg-red-50 dark:bg-red-950/40 rounded-2xl border-2 border-red-400 dark:border-red-600 space-y-2">
-            <div className="flex items-center gap-2 font-black text-red-700 dark:text-red-300 text-sm sm:text-base">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex items-center gap-2 font-black text-red-950 dark:text-red-200 text-base">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-700 dark:text-red-300" />
               <span>महत्त्वाची सूचना (Important Disclaimer):</span>
             </div>
-            <p className="font-extrabold text-red-900 dark:text-red-200 text-sm sm:text-base leading-relaxed">
+            <p className="font-extrabold text-red-950 dark:text-red-100 text-base leading-relaxed">
               ही सरकार मित्रने तयार केलेली पूर्व-अर्ज सारांश पत्रिका आहे. हा अधिकृत शासकीय दस्तऐवज नाही. कृपया अधिकृत पोर्टल किंवा कार्यालयात अर्ज सादर करा.
             </p>
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-red-200 dark:border-red-800/80 text-xs text-red-800 dark:text-red-300 font-medium">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-red-300 dark:border-red-800/80 text-[14px] text-red-950 dark:text-red-200 font-bold">
               <span>
-                मसुदा संदर्भ नोंद: <strong className="font-mono font-bold text-red-950 dark:text-red-100">SM-DRAFT</strong> (Draft, not a government registration number.)
+                मसुदा संदर्भ नोंद: <strong className="font-mono font-black text-red-950 dark:text-red-100">SM-DRAFT</strong> (Draft, not a government registration number.)
               </span>
-              <span className="text-slate-600 dark:text-slate-400 font-semibold">
+              <span className="text-slate-800 dark:text-slate-300 font-bold">
                 {selectedScheme?.verification_tag}
               </span>
             </div>
           </div>
 
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 font-semibold leading-relaxed">
+          <div className="p-4 bg-amber-100/90 dark:bg-amber-950/60 rounded-2xl border-2 border-amber-400 dark:border-amber-700 text-[16px] text-amber-950 dark:text-amber-100 font-bold leading-relaxed">
             📢 ही पूर्व-अर्ज सारांश PDF घेऊन तुम्ही जवळच्या सेतू केंद्र, ग्रामपंचायत किंवा अधिकृत पोर्टलवर जाऊन अर्ज सादर करू शकता. (तुम्ही थेट माईकमध्ये "डाऊनलोड करा" बोलू शकता.)
           </div>
         </div>

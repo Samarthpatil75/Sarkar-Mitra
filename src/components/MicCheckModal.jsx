@@ -120,14 +120,14 @@ export default function MicCheckModal() {
 
         {/* Modal Header */}
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-saffron-100 dark:bg-saffron-950 text-saffron-800 dark:text-saffron-300 text-xs font-black uppercase border border-saffron-300 mb-2">
-            <Mic className="w-3.5 h-3.5 text-saffron-600" />
+          <span className="app-pill-accent inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[16px] font-black uppercase border border-amber-400 mb-2">
+            <Mic className="w-4 h-4 text-amber-700 dark:text-amber-400" />
             <span>एक-वेळ मायक्रोफोन चाचणी</span>
           </span>
           <h2 id="mic-check-title" className="text-2xl font-black text-slate-900 dark:text-white">
             माइक तपासा (Microphone Check)
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
+          <p className="text-[14px] sm:text-[16px] text-slate-700 dark:text-slate-300 font-bold mt-1">
             तुमचा आवाज स्पष्ट ऐकू येतोय का हे तपासण्यासाठी:
           </p>
         </div>
@@ -145,7 +145,7 @@ export default function MicCheckModal() {
               <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
                 "माइक तपासण्यासाठी कृपया 'नमस्कार' बोला."
               </p>
-              <p className="text-xs font-bold text-saffron-700 dark:text-saffron-400">
+              <p className="text-[14px] font-bold text-[#B45309] dark:text-amber-300">
                 {status === 'listening' ? '👂 आम्ही ऐकत आहोत... आता "नमस्कार" म्हणा' : 'कृपया प्रतीक्षा करा...'}
               </p>
             </>
@@ -194,7 +194,7 @@ export default function MicCheckModal() {
           {status === 'success' ? (
             <button
               onClick={handleClose}
-              className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base rounded-2xl shadow-lg min-h-[50px] transition-transform active:scale-95"
+              className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[16px] rounded-2xl shadow-lg min-h-[50px] transition-transform active:scale-95"
             >
               पूर्ण झाले (Done)
             </button>
@@ -202,14 +202,14 @@ export default function MicCheckModal() {
             <>
               <button
                 onClick={handleRetry}
-                className="flex-1 py-3 px-4 bg-saffron-600 hover:bg-saffron-700 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-1.5 min-h-[48px]"
+                className="flex-1 py-3 px-4 bg-saffron-600 hover:bg-saffron-700 text-white font-bold text-[16px] rounded-2xl flex items-center justify-center gap-1.5 min-h-[48px]"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>पुन्हा बोला</span>
               </button>
               <button
                 onClick={handleClose}
-                className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-bold text-sm rounded-2xl min-h-[48px]"
+                className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 text-[#1F2937] dark:text-slate-100 font-bold text-[16px] rounded-2xl min-h-[48px] hover:bg-slate-100"
               >
                 बंद करा
               </button>

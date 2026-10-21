@@ -223,10 +223,10 @@ export default function AccuracyTestScreen() {
               <button
                 key={d.id}
                 onClick={() => setSelectedDialect(d.id)}
-                className={`p-3 rounded-2xl text-sm font-bold border-2 transition-all text-left min-h-[48px] ${
+                className={`p-3 rounded-2xl text-[16px] font-bold border-2 transition-all text-left min-h-[48px] ${
                   selectedDialect === d.id
-                    ? 'bg-civic-900 text-white border-civic-900 shadow-sm'
-                    : 'bg-slate-50 dark:bg-slate-700/60 border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 hover:border-saffron-400'
+                    ? 'bg-amber-200 border-amber-600 text-[#1F2937] font-black shadow-sm'
+                    : 'bg-white dark:bg-slate-700/60 border-slate-300 dark:border-slate-600 text-[#1F2937] dark:text-slate-200 hover:border-amber-500'
                 }`}
               >
                 {d.name_mr}
@@ -240,12 +240,12 @@ export default function AccuracyTestScreen() {
           <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2">
             २. बोलण्यासाठी अपेक्षित वाक्य (किंवा स्वतः टाईप करा):
           </label>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {SAMPLE_SENTENCES.map((s, idx) => (
               <button
                 key={idx}
                 onClick={() => setExpectedSentence(s)}
-                className="px-2.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-saffron-100 hover:text-saffron-800"
+                className="px-3 py-1.5 text-[14px] bg-white hover:bg-amber-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 text-[#1F2937] dark:text-slate-200 rounded-lg font-bold"
               >
                 नमुना {idx + 1}
               </button>

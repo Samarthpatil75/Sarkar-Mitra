@@ -115,8 +115,8 @@ export default function DocumentsScreen() {
     <div className="max-w-3xl mx-auto px-4 pt-2 pb-32 space-y-6">
 
       {/* Scheme Selector */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border-2 border-slate-300 dark:border-slate-700 shadow-sm">
+        <label className="block text-[16px] font-black text-slate-800 dark:text-slate-200 mb-2">
           योजना निवडा:
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -126,10 +126,10 @@ export default function DocumentsScreen() {
               <button
                 key={s.id}
                 onClick={() => handleSchemeChange(s)}
-                className={`px-3 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all text-center min-h-[48px] flex items-center justify-center ${
+                className={`px-3 py-2.5 rounded-2xl text-[16px] font-bold transition-all text-center min-h-[48px] flex items-center justify-center border-2 ${
                   isSelected
-                    ? 'bg-saffron-600 text-white shadow-md'
-                    : 'bg-slate-100 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-amber-200 border-amber-600 text-[#1F2937] font-black shadow-sm'
+                    : 'bg-white dark:bg-slate-700/60 text-[#1F2937] dark:text-slate-200 border-slate-300 dark:border-slate-600 hover:border-amber-500'
                 }`}
               >
                 {s.name_mr.split(' ')[0]} {s.name_mr.split(' ')[1] || ''}
@@ -151,10 +151,10 @@ export default function DocumentsScreen() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-700">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-3 py-0.5 bg-saffron-100 dark:bg-saffron-950/60 text-saffron-800 dark:text-saffron-300 text-xs font-black rounded-full">
+              <span className="app-pill-accent px-3.5 py-1 text-[16px] font-black rounded-full border border-amber-400">
                 पायरी ३ : कागदपत्रे तपासणी
               </span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <span className="text-[14px] font-bold text-slate-700 dark:text-slate-300">
                 {checkedCount} / {documents.length} तयार आहेत
               </span>
             </div>
@@ -245,11 +245,11 @@ export default function DocumentsScreen() {
                       {doc.name}
                     </span>
                     {doc.required ? (
-                      <span className="px-2 py-0.5 bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 text-xs font-extrabold rounded-md">
+                      <span className="px-2.5 py-0.5 bg-red-100 dark:bg-red-950/60 text-red-900 dark:text-red-200 text-[14px] font-black rounded-md border border-red-300">
                         आवश्यक (Mandatory)
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-md">
+                      <span className="px-2.5 py-0.5 bg-slate-200 dark:bg-slate-600 text-[#1F2937] dark:text-slate-100 text-[14px] font-bold rounded-md">
                         पर्यायी
                       </span>
                     )}
@@ -277,12 +277,12 @@ export default function DocumentsScreen() {
         </div>
 
         {/* Trustworthy by Design Notice */}
-        <div className="mt-6 p-3.5 bg-emerald-50 dark:bg-slate-900/60 rounded-2xl border border-emerald-300 dark:border-emerald-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span className="flex items-center gap-1.5 font-black text-emerald-900 dark:text-emerald-300">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        <div className="mt-6 p-3.5 bg-emerald-50 dark:bg-slate-900/60 rounded-2xl border-2 border-emerald-400 dark:border-emerald-800/60 flex flex-wrap items-center justify-between gap-2 text-[14px]">
+          <span className="flex items-center gap-1.5 font-black text-emerald-950 dark:text-emerald-300">
+            <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0" />
             <span>अधिकृत शासन निर्णयानुसार पडताळलेली कागदपत्रे सूची</span>
           </span>
-          <span className="font-semibold text-slate-600 dark:text-slate-400">
+          <span className="font-extrabold text-slate-800 dark:text-slate-300">
             शेवटची तपासणी: {selectedScheme?.last_verified_date}
           </span>
         </div>
@@ -291,9 +291,9 @@ export default function DocumentsScreen() {
         <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
           <button
             onClick={() => setActiveScreen('eligibility')}
-            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:underline flex items-center gap-1 min-h-[44px]"
+            className="text-[16px] font-bold text-slate-700 dark:text-slate-300 hover:underline flex items-center gap-1 min-h-[44px]"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5 text-civic-700 dark:text-civic-400" />
             <span>मागील पायरी: पात्रता तपासा</span>
           </button>
           
@@ -320,7 +320,7 @@ export default function DocumentsScreen() {
           href={selectedScheme?.official_link}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm font-bold text-saffron-700 dark:text-saffron-400 hover:underline min-h-[44px]"
+          className="inline-flex items-center gap-2 text-[16px] font-bold text-[#1B2A5C] dark:text-amber-400 hover:underline min-h-[44px]"
         >
           <span>अधिकृत पोर्टलवर जा: {selectedScheme?.official_link}</span>
           <ExternalLink className="w-4 h-4" />

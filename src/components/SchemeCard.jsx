@@ -28,12 +28,12 @@ export default function SchemeCard({ scheme, onSelectAction }) {
       <div>
         {/* Header badges */}
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <span className="px-3 py-1 bg-civic-50 dark:bg-civic-950/60 text-civic-800 dark:text-civic-300 text-xs font-bold rounded-full border border-civic-200 dark:border-civic-800">
+          <span className="px-3.5 py-1 bg-blue-100 dark:bg-blue-950 text-[#1B2A5C] dark:text-blue-200 text-[16px] font-black rounded-full border-2 border-blue-400">
             {scheme.category_mr}
           </span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <span className="text-[16px] font-black text-emerald-950 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-950 px-3 py-1 rounded-full border-2 border-emerald-400 flex items-center gap-1">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
               <span>सत्यापित {scheme.last_verified_date}</span>
             </span>
             {isSpeaking && currentId === scheme.id ? (
@@ -70,21 +70,21 @@ export default function SchemeCard({ scheme, onSelectAction }) {
         >
           {scheme.name_mr}
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-3">
+        <p className="text-[16px] text-slate-700 dark:text-slate-300 font-bold mb-3">
           {scheme.name_en}
         </p>
 
         {/* Short description in simple Marathi */}
-        <p className="text-base text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
+        <p className="text-base sm:text-lg text-slate-800 dark:text-slate-200 mb-4 leading-relaxed font-medium">
           {scheme.short_description_mr}
         </p>
 
         {/* Key Benefit Highlight Box */}
-        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl mb-5">
-          <span className="text-xs font-bold text-amber-800 dark:text-amber-400 block mb-0.5">
+        <div className="p-4 app-highlight-box rounded-2xl mb-5 shadow-xs">
+          <span className="text-[16px] font-black text-[#1B2A5C] dark:text-amber-300 block mb-1">
             शासकीय लाभ:
           </span>
-          <p className="text-sm font-extrabold text-amber-950 dark:text-amber-200">
+          <p className="text-[16px] sm:text-[18px] font-extrabold text-[#1F2937] dark:text-white leading-relaxed">
             {scheme.benefit_summary_mr}
           </p>
         </div>
@@ -96,20 +96,20 @@ export default function SchemeCard({ scheme, onSelectAction }) {
           {/* Check Eligibility */}
           <button
             onClick={() => handleAction('eligibility')}
-            className="flex items-center justify-center gap-1.5 px-3 py-3 bg-civic-900 hover:bg-civic-800 text-white rounded-2xl font-bold text-sm min-h-[48px] transition-colors focus:ring-4 focus:ring-civic-400"
+            className="flex items-center justify-center gap-1.5 px-3 py-3 bg-civic-900 hover:bg-civic-800 text-white rounded-2xl font-black text-[16px] min-h-[48px] transition-colors focus:ring-4 focus:ring-civic-400"
             aria-label={`${scheme.name_mr} साठी पात्रता तपासा`}
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>पात्रता तपासा</span>
           </button>
 
           {/* View Documents */}
           <button
             onClick={() => handleAction('documents')}
-            className="flex items-center justify-center gap-1.5 px-3 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-2xl font-bold text-sm min-h-[48px] transition-colors focus:ring-4 focus:ring-slate-400"
+            className="flex items-center justify-center gap-1.5 px-3 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-2xl font-black text-[16px] min-h-[48px] transition-colors focus:ring-4 focus:ring-slate-400 border border-slate-300 dark:border-slate-600"
             aria-label={`${scheme.name_mr} साठी आवश्यक कागदपत्रे पहा`}
           >
-            <FileText className="w-4 h-4 text-saffron-600 dark:text-saffron-400 flex-shrink-0" />
+            <FileText className="w-5 h-5 text-saffron-600 dark:text-saffron-400 flex-shrink-0" />
             <span>कागदपत्रे</span>
           </button>
         </div>
@@ -117,11 +117,11 @@ export default function SchemeCard({ scheme, onSelectAction }) {
         {/* Voice Form Fill Button */}
         <button
           onClick={() => handleAction('form')}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-600 hover:to-saffron-700 text-white rounded-2xl font-extrabold text-sm min-h-[48px] shadow-sm transition-all focus:ring-4 focus:ring-saffron-300 group/btn"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-saffron-600 to-saffron-700 hover:from-saffron-700 hover:to-saffron-800 text-white rounded-2xl font-black text-[16px] min-h-[48px] shadow-sm transition-all focus:ring-4 focus:ring-saffron-300 group/btn"
           aria-label={`${scheme.name_mr} चा आवाजाने अर्ज भरा`}
         >
           <span>आवाजाने अर्ज भरा</span>
-          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+          <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
     </article>

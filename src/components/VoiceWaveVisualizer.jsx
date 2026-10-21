@@ -75,11 +75,11 @@ export default function VoiceWaveVisualizer({ isListening: propIsListening, isSp
 
       {/* Interim Recognized text (Confirms what user is saying in real-time) */}
       {interimText && (
-        <div className="mt-2 p-2.5 bg-saffron-50 dark:bg-slate-900 rounded-xl border border-saffron-200 dark:border-saffron-900/50">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-0.5">
+        <div className="mt-2 p-3 bg-amber-100/90 dark:bg-slate-900 rounded-xl border-2 border-amber-400 dark:border-amber-700">
+          <p className="text-[14px] text-[#1B2A5C] dark:text-amber-300 font-extrabold mb-0.5">
             तुमचा आवाज समजला:
           </p>
-          <p className="text-lg font-bold text-slate-900 dark:text-white">
+          <p className="text-lg font-black text-[#1F2937] dark:text-white">
             "{interimText}"
           </p>
         </div>

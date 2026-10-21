@@ -61,14 +61,14 @@ export default function FirstLaunchWelcomeModal() {
         </div>
 
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-saffron-100 dark:bg-saffron-950/80 text-saffron-800 dark:text-saffron-300 text-xs font-black uppercase border border-saffron-300 mb-2">
-            <Volume2 className="w-3.5 h-3.5 animate-pulse text-saffron-600" />
+          <span className="app-pill-accent inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[16px] font-black uppercase border border-amber-400 mb-2">
+            <Volume2 className="w-4 h-4 animate-pulse text-amber-700 dark:text-amber-400" />
             <span>मराठी आवाज स्वागत</span>
           </span>
           <h2 id="welcome-title" className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-snug">
             "{welcomeText}"
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2">
+          <p className="text-[14px] sm:text-[16px] text-slate-700 dark:text-slate-300 font-bold mt-2">
             तुम्ही थेट बोलू शकता किंवा खालील योजनेवर स्पर्श करून सुरुवात करू शकता:
           </p>
         </div>
@@ -77,25 +77,25 @@ export default function FirstLaunchWelcomeModal() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left">
           <button
             onClick={() => handleSelectScheme('ladki-bahin', 'लाडकी बहीण योजना माहिती')}
-            className="p-3 bg-saffron-50 hover:bg-saffron-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-saffron-200 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm"
+            className="p-3.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-2xl text-[16px] font-bold text-[#1F2937] dark:text-white transition-all shadow-sm"
           >
             🌸 लाडकी बहीण योजना (₹१,५००)
           </button>
           <button
             onClick={() => handleSelectScheme('pm-kisan', 'पीएम किसान योजना माहिती')}
-            className="p-3 bg-emerald-50 hover:bg-emerald-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-emerald-200 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm"
+            className="p-3.5 bg-white hover:bg-emerald-100 dark:bg-slate-700 dark:hover:bg-slate-600 border-2 border-slate-300 dark:border-slate-600 hover:border-emerald-500 rounded-2xl text-[16px] font-bold text-[#1F2937] dark:text-white transition-all shadow-sm"
           >
             🌾 पीएम किसान व नमो शेतकरी
           </button>
           <button
             onClick={() => handleSelectScheme('ayushman-mjpjay', 'आयुष्यमान भारत हॉस्पिटल उपचार')}
-            className="p-3 bg-sky-50 hover:bg-sky-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-sky-200 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm"
+            className="p-3.5 bg-white hover:bg-sky-100 dark:bg-slate-700 dark:hover:bg-slate-600 border-2 border-slate-300 dark:border-slate-600 hover:border-sky-500 rounded-2xl text-[16px] font-bold text-[#1F2937] dark:text-white transition-all shadow-sm"
           >
             🏥 आयुष्यमान भारत (मोफत उपचार)
           </button>
           <button
             onClick={() => handleSelectScheme('ration-card', 'नवीन रेशन कार्ड कसे काढायचे')}
-            className="p-3 bg-amber-50 hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-amber-200 dark:border-slate-600 rounded-2xl text-xs sm:text-sm font-bold text-slate-900 dark:text-white transition-all shadow-sm"
+            className="p-3.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-2xl text-[16px] font-bold text-[#1F2937] dark:text-white transition-all shadow-sm"
           >
             🍚 रेशन कार्ड अन्न सुरक्षा योजना
           </button>
@@ -105,15 +105,15 @@ export default function FirstLaunchWelcomeModal() {
         <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <button
             onClick={() => speak(welcomeText, { force: true })}
-            className="text-xs font-bold text-saffron-600 dark:text-saffron-400 hover:underline flex items-center gap-1 min-h-[44px]"
+            className="text-[16px] font-bold text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 min-h-[44px]"
           >
-            <Volume2 className="w-4 h-4" />
+            <Volume2 className="w-5 h-5" />
             <span>पुन्हा ऐका</span>
           </button>
 
           <button
             onClick={handleSkip}
-            className="py-2.5 px-6 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-black text-sm rounded-xl transition-colors min-h-[44px]"
+            className="py-2.5 px-6 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-white font-black text-[16px] rounded-xl transition-colors min-h-[44px]"
           >
             वगळा (Skip)
           </button>

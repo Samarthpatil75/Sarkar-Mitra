@@ -119,10 +119,10 @@ export default function CitizenJourneyStepper({ currentStage }) {
         
         {/* Left: Scheme Name Chip + Compact "पायरी २ / ४ · पात्रता" */}
         <div className="flex items-center gap-2 min-w-0">
-          <span className="inline-block px-2 py-0.5 text-xs font-black bg-saffron-100 dark:bg-saffron-950/90 text-saffron-900 dark:text-saffron-200 rounded-md border border-saffron-300 dark:border-saffron-700 truncate max-w-[130px] sm:max-w-xs shrink-0">
+          <span className="inline-block px-2.5 py-1 text-[16px] font-black bg-amber-100 dark:bg-amber-950 text-[#1B2A5C] dark:text-amber-200 rounded-lg border-2 border-amber-400 truncate max-w-[150px] sm:max-w-xs shrink-0 shadow-xs">
             {schemeNameChip}
           </span>
-          <span className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 truncate">
+          <span className="text-[16px] font-black text-slate-900 dark:text-white truncate">
             पायरी {currentStep} / ४ · {currentStepObj.shortLabel}
           </span>
         </div>
@@ -136,14 +136,14 @@ export default function CitizenJourneyStepper({ currentStage }) {
 
             let dotClass = '';
             if (isCurrent) {
-              dotClass = 'w-7 h-7 sm:w-8 sm:h-8 bg-saffron-600 text-white font-black ring-2 ring-saffron-300 dark:ring-saffron-800 shadow-sm';
+              dotClass = 'w-8 h-8 sm:w-9 sm:h-9 bg-saffron-600 text-white font-black ring-2 ring-saffron-300 dark:ring-saffron-800 shadow-xs';
             } else if (isDone) {
-              dotClass = 'w-7 h-7 sm:w-8 sm:h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer';
+              dotClass = 'w-8 h-8 sm:w-9 sm:h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-black cursor-pointer';
             } else if (isReached) {
-              dotClass = 'w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 text-blue-900 dark:text-blue-200 border border-blue-400 font-bold cursor-pointer';
+              dotClass = 'w-8 h-8 sm:w-9 sm:h-9 bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 text-[#1B2A5C] dark:text-blue-200 border-2 border-blue-400 font-black cursor-pointer';
             } else {
-              // Locked: Looks disabled, no text needed
-              dotClass = 'w-7 h-7 sm:w-8 sm:h-8 bg-slate-200 dark:bg-slate-700/60 text-slate-400 dark:text-slate-500 font-bold opacity-45 cursor-not-allowed';
+              // Locked: Looks disabled with dashed border and readable #4B5563 text
+              dotClass = 'w-8 h-8 sm:w-9 sm:h-9 bg-slate-200 dark:bg-slate-700/60 text-[#4B5563] dark:text-slate-300 font-bold border-2 border-dashed border-slate-400 dark:border-slate-500 cursor-not-allowed';
             }
 
             return (
@@ -161,10 +161,10 @@ export default function CitizenJourneyStepper({ currentStage }) {
                     ? `सध्याची पायरी: ${step.label}`
                     : `पायरी ${step.step} वर जा (${step.label})`
                 }
-                className={`rounded-full flex items-center justify-center text-xs transition-all ${dotClass}`}
+                className={`rounded-full flex items-center justify-center text-[16px] transition-all ${dotClass}`}
               >
                 {isDone ? (
-                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
+                  <Check className="w-4 h-4 stroke-[3]" />
                 ) : (
                   <span>{step.step}</span>
                 )}

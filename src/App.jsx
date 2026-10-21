@@ -37,7 +37,7 @@ function MainApp() {
       {activeScreen === 'demo' && (
         <aside 
           aria-label="डेमो मोड सूचना"
-          className="bg-amber-400 text-slate-950 px-4 py-1.5 text-center text-xs font-black tracking-wide flex items-center justify-center gap-2 border-b-2 border-amber-500 shadow-sm sticky top-0 z-50"
+          className="bg-amber-400 text-slate-950 px-4 py-2 text-center text-[14px] font-black tracking-wide flex items-center justify-center gap-2 border-b-2 border-amber-500 shadow-sm sticky top-0 z-50"
         >
           <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
           <span>🟡 डेमो मोड (Demo Mode) • सिम्युलेटेड प्रात्यक्षिक डेटा • Not real user data</span>

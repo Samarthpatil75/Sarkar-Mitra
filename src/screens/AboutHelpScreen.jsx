@@ -77,7 +77,7 @@ export default function AboutHelpScreen() {
           </h3>
         </div>
 
-        <p className="text-xs text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-xl border border-amber-200 dark:border-amber-900 mb-4 font-bold">
+        <p className="text-[14px] text-amber-950 dark:text-amber-100 bg-amber-100/90 dark:bg-amber-950/60 p-4 rounded-xl border-2 border-amber-400 dark:border-amber-700 mb-4 font-extrabold">
           ⚠️ {officialNotice}
         </p>
 

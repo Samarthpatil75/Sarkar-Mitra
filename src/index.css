@@ -2,6 +2,146 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* High-Contrast Accessible Color Tokens (WCAG AA compliant) */
+  --text-on-light: #1F2937;
+  --text-on-light-emphasis: #1B2A5C;
+  --text-on-light-muted: #374151;
+  --text-on-light-disabled: #4B5563;
+  --text-saffron-on-light: #B45309;
+
+  --text-on-dark: #FFFFFF;
+  --text-on-dark-muted: #F3F4F6;
+  --text-on-dark-emphasis: #FFFFFF;
+  --text-saffron-on-dark: #FDBA74;
+
+  /* Interactive Chips & Buttons */
+  --chip-bg: #FFFFFF;
+  --chip-bg-subtle: #F3F4F6;
+  --chip-text: #1F2937;
+  --chip-border: #9CA3AF;
+
+  --chip-hover-bg: #E5E7EB;
+  --chip-hover-text: #111827;
+  --chip-hover-border: #4B5563;
+
+  --chip-selected-bg: #FED7AA;
+  --chip-selected-text: #1F2937;
+  --chip-selected-border: #C2410C;
+
+  --chip-disabled-bg: #F3F4F6;
+  --chip-disabled-text: #4B5563;
+  --chip-disabled-border: #9CA3AF;
+
+  /* Accent Pills & Badges */
+  --pill-bg: #FEF3C7;
+  --pill-text: #1B2A5C;
+  --pill-border: #D97706;
+
+  /* Highlight & Alert Boxes */
+  --highlight-box-bg: #FFFBEB;
+  --highlight-box-text: #1F2937;
+  --highlight-box-heading: #1B2A5C;
+  --highlight-box-border: #F59E0B;
+}
+
+.dark {
+  --text-on-light: #F9FAFB;
+  --text-on-light-emphasis: #FFFFFF;
+  --text-on-light-muted: #E5E7EB;
+  --text-on-light-disabled: #9CA3AF;
+  --text-saffron-on-light: #FDBA74;
+
+  --text-on-dark: #FFFFFF;
+  --text-on-dark-muted: #F3F4F6;
+  --text-on-dark-emphasis: #FFFFFF;
+  --text-saffron-on-dark: #FDBA74;
+
+  /* Interactive Chips & Buttons in Dark Mode */
+  --chip-bg: #1E293B;
+  --chip-bg-subtle: #0F172A;
+  --chip-text: #FFFFFF;
+  --chip-border: #475569;
+
+  --chip-hover-bg: #334155;
+  --chip-hover-text: #FFFFFF;
+  --chip-hover-border: #94A3B8;
+
+  --chip-selected-bg: #C2410C;
+  --chip-selected-text: #FFFFFF;
+  --chip-selected-border: #FDBA74;
+
+  --chip-disabled-bg: #1E293B;
+  --chip-disabled-text: #94A3B8;
+  --chip-disabled-border: #64748B;
+
+  /* Accent Pills & Badges in Dark Mode */
+  --pill-bg: #78350F;
+  --pill-text: #FFFFFF;
+  --pill-border: #F59E0B;
+
+  /* Highlight & Alert Boxes in Dark Mode */
+  --highlight-box-bg: #1E293B;
+  --highlight-box-text: #F9FAFB;
+  --highlight-box-heading: #FFFFFF;
+  --highlight-box-border: #F59E0B;
+}
+
+@layer components {
+  /* Reusable High-Contrast Accessible Components */
+  .app-pill-accent {
+    background-color: var(--pill-bg);
+    color: var(--pill-text);
+    border: 2px solid var(--pill-border);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .app-chip {
+    background-color: var(--chip-bg);
+    color: var(--chip-text);
+    border: 2px solid var(--chip-border);
+    font-size: 16px;
+    font-weight: 700;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .app-chip:hover {
+    background-color: var(--chip-hover-bg);
+    color: var(--chip-hover-text);
+    border-color: var(--chip-hover-border);
+  }
+
+  .app-chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.45);
+  }
+
+  .app-chip-selected {
+    background-color: var(--chip-selected-bg) !important;
+    color: var(--chip-selected-text) !important;
+    border: 2px solid var(--chip-selected-border) !important;
+    box-shadow: 0 0 0 2px var(--chip-selected-border);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .app-chip-disabled {
+    background-color: var(--chip-disabled-bg) !important;
+    color: var(--chip-disabled-text) !important;
+    border: 2px dashed var(--chip-disabled-border) !important;
+    cursor: not-allowed;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .app-highlight-box {
+    background-color: var(--highlight-box-bg);
+    color: var(--highlight-box-text);
+    border: 2px solid var(--highlight-box-border);
+  }
+}
+
 @layer base {
   html {
     font-size: 18px; /* High legibility baseline for elderly & rural users */

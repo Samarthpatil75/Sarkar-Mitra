@@ -121,11 +121,11 @@ export default function PersistentMicBar() {
 
         {/* Interim / Live Transcript Confirmation Banner */}
         {interimTranscript && (
-          <div className="mb-2 p-2 bg-saffron-50 dark:bg-slate-800 border-2 border-saffron-400 rounded-xl text-center animate-pulse">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <div className="mb-2 p-3 bg-amber-50 dark:bg-slate-800 border-2 border-amber-400 dark:border-amber-600 rounded-xl text-center animate-pulse shadow-xs">
+            <span className="text-[16px] font-black text-[#1B2A5C] dark:text-amber-300 block mb-0.5">
               बोललेले ऐकले जात आहे:
             </span>
-            <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+            <p className="text-base sm:text-lg font-black text-[#1F2937] dark:text-white">
               "{interimTranscript}"
             </p>
           </div>
@@ -166,11 +166,11 @@ export default function PersistentMicBar() {
 
         {/* Offline Fallback Banner */}
         {(isOffline || micStatus === 'offline') && (
-          <div className="mb-2 p-3 bg-red-50 dark:bg-red-950/60 border-2 border-red-400 dark:border-red-600 rounded-xl flex items-center gap-2.5 text-red-900 dark:text-red-200 text-sm font-black animate-fadeIn">
+          <div className="mb-2 p-3 bg-red-50 dark:bg-red-950/60 border-2 border-red-400 dark:border-red-600 rounded-xl flex items-center gap-2.5 text-red-950 dark:text-red-100 text-[16px] font-black animate-fadeIn">
             <WifiOff className="w-5 h-5 flex-shrink-0 text-red-600" />
             <div className="flex-1">
               <span>ऑफलाइन — आवाज ओळख बंद, बटणे वापरा</span>
-              <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">
                 इंटरनेट उपलब्ध नसल्यामुळे आवाज ओळख बंद आहे. खालील पर्याय किंवा कीबोर्ड वापरून संवाद साधा.
               </p>
             </div>
@@ -179,15 +179,15 @@ export default function PersistentMicBar() {
 
         {/* Friendly Speech Unavailable / Permission Fallback Banner */}
         {!isOffline && (!isSpeechSupported || micStatus === 'denied' || micStatus === 'unsupported') && (
-          <div className="mb-2 p-3 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 rounded-xl flex items-start gap-2 text-amber-900 dark:text-amber-200 text-sm animate-fadeIn">
+          <div className="mb-2 p-3.5 bg-amber-50 dark:bg-amber-950/60 border-2 border-amber-400 dark:border-amber-600 rounded-xl flex items-start gap-2.5 text-[#1F2937] dark:text-white animate-fadeIn">
             <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
             <div className="flex-1">
-              <p className="font-bold">
+              <p className="font-black text-[16px] text-[#1B2A5C] dark:text-amber-300">
                 {micStatus === 'denied'
                   ? 'मायक्रोफोन परवानगी मिळालेली नाही. काळजी करू नका!'
                   : 'तुमच्या ब्राउझरमध्ये थेट आवाज ओळख उपलब्ध नाही. काळजी करू नका!'}
               </p>
-              <p className="text-xs mt-0.5 text-slate-700 dark:text-slate-300">
+              <p className="text-sm mt-0.5 text-slate-800 dark:text-slate-200 font-bold">
                 ॲप टॅप आणि टाईप मोडमध्ये सुरू झाले आहे. खालील कीबोर्ड किंवा सुचवलेल्या पर्यायांवर थेट बोट ठेवून संवाद साधा.
               </p>
             </div>
@@ -196,15 +196,15 @@ export default function PersistentMicBar() {
 
         {/* Typing Box Drawer */}
         {showTypeBox && (
-          <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-inner animate-fadeIn">
+          <div className="mb-3 p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border-2 border-slate-300 dark:border-slate-600 shadow-inner animate-fadeIn">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
+              <span className="text-[16px] font-black text-[#1B2A5C] dark:text-slate-200 flex items-center gap-1.5">
                 <Keyboard className="w-4 h-4 text-saffron-600" /> मजकूर टाईप करा:
               </span>
               <button 
                 type="button"
                 onClick={() => setShowTypeBox(false)}
-                className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg cursor-pointer"
+                className="p-1 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg cursor-pointer"
                 aria-label="टाईपिंग बंद करा"
               >
                 <X className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function PersistentMicBar() {
               />
               <button
                 type="submit"
-                className="px-5 py-3 bg-saffron-600 hover:bg-saffron-700 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors min-h-[48px] focus:ring-4 focus:ring-saffron-400 cursor-pointer"
+                className="px-5 py-3 bg-saffron-600 hover:bg-saffron-700 text-white font-black rounded-xl flex items-center gap-1.5 transition-colors min-h-[48px] focus:ring-4 focus:ring-saffron-400 cursor-pointer text-[16px]"
                 aria-label={t('send') || 'पाठवा'}
               >
                 <Send className="w-5 h-5" />
@@ -234,16 +234,16 @@ export default function PersistentMicBar() {
             </form>
 
             {/* Quick Tap Chips */}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="text-xs text-slate-600 dark:text-slate-300 py-1 font-bold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-saffron-600" /> सुचवलेले प्रश्न:
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-[16px] text-slate-900 dark:text-slate-200 py-1 font-black flex items-center gap-1">
+                <Sparkles className="w-4 h-4 text-saffron-600" /> सुचवलेले प्रश्न:
               </span>
               {quickPrompts.map((q, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleQuickPromptClick(q)}
-                  className="px-2.5 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-saffron-500 text-slate-900 dark:text-slate-100 rounded-lg transition-colors font-bold text-left cursor-pointer"
+                  className="px-3 py-1.5 app-chip rounded-xl font-bold text-left cursor-pointer text-[16px] shadow-xs"
                 >
                   {q}
                 </button>
@@ -262,16 +262,16 @@ export default function PersistentMicBar() {
               if (isSpeaking) stopSpeaking();
               setShowTypeBox(prev => !prev);
             }}
-            className={`p-3 rounded-2xl border flex items-center gap-2 min-h-[48px] min-w-[48px] transition-colors focus:ring-4 focus:ring-saffron-400 cursor-pointer ${
+            className={`p-3 rounded-2xl border-2 flex items-center gap-2 min-h-[48px] min-w-[48px] transition-colors focus:ring-4 focus:ring-saffron-400 cursor-pointer ${
               showTypeBox
-                ? 'bg-saffron-100 border-saffron-500 text-saffron-950 dark:bg-saffron-950 dark:text-saffron-200'
-                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
+                ? 'bg-amber-100 border-amber-500 text-[#1B2A5C] dark:bg-slate-800 dark:text-white'
+                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800'
             }`}
             aria-label="टाईप करून विचारा किंवा सुचवलेले पर्याय पहा"
             title="टाईप करा"
           >
             <Keyboard className="w-6 h-6 text-saffron-600 dark:text-saffron-400" />
-            <span className="hidden sm:inline text-sm font-extrabold">
+            <span className="hidden sm:inline text-[16px] font-black">
               {showTypeBox ? 'बंद करा' : 'टाईप करा'}
             </span>
           </button>

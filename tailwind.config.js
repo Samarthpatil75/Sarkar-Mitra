@@ -8,6 +8,18 @@ export default {
   theme: {
     extend: {
       colors: {
+        'on-light': 'var(--text-on-light)',
+        'on-light-emphasis': 'var(--text-on-light-emphasis)',
+        'on-dark': 'var(--text-on-dark)',
+        'pill-bg': 'var(--pill-bg)',
+        'pill-text': 'var(--pill-text)',
+        'pill-border': 'var(--pill-border)',
+        'chip-bg': 'var(--chip-bg)',
+        'chip-text': 'var(--chip-text)',
+        'chip-border': 'var(--chip-border)',
+        'chip-selected-bg': 'var(--chip-selected-bg)',
+        'chip-selected-text': 'var(--chip-selected-text)',
+        'chip-selected-border': 'var(--chip-selected-border)',
         saffron: {
           50: '#fff7ed',
           100: '#ffedd5',
