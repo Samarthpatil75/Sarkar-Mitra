@@ -43,6 +43,17 @@ export function AppProvider({ children }) {
     return 'normal';
   });
 
+  const setFontSize = (size) => {
+    setFontSizeState(size);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sarkar_mitra_font_size', size);
+      }
+    } catch (e) {}
+    const label = size === 'normal' ? 'सामान्य' : size === 'large' ? 'मोठा' : 'खूप मोठा';
+    showToast(`अक्षरांचा आकार: ${label}`, 'info');
+  };
+
   const increaseFontSize = () => {
     setFontSizeState(prev => {
       const next = prev === 'normal' ? 'large' : 'xlarge';
@@ -190,8 +201,21 @@ export function AppProvider({ children }) {
   };
 
   const toggleLowBandwidth = () => {
-    setLowBandwidth(prev => !prev);
-    showToast(!lowBandwidth ? 'कमी डेटा मोड सुरू झाला (ऑडिओ फक्त दाबावर वाजेल)' : 'सामान्य डेटा मोड सुरू झाला');
+    setLowBandwidth(prev => {
+      const next = !prev;
+      showToast(next ? 'कमी डेटा मोड सुरू झाला (ऑडिओ फक्त दाबावर वाजेल)' : 'सामान्य डेटा मोड सुरू झाला', 'info');
+      return next;
+    });
+  };
+
+  const setLowBandwidthMode = (val) => {
+    setLowBandwidth(val);
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('bolu_ya_low_bw', String(val));
+      }
+    } catch (e) {}
+    showToast(val ? 'कमी डेटा मोड सुरू झाला' : 'सामान्य डेटा मोड सुरू झाला', 'info');
   };
 
   // Offline network detection state
@@ -296,6 +320,7 @@ export function AppProvider({ children }) {
         toggleLanguage,
         lowBandwidth,
         toggleLowBandwidth,
+        setLowBandwidthMode,
         activeScreen,
         setActiveScreen,
         selectedScheme,
@@ -309,6 +334,7 @@ export function AppProvider({ children }) {
         schemes: schemesData.schemes,
         officialNotice: schemesData.notice,
         fontSize,
+        setFontSize,
         increaseFontSize,
         decreaseFontSize,
         isMicCheckOpen,

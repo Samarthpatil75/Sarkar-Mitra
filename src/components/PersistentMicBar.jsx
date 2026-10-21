@@ -8,8 +8,6 @@ import {
   Sparkles, 
   Square, 
   RotateCcw, 
-  Volume2, 
-  VolumeX, 
   AlertCircle,
   WifiOff
 } from 'lucide-react';
@@ -25,17 +23,13 @@ export default function PersistentMicBar() {
     micStatus, 
     processInput,
     isSpeechSupported,
-    speechSpeed,
-    setSpeechSpeed,
     stopSpeaking,
     wasStoppedByUser,
     lastSpoken,
-    replayLastAudio,
-    autoSpeakAnswers,
-    setAutoSpeakAnswers
+    replayLastAudio
   } = useSpeech();
 
-  const { t, lowBandwidth, isOffline, showToast } = useApp();
+  const { t, lowBandwidth, isOffline, showToast, activeScreen } = useApp();
   const [showTypeBox, setShowTypeBox] = useState(false);
   const [manualText, setManualText] = useState('');
 
@@ -45,6 +39,55 @@ export default function PersistentMicBar() {
       setShowTypeBox(true);
     }
   }, [isOffline, isSpeechSupported, micStatus]);
+
+  const isQuestionScreen = ['eligibility', 'form', 'conversation'].includes(activeScreen);
+
+  // If not on question screens, hide the persistent input bar.
+  // BUT keep the "आवाज थांबवा" button visible whenever audio is playing (or replay if stopped by user).
+  if (!isQuestionScreen) {
+    if (isSpeaking) {
+      return (
+        <aside 
+          aria-label="आवाज थांबवा" 
+          className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none animate-fadeIn"
+        >
+          <button
+            type="button"
+            onClick={() => stopSpeaking({ userInitiated: true })}
+            className="pointer-events-auto min-h-[48px] px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-2xl shadow-2xl ring-4 ring-red-300 dark:ring-red-950 flex items-center gap-2.5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400 cursor-pointer animate-pulse"
+            role="button"
+            aria-label="आवाज थांबवा"
+          >
+            <Square className="w-5 h-5 fill-current" />
+            <span>आवाज थांबवा</span>
+          </button>
+        </aside>
+      );
+    }
+
+    if (wasStoppedByUser && lastSpoken && lastSpoken.text) {
+      return (
+        <aside 
+          aria-label="पुन्हा ऐका" 
+          className="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none animate-fadeIn"
+        >
+          <button
+            type="button"
+            onClick={replayLastAudio}
+            className="pointer-events-auto min-h-[48px] px-6 py-2.5 bg-saffron-600 hover:bg-saffron-700 text-white font-extrabold text-sm sm:text-base rounded-2xl shadow-xl flex items-center gap-2 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-saffron-400 cursor-pointer"
+            role="button"
+            aria-label="पुन्हा ऐका"
+            title="शेवटचा आवाज पुन्हा ऐका"
+          >
+            <RotateCcw className="w-5 h-5" />
+            <span>🔁 पुन्हा ऐका</span>
+          </button>
+        </aside>
+      );
+    }
+
+    return null;
+  }
 
   const quickPrompts = [
     'लाडकी बहीण योजना काय आहे?',
@@ -56,7 +99,6 @@ export default function PersistentMicBar() {
   const handleManualSubmit = (e) => {
     e.preventDefault();
     if (manualText.trim()) {
-      // Automatic stopping on typing or sending a message
       stopSpeaking();
       processInput(manualText);
       setManualText('');
@@ -95,7 +137,7 @@ export default function PersistentMicBar() {
             <button
               type="button"
               onClick={() => stopSpeaking({ userInitiated: true })}
-              className="min-h-[48px] px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-2xl shadow-xl ring-4 ring-red-300 dark:ring-red-950 flex items-center gap-2.5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400 cursor-pointer"
+              className="min-h-[48px] px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-base rounded-2xl shadow-xl ring-4 ring-red-300 dark:ring-red-950 flex items-center gap-2.5 transition-transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-red-400 cursor-pointer animate-pulse"
               role="button"
               aria-label="आवाज थांबवा"
             >
@@ -156,13 +198,13 @@ export default function PersistentMicBar() {
         {showTypeBox && (
           <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-inner animate-fadeIn">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
                 <Keyboard className="w-4 h-4 text-saffron-600" /> मजकूर टाईप करा:
               </span>
               <button 
                 type="button"
                 onClick={() => setShowTypeBox(false)}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg"
+                className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg cursor-pointer"
                 aria-label="टाईपिंग बंद करा"
               >
                 <X className="w-5 h-5" />
@@ -177,31 +219,31 @@ export default function PersistentMicBar() {
                   if (isSpeaking) stopSpeaking();
                   setManualText(e.target.value);
                 }}
-                placeholder={t('type_placeholder')}
+                placeholder={t('type_placeholder') || 'येथे लिहा...'}
                 className="flex-1 px-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus:border-saffron-500 dark:focus:border-saffron-400 rounded-xl text-base text-slate-900 dark:text-white outline-none"
                 autoFocus
               />
               <button
                 type="submit"
-                className="px-5 py-3 bg-saffron-600 hover:bg-saffron-700 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors min-h-[48px] focus:ring-4 focus:ring-saffron-400"
-                aria-label={t('send')}
+                className="px-5 py-3 bg-saffron-600 hover:bg-saffron-700 text-white font-bold rounded-xl flex items-center gap-1.5 transition-colors min-h-[48px] focus:ring-4 focus:ring-saffron-400 cursor-pointer"
+                aria-label={t('send') || 'पाठवा'}
               >
                 <Send className="w-5 h-5" />
-                <span className="hidden sm:inline">{t('send')}</span>
+                <span className="hidden sm:inline">{t('send') || 'पाठवा'}</span>
               </button>
             </form>
 
             {/* Quick Tap Chips */}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="text-xs text-slate-500 dark:text-slate-400 py-1 font-semibold flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-saffron-500" /> सुचवलेले प्रश्न:
+              <span className="text-xs text-slate-600 dark:text-slate-300 py-1 font-bold flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-saffron-600" /> सुचवलेले प्रश्न:
               </span>
               {quickPrompts.map((q, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleQuickPromptClick(q)}
-                  className="px-2.5 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-saffron-500 text-slate-800 dark:text-slate-200 rounded-lg transition-colors font-medium text-left"
+                  className="px-2.5 py-1 text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-saffron-500 text-slate-900 dark:text-slate-100 rounded-lg transition-colors font-bold text-left cursor-pointer"
                 >
                   {q}
                 </button>
@@ -210,7 +252,7 @@ export default function PersistentMicBar() {
           </div>
         )}
 
-        {/* Bottom Bar Main Controls */}
+        {/* Bottom Bar Main Controls: "टाईप करा" + Center "बोलण्यासाठी दाबा" */}
         <div className="flex items-center justify-between gap-3">
 
           {/* Toggle Type / Prompt Drawer Button */}
@@ -220,21 +262,21 @@ export default function PersistentMicBar() {
               if (isSpeaking) stopSpeaking();
               setShowTypeBox(prev => !prev);
             }}
-            className={`p-3 rounded-2xl border flex items-center gap-2 min-h-[48px] min-w-[48px] transition-colors focus:ring-4 focus:ring-saffron-400 ${
+            className={`p-3 rounded-2xl border flex items-center gap-2 min-h-[48px] min-w-[48px] transition-colors focus:ring-4 focus:ring-saffron-400 cursor-pointer ${
               showTypeBox
-                ? 'bg-saffron-100 border-saffron-400 text-saffron-900 dark:bg-saffron-950 dark:text-saffron-200'
-                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                ? 'bg-saffron-100 border-saffron-500 text-saffron-950 dark:bg-saffron-950 dark:text-saffron-200'
+                : 'border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'
             }`}
             aria-label="टाईप करून विचारा किंवा सुचवलेले पर्याय पहा"
             title="टाईप करा"
           >
             <Keyboard className="w-6 h-6 text-saffron-600 dark:text-saffron-400" />
-            <span className="hidden sm:inline text-sm font-bold">
+            <span className="hidden sm:inline text-sm font-extrabold">
               {showTypeBox ? 'बंद करा' : 'टाईप करा'}
             </span>
           </button>
 
-          {/* Center Giant Mic Button */}
+          {/* Center Giant Mic Button ("बोलण्यासाठी दाबा") */}
           <div className="flex-1 flex justify-center">
             <button
               type="button"
@@ -246,7 +288,7 @@ export default function PersistentMicBar() {
                 }
                 toggleListening();
               }}
-              className={`group relative flex items-center justify-center gap-3 px-6 sm:px-8 py-3 rounded-full font-extrabold text-lg sm:text-xl transition-all shadow-lg min-h-[58px] min-w-[200px] focus:outline-none focus:ring-4 ${
+              className={`group relative flex items-center justify-center gap-3 px-6 sm:px-8 py-3 rounded-full font-black text-base sm:text-xl transition-all shadow-lg min-h-[56px] min-w-[200px] sm:min-w-[240px] focus:outline-none focus:ring-4 cursor-pointer ${
                 isOffline
                   ? 'bg-slate-700 hover:bg-slate-800 text-white border-2 border-slate-600 focus:ring-slate-400'
                   : isListening
@@ -268,63 +310,28 @@ export default function PersistentMicBar() {
 
               {isOffline ? (
                 <>
-                  <WifiOff className="w-6 h-6 text-amber-300 flex-shrink-0" />
-                  <span className="text-sm sm:text-base">ऑफलाइन (बटणे वापरा)</span>
+                  <WifiOff className="w-6 h-6 text-amber-300 shrink-0" />
+                  <span className="text-sm sm:text-base font-bold">ऑफलाइन (बटणे वापरा)</span>
                 </>
               ) : isListening ? (
                 <>
-                  <MicOff className="w-7 h-7 animate-bounce" />
-                  <span>{t('stop_listening')}</span>
+                  <MicOff className="w-6 h-6 sm:w-7 sm:h-7 animate-bounce shrink-0" />
+                  <span>{t('stop_listening') || 'बोलणे थांबवा'}</span>
                 </>
               ) : (
                 <>
-                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                    <Mic className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:scale-110 transition-transform" />
                   </div>
-                  <span>{t('tap_to_speak')}</span>
+                  <span>{t('tap_to_speak') || 'बोलण्यासाठी दाबा'}</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Helper Chip, Auto-Speak Toggle & Speech Speed */}
-          <div className="hidden sm:flex flex-col items-end gap-1.5 text-xs">
-            <div className="flex items-center gap-1.5">
-              {/* 'उत्तर ऐका' quick toggle */}
-              <button
-                type="button"
-                onClick={() => setAutoSpeakAnswers(!autoSpeakAnswers)}
-                className={`px-2 py-0.5 rounded-lg font-bold text-xs border transition-colors flex items-center gap-1 ${
-                  autoSpeakAnswers
-                    ? 'bg-saffron-50 dark:bg-saffron-950 text-saffron-900 dark:text-saffron-200 border-saffron-300 dark:border-saffron-700'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
-                }`}
-                title="उत्तर ऐकणे (आवाज) चालू किंवा बंद करा"
-                aria-label="उत्तर ऐका टॉगल"
-              >
-                {autoSpeakAnswers ? (
-                  <Volume2 className="w-3.5 h-3.5 text-saffron-600 dark:text-saffron-400" />
-                ) : (
-                  <VolumeX className="w-3.5 h-3.5 text-slate-400" />
-                )}
-                <span>उत्तर ऐका</span>
-              </button>
-
-              {/* Speed control */}
-              <button
-                type="button"
-                onClick={() => {
-                  const nextSpeed = speechSpeed === 'slow' ? 'normal' : speechSpeed === 'normal' ? 'fast' : 'slow';
-                  setSpeechSpeed(nextSpeed);
-                }}
-                className="px-2 py-0.5 rounded-lg font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-saffron-800 dark:text-saffron-300 border border-slate-300 dark:border-slate-700 transition-colors"
-                title="आवाजाचा वेग बदला (हळू / सामान्य / जलद)"
-                aria-label="आवाजाचा वेग बदला"
-              >
-                {speechSpeed === 'slow' ? '🐢 हळू' : speechSpeed === 'fast' ? '⚡ जलद' : '🗣️ सामान्य'}
-              </button>
-            </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">मराठीत बोला</span>
+          {/* Simple Marathi Language Prompt Reminder */}
+          <div className="hidden sm:flex items-center gap-1.5 text-xs font-black text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+            <span>🗣️ मराठीत बोला</span>
           </div>
         </div>
 
