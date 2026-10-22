@@ -48,7 +48,7 @@ export default function HomeScreen() {
           बोला, सरकारी योजना समजून घ्या.
         </h2>
         <p className="text-lg sm:text-xl text-slate-800 dark:text-slate-200 max-w-2xl mx-auto leading-relaxed font-semibold">
-          महाराष्ट्रातील नागरिक, माता-भगिनी, शेतकरी व ज्येष्ठांसाठी खास बोलून माहिती मिळवणारा आवाज सहाय्यक.
+          महाराष्ट्रातील नागरिक, माता-बहिणी, शेतकरी व ज्येष्ठांसाठी खास बोलून माहिती मिळवणारा आवाज सहाय्यक.
         </p>
 
         {/* Giant Mic Section for Home Hero */}
