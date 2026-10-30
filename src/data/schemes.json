@@ -729,10 +729,17 @@
           "type": "tel"
         },
         {
-          "key": "district_taluka",
-          "label_mr": "जिल्हा व तालुका",
-          "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.",
-          "placeholder": "उदा. सोलापूर - पंढरपूर",
+          "key": "district",
+          "label_mr": "जिल्हा",
+          "spoken_prompt": "तुमचा जिल्हा कोणता आहे?",
+          "placeholder": "उदा. सोलापूर",
+          "type": "text"
+        },
+        {
+          "key": "taluka_village",
+          "label_mr": "तालुका किंवा गाव",
+          "spoken_prompt": "तुमचा तालुका किंवा गाव सांगा.",
+          "placeholder": "उदा. पंढरपूर",
           "type": "text"
         },
         {
@@ -1221,8 +1228,15 @@
         {
           "key": "district",
           "label_mr": "जिल्हा",
-          "spoken_prompt": "तुमचा जिल्हा कोणता?",
+          "spoken_prompt": "तुमचा जिल्हा कोणता आहे?",
           "placeholder": "उदा. छत्रपती संभाजीनगर",
+          "type": "text"
+        },
+        {
+          "key": "taluka_village",
+          "label_mr": "तालुका किंवा गाव",
+          "spoken_prompt": "तुमचा तालुका किंवा गाव सांगा.",
+          "placeholder": "उदा. पैठण",
           "type": "text"
         },
         {
@@ -1734,10 +1748,17 @@
           "type": "tel"
         },
         {
-          "key": "district_taluka",
-          "label_mr": "जिल्हा व तालुका",
-          "spoken_prompt": "तुमचा जिल्हा आणि तालुका सांगा.",
-          "placeholder": "उदा. नांदेड - लोहा",
+          "key": "district",
+          "label_mr": "जिल्हा",
+          "spoken_prompt": "तुमचा जिल्हा कोणता आहे?",
+          "placeholder": "उदा. नांदेड",
+          "type": "text"
+        },
+        {
+          "key": "taluka_village",
+          "label_mr": "तालुका किंवा गाव",
+          "spoken_prompt": "तुमचा तालुका किंवा गाव सांगा.",
+          "placeholder": "उदा. लोहा",
           "type": "text"
         },
         {

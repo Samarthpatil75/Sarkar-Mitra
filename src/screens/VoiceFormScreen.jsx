@@ -22,6 +22,12 @@ import WhatNextView from '../components/WhatNextView';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { generateApplicationPDF } from '../services/pdfGenerator';
+import {
+  getTalukasForDistrict,
+  matchTalukaInDistrict,
+  normalizeDistrict,
+  POPULAR_DISTRICTS
+} from '../data/maharashtraDistrictsTalukas';
 import { 
   isYesIntent, 
   isNoIntent, 
@@ -79,33 +85,60 @@ export default function VoiceFormScreen() {
   const getQuickChoicesForField = useCallback((field) => {
     if (!field) return [];
     const k = (field.key || '').toLowerCase();
+    const label = (field.label_mr || '').toLowerCase();
     
-    if (k.includes('district') || k.includes('जिल्हा')) {
-      return ['पुणे', 'सातारा', 'बीड', 'कोल्हापूर', 'छ. संभाजीनगर', 'नाशिक', 'नागपूर', 'मुंबई', 'सोलापूर', 'ठाणे'];
+    // 1. Taluka selection: dynamically display actual Talukas for the selected district
+    if (k.includes('taluka') || label.includes('तालुका')) {
+      const selectedDistrict = formData.district || formData.district_taluka || (Object.keys(formData).find(key => key.toLowerCase().includes('district') && formData[key]) ? formData[Object.keys(formData).find(key => key.toLowerCase().includes('district') && formData[key])] : '');
+      if (selectedDistrict) {
+        return getTalukasForDistrict(selectedDistrict);
+      }
+      return [];
     }
+
+    // 2. District selection: show list of Maharashtra districts
+    if (k.includes('district') || label.includes('जिल्हा')) {
+      return POPULAR_DISTRICTS;
+    }
+
+    // 3. Phone / Mobile numbers
     if (k.includes('mobile') || k.includes('phone') || field.type === 'tel') {
       return ['9822451234', '9664429410', '9420123456', '9890123456'];
     }
+
+    // 4. Land size
     if (k.includes('land') || k.includes('acre') || k.includes('जमीन')) {
       return ['१ एकर', '२ एकर', '३ एकर', '४ एकर', '५ एकर'];
     }
+
+    // 5. Gat / Survey numbers
     if (k.includes('gat') || k.includes('गट')) {
       return ['गट क्र. १२४/२ (३ एकर)', 'गट क्र. ५६/१ (२ एकर)', 'गट क्र. ८९ (१.५ एकर)'];
     }
+
+    // 6. Ration card type
     if (k.includes('ration') || k.includes('रेशन')) {
       return ['पिवळे रेशन कार्ड (BPL)', 'केशरी रेशन कार्ड', 'अंत्योदय अन्न योजना कार्ड'];
     }
+
+    // 7. Bank names
     if (k.includes('bank') || k.includes('ifsc') || k.includes('बँक')) {
       return ['बँक ऑफ महाराष्ट्र', 'State Bank of India', 'बँक ऑफ इंडिया', 'जिल्हा मध्यवर्ती बँक'];
     }
+
+    // 8. Sample applicant names
     if (k.includes('name') || k.includes('नाव')) {
       return ['सुनिता प्रकाश पाटील', 'तुकाराम ज्ञानोबा शिंदे', 'दत्तात्रय गोविंद कांबळे'];
     }
+
+    // 9. Treatment types
     if (k.includes('treatment') || k.includes('उपचार')) {
       return ['मोतीबिंदू शस्त्रक्रिया', 'गुडघा प्रत्यारोपण', 'हृदयरोग उपचार', 'सामान्य शस्त्रक्रिया'];
     }
-    return ['होय, बरोबर आहे', 'नाही, माहिती नाही'];
-  }, []);
+
+    // Never return generic ['होय, बरोबर आहे', 'नाही, माहिती नाही']!
+    return [];
+  }, [formData]);
 
   // Speak prompt when entering a field in asking stage
   useEffect(() => {
@@ -167,6 +200,8 @@ export default function VoiceFormScreen() {
     setDetectedLang(spokenLang);
 
     const isPhoneField = currentField && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone'));
+    const isDistrictField = currentField && (currentField.key?.includes('district') || currentField.label_mr?.includes('जिल्हा'));
+    const isTalukaField = currentField && (currentField.key?.includes('taluka') || currentField.label_mr?.includes('तालुका'));
 
     // If mobile number / phone field, convert spoken words (Marathi or English) into numerical format
     if (isPhoneField) {
@@ -178,6 +213,19 @@ export default function VoiceFormScreen() {
       const extractedNum = extractNumberFromMarathi(cleanAnswer);
       if (extractedNum !== null) {
         cleanAnswer = String(extractedNum);
+      }
+    } else if (isDistrictField) {
+      const matchedDistrict = normalizeDistrict(cleanAnswer);
+      if (matchedDistrict) {
+        cleanAnswer = matchedDistrict;
+      }
+    } else if (isTalukaField) {
+      const selectedDistrict = formData.district || formData.district_taluka || (Object.keys(formData).find(k => k.toLowerCase().includes('district') && formData[k]) ? formData[Object.keys(formData).find(k => k.toLowerCase().includes('district') && formData[k])] : '');
+      if (selectedDistrict) {
+        const matchedTaluka = matchTalukaInDistrict(cleanAnswer, selectedDistrict);
+        if (matchedTaluka) {
+          cleanAnswer = matchedTaluka;
+        }
       }
     }
 
@@ -209,7 +257,7 @@ export default function VoiceFormScreen() {
     } else {
       speak(`तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`);
     }
-  }, [speak, currentField]);
+  }, [speak, currentField, formData]);
 
   // Confirm answer as YES
   const handleConfirmYes = useCallback(() => {
@@ -565,23 +613,55 @@ export default function VoiceFormScreen() {
             </div>
 
             {/* Always Visible Tap-to-Answer Buttons (beside / below the mic) */}
-            <div className="pt-2">
-              <span className="text-[14px] font-black text-slate-800 dark:text-slate-200 block mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <span>थेट पर्याय निवडून पुढे जा (Tap to Answer):</span>
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {getQuickChoicesForField(currentField).map((choice, cIdx) => (
-                  <button
-                    key={cIdx}
-                    onClick={() => handleAnswerCaptured(choice)}
-                    className="px-4 py-2.5 bg-white hover:bg-amber-100 dark:bg-slate-700/80 dark:hover:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 text-[#1F2937] dark:text-white rounded-xl text-[16px] font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
-                  >
-                    {choice}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {(() => {
+              const isTaluka = currentField && (currentField.key?.includes('taluka') || currentField.label_mr?.includes('तालुका'));
+              const isDistrict = currentField && (currentField.key?.includes('district') || currentField.label_mr?.includes('जिल्हा'));
+              const selectedDistrict = formData.district || formData.district_taluka || (Object.keys(formData).find(key => key.toLowerCase().includes('district') && formData[key]) ? formData[Object.keys(formData).find(key => key.toLowerCase().includes('district') && formData[key])] : '');
+              const quickChoices = getQuickChoicesForField(currentField);
+
+              if (isTaluka && !selectedDistrict) {
+                return (
+                  <div className="pt-2 animate-fadeIn">
+                    <div className="p-3.5 bg-amber-50 dark:bg-amber-950/60 border-2 border-amber-300 dark:border-amber-700 rounded-2xl text-amber-950 dark:text-amber-200 text-[15px] font-bold flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                      <span>तालुका निवडीसाठी कृपया प्रथम मागील प्रश्नात जिल्हा निवडा, किंवा खाली थेट तालुका टाईप करा.</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (quickChoices.length === 0) return null;
+
+              return (
+                <div className="pt-2">
+                  <span className="text-[14px] font-black text-slate-800 dark:text-slate-200 block mb-2 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span>
+                      {isTaluka && selectedDistrict
+                        ? `${selectedDistrict} जिल्ह्यातील तालुके (${quickChoices.length} पर्याय - क्लिक करून निवडा):`
+                        : isDistrict
+                        ? 'महाराष्ट्रातील प्रमुख जिल्हे (क्लिक करा किंवा बोला):'
+                        : 'थेट पर्याय निवडून पुढे जा (Tap to Answer):'}
+                    </span>
+                  </span>
+                  <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto p-1">
+                    {quickChoices.map((choice, cIdx) => (
+                      <button
+                        key={cIdx}
+                        type="button"
+                        onClick={() => {
+                          setPendingAnswer(choice);
+                          handleAnswerCaptured(choice);
+                        }}
+                        className="px-4 py-2.5 bg-white hover:bg-amber-100 dark:bg-slate-700/80 dark:hover:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 text-[#1F2937] dark:text-white rounded-xl text-[16px] font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Manual Typing Box */}
             {isEditingManually && (
