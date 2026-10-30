@@ -23,6 +23,7 @@ import {
   Square
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
+import FormattedAnswer from '../components/FormattedAnswer';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 import { 
@@ -382,10 +383,8 @@ export default function ConversationScreen() {
                   </div>
                 )}
 
-                {/* Main Message Text */}
-                <p className="font-medium whitespace-pre-line text-base sm:text-lg leading-relaxed">
-                  {msg.text_mr}
-                </p>
+                {/* Main Message Text (with Numbered List Formatting) */}
+                <FormattedAnswer text={msg.text_mr} isAssistant={isAssistant} />
 
                 {/* Interactive Eligibility Wizard Launch Button */}
                 {isAssistant && msg.hasEligibilityAction && (
