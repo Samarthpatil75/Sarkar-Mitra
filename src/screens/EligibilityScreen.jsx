@@ -28,6 +28,15 @@ import {
   isCancelOrBackIntent,
   normalizeMarathiSpeech 
 } from '../services/marathiVoiceMatcher';
+import {
+  COMMON_BANKS,
+  BANK_LINKED_OPTIONS,
+  BANK_STATUS_PROMPT,
+  BANK_NAME_PROMPT,
+  OTHER_BANK_PROMPT,
+  parseBankLinkStatus,
+  matchBankName
+} from '../data/bankNames';
 
 export default function EligibilityScreen() {
   const { 
@@ -59,11 +68,23 @@ export default function EligibilityScreen() {
   const [result, setResult] = useState(null); // null | { status: 'eligible'|'not_eligible'|'inconclusive', reasons: [] }
   const [numberInputValue, setNumberInputValue] = useState('');
   const [feedbackHint, setFeedbackHint] = useState(null);
+  const [bankSubStep, setBankSubStep] = useState('status'); // 'status' | 'bank_name' | 'other_bank_name'
+  const [customBankInput, setCustomBankInput] = useState('');
 
   const questions = selectedScheme?.eligibility_questions || [];
   const currentQuestion = questions[currentStep];
   const currentQuestionRef = useRef(currentQuestion);
   currentQuestionRef.current = currentQuestion;
+  const bankSubStepRef = useRef(bankSubStep);
+  bankSubStepRef.current = bankSubStep;
+
+  const isBankQuestion = useCallback((q) => {
+    if (!q) return false;
+    const f = (q.field || '').toLowerCase();
+    const id = (q.id || '').toLowerCase();
+    const txt = (q.question_mr || '').toLowerCase();
+    return f.includes('bank') || id.includes('bank') || txt.includes('बँक खाते');
+  }, []);
 
   // Reset when scheme changes
   const handleSchemeChange = (scheme) => {
@@ -73,16 +94,28 @@ export default function EligibilityScreen() {
     setResult(null);
     setNumberInputValue('');
     setFeedbackHint(null);
+    setBankSubStep('status');
+    setCustomBankInput('');
   };
 
   // Speak question prompt whenever step advances
   useEffect(() => {
     if (!result && currentQuestion) {
-      const promptToSpeak = currentQuestion.spoken_prompt_mr || currentQuestion.question_mr;
-      speak(promptToSpeak);
+      if (isBankQuestion(currentQuestion)) {
+        if (bankSubStep === 'bank_name') {
+          speak(BANK_NAME_PROMPT);
+        } else if (bankSubStep === 'other_bank_name') {
+          speak(OTHER_BANK_PROMPT);
+        } else {
+          speak(BANK_STATUS_PROMPT);
+        }
+      } else {
+        const promptToSpeak = currentQuestion.spoken_prompt_mr || currentQuestion.question_mr;
+        speak(promptToSpeak);
+      }
       setFeedbackHint(null);
     }
-  }, [currentStep, selectedScheme, result, speak, currentQuestion]);
+  }, [currentStep, selectedScheme, result, speak, currentQuestion, bankSubStep, isBankQuestion]);
 
   // Evaluate rule-based logic from schemes.json
   const evaluateEligibility = useCallback((finalAnswers) => {
@@ -183,12 +216,92 @@ export default function EligibilityScreen() {
     }
   }, [answers, currentStep, questions.length, evaluateEligibility, stopSpeaking]);
 
+  // Bank choice handler for eligibility wizard
+  const handleBankChoice = useCallback((choice) => {
+    stopSpeaking();
+    if (bankSubStepRef.current === 'status') {
+      if (choice === 'होय') {
+        setAnswers(prev => ({ ...prev, bank_status: 'होय' }));
+        setBankSubStep('bank_name');
+        speak(BANK_NAME_PROMPT);
+      } else {
+        // "नाही" or "मला माहिती नाही" - save and proceed without forcing bank name
+        const updated = {
+          ...answers,
+          bank_status: choice,
+          bank_name: ''
+        };
+        setAnswers(updated);
+        setBankSubStep('status');
+        setFeedbackHint({ text: `नोंदवले: ${choice}`, type: 'info' });
+        if (currentStep < questions.length - 1) {
+          setCurrentStep(prev => prev + 1);
+        } else {
+          evaluateEligibility(updated);
+        }
+      }
+    } else if (bankSubStepRef.current === 'bank_name') {
+      if (choice === 'इतर बँक') {
+        setBankSubStep('other_bank_name');
+        speak(OTHER_BANK_PROMPT);
+      } else {
+        const updated = {
+          ...answers,
+          bank_status: 'होय',
+          bank_name: choice
+        };
+        setAnswers(updated);
+        setBankSubStep('status');
+        setFeedbackHint({ text: `बँक नाव नोंदवले: ${choice}`, type: 'success' });
+        if (currentStep < questions.length - 1) {
+          setCurrentStep(prev => prev + 1);
+        } else {
+          evaluateEligibility(updated);
+        }
+      }
+    }
+  }, [answers, currentStep, questions.length, evaluateEligibility, speak, stopSpeaking]);
+
+  // Custom bank name submit
+  const handleOtherBankSubmit = useCallback((bankName) => {
+    if (!bankName || !bankName.trim()) return;
+    const clean = bankName.trim();
+    const updated = {
+      ...answers,
+      bank_status: 'होय',
+      bank_name: clean
+    };
+    setAnswers(updated);
+    setCustomBankInput('');
+    setBankSubStep('status');
+    setFeedbackHint({ text: `बँक नाव नोंदवले: ${clean}`, type: 'success' });
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      evaluateEligibility(updated);
+    }
+  }, [answers, currentStep, questions.length, evaluateEligibility]);
+
   // Go back to the previous eligibility question
   const handleGoBack = useCallback(() => {
     stopSpeaking();
+    if (currentQuestion && isBankQuestion(currentQuestion)) {
+      if (bankSubStepRef.current === 'other_bank_name') {
+        setBankSubStep('bank_name');
+        speak(BANK_NAME_PROMPT);
+        return;
+      }
+      if (bankSubStepRef.current === 'bank_name') {
+        setBankSubStep('status');
+        speak(BANK_STATUS_PROMPT);
+        return;
+      }
+    }
+
     if (currentStep > 0) {
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
+      setBankSubStep('status');
       setNumberInputValue('');
       setFeedbackHint({
         text: 'मागील प्रश्नावर परत आलो आहोत.',
@@ -197,7 +310,7 @@ export default function EligibilityScreen() {
       const prevQ = questions[prevStep];
       speak(`मागील प्रश्नावर परत आलो आहोत: ${prevQ.spoken_prompt_mr || prevQ.question_mr}`);
     }
-  }, [currentStep, questions, speak, stopSpeaking]);
+  }, [currentStep, currentQuestion, questions, isBankQuestion, speak, stopSpeaking]);
 
   // Listen to spoken answers (with high accuracy & zero out-of-scope leaks)
   useEffect(() => {
@@ -256,6 +369,65 @@ export default function EligibilityScreen() {
 
       const q = currentQuestionRef.current;
       if (!q) return true;
+
+      // Special bank linking flow:
+      if (isBankQuestion(q)) {
+        if (bankSubStepRef.current === 'status') {
+          const directBankMatch = matchBankName(raw);
+          if (directBankMatch && directBankMatch !== 'इतर बँक') {
+            handleBankChoice('होय');
+            handleBankChoice(directBankMatch);
+            return true;
+          }
+
+          const status = parseBankLinkStatus(raw);
+          if (status === 'होय') {
+            handleBankChoice('होय');
+            return true;
+          }
+          if (status === 'नाही') {
+            handleBankChoice('नाही');
+            return true;
+          }
+          if (status === 'मला माहिती नाही') {
+            handleBankChoice('मला माहिती नाही');
+            return true;
+          }
+
+          setFeedbackHint({
+            text: `समजलेला आवाज: "${raw}". कृपया 'होय', 'नाही' किंवा 'मला माहिती नाही' म्हणा.`,
+            type: 'warning'
+          });
+          speak('कृपया आपले बँक खाते आधार कार्डशी लिंक आहे का ते सांगा.');
+          return true;
+        } else if (bankSubStepRef.current === 'bank_name') {
+          const matchedBank = matchBankName(raw);
+          if (matchedBank === 'इतर बँक' || raw.includes('इतर')) {
+            setBankSubStep('other_bank_name');
+            speak(OTHER_BANK_PROMPT);
+            return true;
+          }
+          if (matchedBank) {
+            handleBankChoice(matchedBank);
+            return true;
+          }
+          if (raw.length >= 2) {
+            handleBankChoice(raw);
+            return true;
+          }
+          setFeedbackHint({
+            text: `समजलेला आवाज: "${raw}". कृपया स्क्रीनवरील बँकेचे नाव निवडा किंवा बोला.`,
+            type: 'warning'
+          });
+          speak('कृपया आपल्या बँकेचे नाव सांगा.');
+          return true;
+        } else if (bankSubStepRef.current === 'other_bank_name') {
+          if (raw.length >= 2) {
+            handleOtherBankSubmit(raw);
+            return true;
+          }
+        }
+      }
 
       // 1. Boolean Questions (e.g. Yes/No, Female/Male, Farmer/Not)
       if (q.type === 'boolean') {
@@ -350,6 +522,8 @@ export default function EligibilityScreen() {
     setResult(null);
     setNumberInputValue('');
     setFeedbackHint(null);
+    setBankSubStep('status');
+    setCustomBankInput('');
   };
 
   return (
@@ -467,11 +641,87 @@ export default function EligibilityScreen() {
 
           {/* Question Text */}
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-6 leading-snug">
-            {currentQuestion.question_mr}
+            {isBankQuestion(currentQuestion)
+              ? (bankSubStep === 'bank_name'
+                  ? BANK_NAME_PROMPT
+                  : (bankSubStep === 'other_bank_name' ? OTHER_BANK_PROMPT : BANK_STATUS_PROMPT))
+              : currentQuestion.question_mr}
           </h3>
 
           {/* Options / Input Form */}
           <div className="space-y-3">
+            {isBankQuestion(currentQuestion) ? (
+              <div className="space-y-4">
+                {bankSubStep === 'status' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {BANK_LINKED_OPTIONS.map((opt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleBankChoice(opt)}
+                        className={`px-5 py-4 rounded-2xl font-black text-lg min-h-[58px] shadow-sm transition-transform active:scale-95 flex items-center justify-center gap-2 border-2 ${
+                          opt === 'होय'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700'
+                            : opt === 'नाही'
+                            ? 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-white border-slate-300 dark:border-slate-600'
+                            : 'bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/70 text-amber-950 dark:text-amber-100 border-amber-400'
+                        }`}
+                      >
+                        {opt === 'होय' && <CheckCircle2 className="w-5 h-5" />}
+                        {opt === 'नाही' && <XCircle className="w-5 h-5" />}
+                        {opt === 'मला माहिती नाही' && <HelpCircle className="w-5 h-5" />}
+                        <span>{opt}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {bankSubStep === 'bank_name' && (
+                  <div className="space-y-3">
+                    <span className="text-[15px] font-black text-slate-800 dark:text-slate-200 block mb-2 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>प्रमुख बँका (क्लिक करा किंवा बोला):</span>
+                    </span>
+                    <div className="flex flex-wrap gap-2.5">
+                      {COMMON_BANKS.map((bank, bIdx) => (
+                        <button
+                          key={bIdx}
+                          onClick={() => handleBankChoice(bank)}
+                          className="px-4 py-3 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-white font-bold rounded-xl text-[16px] border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 shadow-sm active:scale-95 min-h-[48px] transition-all"
+                        >
+                          {bank}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {bankSubStep === 'other_bank_name' && (
+                  <div className="space-y-3 pt-2">
+                    <span className="text-[15px] font-black text-slate-800 dark:text-slate-200 block">
+                      आपल्या बँकेचे नाव येथे टाईप करा किंवा बोला:
+                    </span>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={customBankInput}
+                        onChange={(e) => setCustomBankInput(e.target.value)}
+                        placeholder="उदा. बँक ऑफ इंडिया, एचडीएफसी, जिल्हा बँक..."
+                        className="flex-1 px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus:border-saffron-500 rounded-2xl text-xl font-bold text-slate-900 dark:text-white outline-none min-h-[58px]"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleOtherBankSubmit(customBankInput)}
+                        disabled={!customBankInput.trim()}
+                        className="px-6 py-4 bg-saffron-600 hover:bg-saffron-700 disabled:opacity-50 text-white rounded-2xl font-black text-lg min-h-[58px]"
+                      >
+                        नोंदवा
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
             {currentQuestion.type === 'boolean' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
@@ -546,6 +796,7 @@ export default function EligibilityScreen() {
                 ))}
               </div>
             )}
+            </>)}
           </div>
 
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500">

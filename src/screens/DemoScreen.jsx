@@ -146,9 +146,13 @@ export default function DemoScreen() {
     if (selectedPersona.id === 'sunita_patil') {
       demoFormData = {
         applicant_name: 'सुनिता प्रकाश पाटील',
+        full_name: 'सुनिता प्रकाश पाटील',
         mobile_number: '9822451234',
         district: 'सातारा',
+        taluka_village: 'कोरेगाव',
         village_address: 'मु. पो. कोरेगाव, जि. सातारा',
+        bank_status: 'होय',
+        bank_name: 'बँक ऑफ महाराष्ट्र',
         bank_account: '11023456789',
         bank_ifsc: 'MAHB0001234',
         ration_card_type: 'केशरी रेशन कार्ड'
@@ -158,7 +162,10 @@ export default function DemoScreen() {
         farmer_name: 'तुकाराम ज्ञानोबा शिंदे',
         mobile_number: '9664429410',
         district: 'बीड',
+        taluka_village: 'गेवराई',
         gat_number: 'गट क्र. १२४/२, ३ एकर कोरडवाहू',
+        bank_status: 'होय',
+        bank_name: 'स्टेट बँक ऑफ इंडिया (SBI)',
         bank_account: '34567890123',
         bank_ifsc: 'SBIN0004567'
       };

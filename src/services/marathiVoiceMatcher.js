@@ -347,19 +347,8 @@ export function parseSpokenPhoneNumber(text) {
     multiplier = 1;
   }
 
-  // Clean any stray non-digits
+  // Clean any stray non-digits (do NOT truncate extra digits so strict 10-digit validation is preserved)
   const cleaned = resultDigits.replace(/\D/g, '');
-
-  if (cleaned.length >= 7) {
-    // If user provided +91 or leading 0 for 10-digit number
-    if (cleaned.length === 12 && cleaned.startsWith('91')) {
-      return cleaned.slice(2);
-    }
-    if (cleaned.length === 11 && cleaned.startsWith('0')) {
-      return cleaned.slice(1);
-    }
-    return cleaned;
-  }
 
   if (cleaned.length > 0) {
     return cleaned;

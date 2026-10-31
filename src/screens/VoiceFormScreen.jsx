@@ -28,6 +28,16 @@ import {
   normalizeDistrict,
   POPULAR_DISTRICTS
 } from '../data/maharashtraDistrictsTalukas';
+import { validateMobileNumber } from '../utils/validation';
+import {
+  COMMON_BANKS,
+  BANK_LINKED_OPTIONS,
+  BANK_STATUS_PROMPT,
+  BANK_NAME_PROMPT,
+  OTHER_BANK_PROMPT,
+  parseBankLinkStatus,
+  matchBankName
+} from '../data/bankNames';
 import { 
   isYesIntent, 
   isNoIntent, 
@@ -69,10 +79,21 @@ export default function VoiceFormScreen() {
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [pdfGenerated, setPdfGenerated] = useState(null);
   const [speechFeedback, setSpeechFeedback] = useState(null); // { text, type: 'info'|'warning'|'success' }
+  const [mobileValidationError, setMobileValidationError] = useState(null);
+  const [bankSubStep, setBankSubStep] = useState('status'); // 'status' | 'bank_name' | 'other_bank_name'
 
   const currentField = formFields[currentFieldIndex];
   const stageRef = useRef(stage);
   stageRef.current = stage;
+  const bankSubStepRef = useRef(bankSubStep);
+  bankSubStepRef.current = bankSubStep;
+
+  const isBankField = useCallback((field) => {
+    if (!field) return false;
+    const k = (field.key || '').toLowerCase();
+    const l = (field.label_mr || '').toLowerCase();
+    return k.includes('bank') || l.includes('बँक');
+  }, []);
 
   // Auto-switch to tap & type mode if speech is unsupported or denied
   useEffect(() => {
@@ -121,9 +142,15 @@ export default function VoiceFormScreen() {
       return ['पिवळे रेशन कार्ड (BPL)', 'केशरी रेशन कार्ड', 'अंत्योदय अन्न योजना कार्ड'];
     }
 
-    // 7. Bank names
-    if (k.includes('bank') || k.includes('ifsc') || k.includes('बँक')) {
-      return ['बँक ऑफ महाराष्ट्र', 'State Bank of India', 'बँक ऑफ इंडिया', 'जिल्हा मध्यवर्ती बँक'];
+    // 7. Bank linking and Bank names
+    if (k.includes('bank') || k.includes('ifsc') || label.includes('बँक')) {
+      if (bankSubStep === 'bank_name') {
+        return COMMON_BANKS;
+      }
+      if (bankSubStep === 'other_bank_name') {
+        return [];
+      }
+      return BANK_LINKED_OPTIONS;
     }
 
     // 8. Sample applicant names
@@ -138,18 +165,45 @@ export default function VoiceFormScreen() {
 
     // Never return generic ['होय, बरोबर आहे', 'नाही, माहिती नाही']!
     return [];
-  }, [formData]);
+  }, [formData, bankSubStep]);
 
   // Speak prompt when entering a field in asking stage
   useEffect(() => {
     if (stage === 'asking' && currentField) {
-      speak(currentField.spoken_prompt);
+      setMobileValidationError(null);
+      if (isBankField(currentField)) {
+        if (bankSubStep === 'bank_name') {
+          speak(BANK_NAME_PROMPT);
+        } else if (bankSubStep === 'other_bank_name') {
+          speak(OTHER_BANK_PROMPT);
+        } else {
+          speak(BANK_STATUS_PROMPT);
+        }
+      } else {
+        speak(currentField.spoken_prompt);
+      }
     }
-  }, [stage, currentFieldIndex, currentField, speak]);
+  }, [stage, currentFieldIndex, currentField, bankSubStep, isBankField, speak]);
 
   // Go back to the previous question (allows user to correct mistaken answers)
   const handleGoBack = useCallback(() => {
     stopSpeaking();
+    setMobileValidationError(null);
+
+    // If currently inside bank sub-steps, step backwards within the bank question first
+    if (currentField && isBankField(currentField)) {
+      if (bankSubStep === 'other_bank_name') {
+        setBankSubStep('bank_name');
+        speak(BANK_NAME_PROMPT);
+        return;
+      }
+      if (bankSubStep === 'bank_name') {
+        setBankSubStep('status');
+        speak(BANK_STATUS_PROMPT);
+        return;
+      }
+    }
+
     if (currentFieldIndex <= 0) {
       showToast('हा पहिलाच प्रश्न आहे.', 'info');
       speak('हा पहिलाच प्रश्न आहे.');
@@ -159,6 +213,7 @@ export default function VoiceFormScreen() {
     const targetField = formFields[targetIndex];
 
     setCurrentFieldIndex(targetIndex);
+    setBankSubStep('status');
     setStage('asking');
     setIsEditingManually(false);
 
@@ -169,16 +224,22 @@ export default function VoiceFormScreen() {
       type: 'info'
     });
 
-    speak(`मागील प्रश्नावर परत आलो आहोत: ${targetField.spoken_prompt}. तुमचे योग्य उत्तर सांगा.`);
-  }, [currentFieldIndex, formFields, formData, speak, stopSpeaking, showToast]);
+    if (isBankField(targetField)) {
+      speak(`मागील प्रश्नावर परत आलो आहोत: ${BANK_STATUS_PROMPT}`);
+    } else {
+      speak(`मागील प्रश्नावर परत आलो आहोत: ${targetField.spoken_prompt}. तुमचे योग्य उत्तर सांगा.`);
+    }
+  }, [currentFieldIndex, formFields, formData, currentField, bankSubStep, isBankField, speak, stopSpeaking, showToast]);
 
   // Jump to edit a specific field directly from the summary screen
   const handleEditFieldFromSummary = useCallback((index) => {
     const targetField = formFields[index];
     if (!targetField) return;
 
+    setMobileValidationError(null);
     setCurrentFieldIndex(index);
     setIsEditingFromSummary(true);
+    setBankSubStep('status');
     setStage('asking');
     setIsEditingManually(false);
 
@@ -189,26 +250,81 @@ export default function VoiceFormScreen() {
       type: 'info'
     });
 
-    speak(`${targetField.label_mr} दुरुस्त करण्यासाठी उघडले आहे: ${targetField.spoken_prompt}`);
+    if (isBankField(targetField)) {
+      speak(`बँक खाते आधार लिंक स्थिती दुरुस्त करण्यासाठी उघडले आहे: ${BANK_STATUS_PROMPT}`);
+    } else {
+      speak(`${targetField.label_mr} दुरुस्त करण्यासाठी उघडले आहे: ${targetField.spoken_prompt}`);
+    }
+  }, [formFields, formData, isBankField, speak]);
+
+  // Jump to edit bank name directly from the summary screen
+  const handleEditBankNameFromSummary = useCallback((index) => {
+    const targetField = formFields[index];
+    if (!targetField) return;
+
+    setMobileValidationError(null);
+    setCurrentFieldIndex(index);
+    setIsEditingFromSummary(true);
+    setBankSubStep('bank_name');
+    setStage('asking');
+    setIsEditingManually(false);
+
+    const prevVal = formData.bank_name || '';
+    setPendingAnswer(prevVal);
+    setSpeechFeedback({
+      text: `दुरुस्तीसाठी उघडले: "लिंक असलेल्या बँकेचे नाव"`,
+      type: 'info'
+    });
+
+    speak(`बँकेचे नाव दुरुस्त करण्यासाठी उघडले आहे: ${BANK_NAME_PROMPT}`);
   }, [formFields, formData, speak]);
 
   // When answer is captured, read it back and confirm
-  const handleAnswerCaptured = useCallback((answerText) => {
+  const handleAnswerCaptured = useCallback((answerText, options = {}) => {
     if (!answerText || !answerText.trim()) return;
     let cleanAnswer = answerText.trim();
     const spokenLang = detectSpokenLanguage(cleanAnswer);
     setDetectedLang(spokenLang);
 
-    const isPhoneField = currentField && (currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone'));
+    const isPhoneField = currentField && (
+      currentField.type === 'tel' || 
+      currentField.key?.includes('mobile') || 
+      currentField.key?.includes('phone') ||
+      currentField.label_mr?.includes('मोबाईल')
+    );
     const isDistrictField = currentField && (currentField.key?.includes('district') || currentField.label_mr?.includes('जिल्हा'));
     const isTalukaField = currentField && (currentField.key?.includes('taluka') || currentField.label_mr?.includes('तालुका'));
 
-    // If mobile number / phone field, convert spoken words (Marathi or English) into numerical format
+    // 1. Mobile number validation: accept only valid 10-digit Indian mobile numbers
     if (isPhoneField) {
-      const extractedPhone = parseSpokenPhoneNumber(cleanAnswer);
-      if (extractedPhone) {
-        cleanAnswer = extractedPhone;
+      let candidate = cleanAnswer;
+      // If voice input, extract spoken digits first
+      if (!options.isManual) {
+        const extractedPhone = parseSpokenPhoneNumber(cleanAnswer);
+        if (extractedPhone) {
+          candidate = extractedPhone;
+        }
       }
+
+      const validation = validateMobileNumber(candidate);
+
+      if (!validation.isValid) {
+        setMobileValidationError(validation.error);
+        setSpeechFeedback({
+          text: validation.error,
+          type: 'warning'
+        });
+
+        // Rule 6: If invalid through voice input, repeat question and politely ask for 10-digit number again
+        speak(`${validation.error} ${currentField.spoken_prompt}`);
+
+        // Do NOT proceed to confirmation or next step
+        return;
+      }
+
+      // Valid 10-digit number! Clear error and use clean 10-digit string
+      setMobileValidationError(null);
+      cleanAnswer = validation.cleanNumber;
     } else if (currentField && currentField.type === 'number') {
       const extractedNum = extractNumberFromMarathi(cleanAnswer);
       if (extractedNum !== null) {
@@ -229,11 +345,39 @@ export default function VoiceFormScreen() {
       }
     }
 
+    // Bank linking status & Bank Name handling
+    if (isBankField(currentField)) {
+      if (bankSubStepRef.current === 'status') {
+        if (cleanAnswer === 'होय') {
+          setFormData(prev => ({ ...prev, bank_status: 'होय' }));
+          setBankSubStep('bank_name');
+          speak(BANK_NAME_PROMPT);
+          return;
+        }
+      } else if (bankSubStepRef.current === 'bank_name') {
+        if (cleanAnswer === 'इतर बँक') {
+          setBankSubStep('other_bank_name');
+          setIsEditingManually(true);
+          speak(OTHER_BANK_PROMPT);
+          return;
+        }
+        const matched = matchBankName(cleanAnswer);
+        if (matched && matched !== 'इतर बँक') {
+          cleanAnswer = matched;
+        }
+      }
+    }
+
     setPendingAnswer(cleanAnswer);
 
     if (isPhoneField && spokenLang === 'en') {
       setSpeechFeedback({
         text: `Recognized Mobile Number (English): "${cleanAnswer}"`,
+        type: 'info'
+      });
+    } else if (isBankField(currentField) && (bankSubStepRef.current === 'bank_name' || bankSubStepRef.current === 'other_bank_name')) {
+      setSpeechFeedback({
+        text: `समजलेले बँक नाव: "${cleanAnswer}"`,
         type: 'info'
       });
     } else {
@@ -254,21 +398,103 @@ export default function VoiceFormScreen() {
       } else {
         speak(`तुम्ही सांगितले: ${speechDigits}. हे बरोबर आहे का?`);
       }
+    } else if (isBankField(currentField) && (bankSubStepRef.current === 'bank_name' || bankSubStepRef.current === 'other_bank_name')) {
+      speak(`तुम्ही सांगितले बँक नाव: ${cleanAnswer}. हे बरोबर आहे का?`);
     } else {
       speak(`तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`);
     }
-  }, [speak, currentField, formData]);
+  }, [speak, currentField, formData, isBankField]);
+
+  // Tap-to-answer handler for bank status and bank names
+  const handleBankChoice = useCallback((choice) => {
+    stopSpeaking();
+    if (bankSubStepRef.current === 'status') {
+      if (choice === 'होय') {
+        setFormData(prev => ({ ...prev, bank_status: 'होय' }));
+        setBankSubStep('bank_name');
+        speak(BANK_NAME_PROMPT);
+      } else {
+        // 'नाही' or 'मला माहिती नाही'
+        handleAnswerCaptured(choice);
+      }
+    } else if (bankSubStepRef.current === 'bank_name') {
+      if (choice === 'इतर बँक') {
+        setBankSubStep('other_bank_name');
+        setIsEditingManually(true);
+        speak(OTHER_BANK_PROMPT);
+      } else {
+        handleAnswerCaptured(choice);
+      }
+    }
+  }, [handleAnswerCaptured, speak, stopSpeaking]);
 
   // Confirm answer as YES
   const handleConfirmYes = useCallback(() => {
     stopSpeaking();
     if (!currentField) return;
+
+    // Safety check: if mobile number field, strictly verify 10 digits before saving
+    const isPhone = currentField.type === 'tel' || currentField.key?.includes('mobile') || currentField.key?.includes('phone') || currentField.label_mr?.includes('मोबाईल');
+    if (isPhone) {
+      const validation = validateMobileNumber(pendingAnswer);
+      if (!validation.isValid) {
+        setStage('asking');
+        setMobileValidationError(validation.error);
+        setSpeechFeedback({
+          text: validation.error,
+          type: 'warning'
+        });
+        speak(`${validation.error} ${currentField.spoken_prompt}`);
+        return;
+      }
+    }
+
+    // Bank field save logic: save bank_status and bank_name
+    if (isBankField(currentField)) {
+      let updatedData = { ...formData };
+      if (bankSubStepRef.current === 'bank_name' || bankSubStepRef.current === 'other_bank_name') {
+        updatedData.bank_status = 'होय';
+        updatedData.bank_name = pendingAnswer;
+      } else {
+        updatedData.bank_status = pendingAnswer;
+        updatedData.bank_name = ''; // When not linked, do not force bank name
+      }
+
+      setFormData(updatedData);
+      setPendingAnswer('');
+      setBankSubStep('status');
+      setMobileValidationError(null);
+      setSpeechFeedback({
+        text: 'उत्तर नोंदवले गेले (Saved)!',
+        type: 'success'
+      });
+      setIsEditingManually(false);
+
+      if (isEditingFromSummary) {
+        setIsEditingFromSummary(false);
+        setStage('completed');
+        speak('बदल जतन केला आहे! अर्जाचा सारांश अद्ययावत झाला आहे.');
+        return;
+      }
+
+      if (currentFieldIndex < formFields.length - 1) {
+        setCurrentFieldIndex(prev => prev + 1);
+        setStage('asking');
+      } else {
+        // Completed all fields
+        setStage('completed');
+        speak('अभिनंदन! तुमचे सर्व तपशील नोंदवले गेले आहेत. खाली दिलेले PDF डाउनलोड करा बटण दाबून अर्जाचा सारांश जतन करा.');
+      }
+      return;
+    }
+
     const updatedData = {
       ...formData,
       [currentField.key]: pendingAnswer
     };
     setFormData(updatedData);
     setPendingAnswer('');
+    setMobileValidationError(null);
     setSpeechFeedback({
       text: 'उत्तर नोंदवले गेले (Saved)!',
       type: 'success'
@@ -291,7 +517,7 @@ export default function VoiceFormScreen() {
       setStage('completed');
       speak('अभिनंदन! तुमचे सर्व तपशील नोंदवले गेले आहेत. खाली दिलेले PDF डाउनलोड करा बटण दाबून अर्जाचा सारांश जतन करा.');
     }
-  }, [currentField, formData, pendingAnswer, isEditingFromSummary, currentFieldIndex, formFields.length, speak, stopSpeaking]);
+  }, [currentField, formData, pendingAnswer, isEditingFromSummary, currentFieldIndex, formFields.length, isBankField, speak, stopSpeaking]);
 
   // Reject answer as NO (retry / "i dont want" / cancel)
   const handleConfirmNo = useCallback(() => {
@@ -302,11 +528,26 @@ export default function VoiceFormScreen() {
       type: 'warning'
     });
     setStage('asking');
-    speak('ठीक आहे, उत्तर रद्द केले. कृपया पुन्हा सांगा.');
-  }, [speak, stopSpeaking]);
+    if (isBankField(currentField)) {
+      if (bankSubStepRef.current === 'bank_name') {
+        speak(`ठीक आहे, उत्तर रद्द केले. ${BANK_NAME_PROMPT}`);
+      } else if (bankSubStepRef.current === 'other_bank_name') {
+        speak(`ठीक आहे, उत्तर रद्द केले. ${OTHER_BANK_PROMPT}`);
+      } else {
+        speak(`ठीक आहे, उत्तर रद्द केले. ${BANK_STATUS_PROMPT}`);
+      }
+    } else {
+      speak('ठीक आहे, उत्तर रद्द केले. कृपया पुन्हा सांगा.');
+    }
+  }, [speak, stopSpeaking, currentField, isBankField]);
 
   // Download PDF handler
   const handleDownloadPDF = useCallback(async () => {
+    if (formData.mobile_number && !validateMobileNumber(formData.mobile_number).isValid) {
+      const val = validateMobileNumber(formData.mobile_number);
+      showToast(val.error || 'कृपया प्रथम वैध १० अंकी मोबाईल क्रमांक नोंदवा.', 'warning');
+      return;
+    }
     showToast('PDF तयार करत आहोत, कृपया प्रतीक्षा करा...', 'info');
     try {
       const res = await generateApplicationPDF({
@@ -336,6 +577,8 @@ export default function VoiceFormScreen() {
     setCurrentFieldIndex(0);
     setFormData({});
     setPendingAnswer('');
+    setMobileValidationError(null);
+    setBankSubStep('status');
     setStage('asking');
     setPdfGenerated(null);
     setSpeechFeedback(null);
@@ -390,7 +633,7 @@ export default function VoiceFormScreen() {
 
       // 2. Check if user wants to go back to previous question/field
       if (isPreviousOrBackIntent(raw)) {
-        if (currentFieldIndex > 0 || stageRef.current === 'confirming') {
+        if (currentFieldIndex > 0 || stageRef.current === 'confirming' || (currentField && isBankField(currentField) && bankSubStepRef.current !== 'status')) {
           handleGoBack();
           return true;
         }
@@ -408,6 +651,69 @@ export default function VoiceFormScreen() {
 
       // 4. In 'asking' stage: capture the field's value
       if (stageRef.current === 'asking') {
+        // Special bank linking flow:
+        if (isBankField(currentField)) {
+          if (bankSubStepRef.current === 'status') {
+            const directBankMatch = matchBankName(raw);
+            if (directBankMatch && directBankMatch !== 'इतर बँक') {
+              setFormData(prev => ({ ...prev, bank_status: 'होय' }));
+              setBankSubStep('bank_name');
+              handleAnswerCaptured(directBankMatch);
+              return true;
+            }
+
+            const status = parseBankLinkStatus(raw);
+            if (status === 'होय') {
+              setFormData(prev => ({ ...prev, bank_status: 'होय' }));
+              setBankSubStep('bank_name');
+              speak(BANK_NAME_PROMPT);
+              return true;
+            }
+            if (status === 'नाही') {
+              handleAnswerCaptured('नाही');
+              return true;
+            }
+            if (status === 'मला माहिती नाही') {
+              handleAnswerCaptured('मला माहिती नाही');
+              return true;
+            }
+
+            setSpeechFeedback({
+              text: `समजलेला आवाज: "${raw}". कृपया 'होय', 'नाही' किंवा 'मला माहिती नाही' म्हणा.`,
+              type: 'warning'
+            });
+            speak('कृपया आपले बँक खाते आधार कार्डशी लिंक आहे का ते होय किंवा नाही सांगा.');
+            return true;
+          } else if (bankSubStepRef.current === 'bank_name') {
+            const matchedBank = matchBankName(raw);
+            if (matchedBank === 'इतर बँक' || raw.includes('इतर')) {
+              setBankSubStep('other_bank_name');
+              setIsEditingManually(true);
+              speak(OTHER_BANK_PROMPT);
+              return true;
+            }
+            if (matchedBank) {
+              handleAnswerCaptured(matchedBank);
+              return true;
+            }
+            if (raw.length >= 2) {
+              handleAnswerCaptured(raw);
+              return true;
+            }
+            setSpeechFeedback({
+              text: `समजलेला आवाज: "${raw}". कृपया स्क्रीनवरील बँकेचे नाव निवडा किंवा बोला.`,
+              type: 'warning'
+            });
+            speak('कृपया आपल्या बँकेचे नाव सांगा.');
+            return true;
+          } else if (bankSubStepRef.current === 'other_bank_name') {
+            if (raw.length >= 2) {
+              handleAnswerCaptured(raw);
+              return true;
+            }
+          }
+        }
+
         // If user says "नको" or "cancel" right away
         if (isNoIntent(raw)) {
           setSpeechFeedback({
@@ -460,6 +766,7 @@ export default function VoiceFormScreen() {
     handleRestartForm, 
     handleEditFieldFromSummary, 
     registerVoiceHandler, 
+    isBankField,
     speak, 
     setActiveScreen
   ]);
@@ -567,14 +874,32 @@ export default function VoiceFormScreen() {
           </div>
 
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2 leading-snug">
-            {currentField.spoken_prompt}
+            {isBankField(currentField)
+              ? (bankSubStep === 'bank_name'
+                  ? BANK_NAME_PROMPT
+                  : (bankSubStep === 'other_bank_name' ? OTHER_BANK_PROMPT : BANK_STATUS_PROMPT))
+              : currentField.spoken_prompt}
           </h3>
           <p className="text-[16px] text-slate-600 dark:text-slate-300 mb-6">
-            फील्ड नाव: <span className="font-extrabold text-slate-900 dark:text-white">{currentField.label_mr}</span>
-            {(currentField.type === 'tel' || currentField.key?.includes('mobile')) && (
-              <span className="ml-2 inline-block px-3 py-0.5 rounded-full app-pill-accent border border-amber-400 text-[16px] font-black">
-                मराठी किंवा इंग्रजीत बोला (English or Marathi)
+            {isBankField(currentField) ? (
+              <span>
+                {bankSubStep === 'bank_name' ? (
+                  <>बँक नाव निवड: <span className="font-extrabold text-slate-900 dark:text-white">बँकेचे नाव निवडा किंवा बोला</span></>
+                ) : bankSubStep === 'other_bank_name' ? (
+                  <>इतर बँक: <span className="font-extrabold text-slate-900 dark:text-white">बँकेचे नाव टाईप करा किंवा बोला</span></>
+                ) : (
+                  <>आधार लिंक स्थिती: <span className="font-extrabold text-slate-900 dark:text-white">होय / नाही / मला माहिती नाही</span></>
+                )}
               </span>
+            ) : (
+              <>
+                फील्ड नाव: <span className="font-extrabold text-slate-900 dark:text-white">{currentField.label_mr}</span>
+                {(currentField.type === 'tel' || currentField.key?.includes('mobile')) && (
+                  <span className="ml-2 inline-block px-3 py-0.5 rounded-full app-pill-accent border border-amber-400 text-[16px] font-black">
+                    मराठी किंवा इंग्रजीत बोला (English or Marathi)
+                  </span>
+                )}
+              </>
             )}
           </p>
 
@@ -641,6 +966,10 @@ export default function VoiceFormScreen() {
                         ? `${selectedDistrict} जिल्ह्यातील तालुके (${quickChoices.length} पर्याय - क्लिक करून निवडा):`
                         : isDistrict
                         ? 'महाराष्ट्रातील प्रमुख जिल्हे (क्लिक करा किंवा बोला):'
+                        : isBankField(currentField)
+                        ? (bankSubStep === 'bank_name'
+                            ? 'प्रमुख बँका (क्लिक करा किंवा बोला):'
+                            : 'आधार लिंक स्थिती निवडा:')
                         : 'थेट पर्याय निवडून पुढे जा (Tap to Answer):'}
                     </span>
                   </span>
@@ -650,8 +979,12 @@ export default function VoiceFormScreen() {
                         key={cIdx}
                         type="button"
                         onClick={() => {
-                          setPendingAnswer(choice);
-                          handleAnswerCaptured(choice);
+                          if (isBankField(currentField)) {
+                            handleBankChoice(choice);
+                          } else {
+                            setPendingAnswer(choice);
+                            handleAnswerCaptured(choice);
+                          }
                         }}
                         className="px-4 py-2.5 bg-white hover:bg-amber-100 dark:bg-slate-700/80 dark:hover:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 text-[#1F2937] dark:text-white rounded-xl text-[16px] font-bold transition-all shadow-sm active:scale-95 min-h-[44px]"
                       >
@@ -665,26 +998,52 @@ export default function VoiceFormScreen() {
 
             {/* Manual Typing Box */}
             {isEditingManually && (
-              <div className="pt-2 animate-fadeIn flex gap-2">
-                <input
-                  type={currentField.type === 'tel' ? 'tel' : 'text'}
-                  placeholder={currentField.placeholder || 'येथे टाईप करा...'}
-                  value={pendingAnswer}
-                  onChange={(e) => setPendingAnswer(e.target.value)}
-                  className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 focus:border-saffron-500 rounded-xl text-lg font-bold text-slate-900 dark:text-white outline-none min-h-[48px]"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    if (pendingAnswer.trim()) {
-                      handleAnswerCaptured(pendingAnswer);
+              <div className="pt-2 animate-fadeIn space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type={currentField.type === 'tel' || currentField.key?.includes('mobile') ? 'tel' : 'text'}
+                    placeholder={
+                      isBankField(currentField) && bankSubStep === 'other_bank_name'
+                        ? 'उदा. बँक ऑफ इंडिया, एचडीएफसी, जिल्हा बँक...'
+                        : (currentField.placeholder || 'येथे टाईप करा...')
                     }
-                  }}
-                  disabled={!pendingAnswer.trim()}
-                  className="px-5 py-3 bg-saffron-600 text-white font-bold rounded-xl disabled:opacity-50 min-h-[48px]"
-                >
-                  नोंदवा
-                </button>
+                    value={pendingAnswer}
+                    onChange={(e) => {
+                      setPendingAnswer(e.target.value);
+                      if (mobileValidationError) setMobileValidationError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && pendingAnswer.trim()) {
+                        handleAnswerCaptured(pendingAnswer, { isManual: true });
+                      }
+                    }}
+                    className={`flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 ${
+                      mobileValidationError
+                        ? 'border-red-500 focus:border-red-600 dark:border-red-500'
+                        : 'border-slate-300 dark:border-slate-600 focus:border-saffron-500'
+                    } rounded-xl text-lg font-bold text-slate-900 dark:text-white outline-none min-h-[48px]`}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => {
+                      if (pendingAnswer.trim()) {
+                        handleAnswerCaptured(pendingAnswer, { isManual: true });
+                      }
+                    }}
+                    disabled={!pendingAnswer.trim()}
+                    className="px-5 py-3 bg-saffron-600 hover:bg-saffron-700 text-white font-bold rounded-xl disabled:opacity-50 min-h-[48px]"
+                  >
+                    नोंदवा
+                  </button>
+                </div>
+
+                {/* Clear Marathi validation message for text input */}
+                {mobileValidationError && (
+                  <div className="p-3.5 bg-red-50 dark:bg-red-950/70 border-2 border-red-400 dark:border-red-700 rounded-xl text-red-900 dark:text-red-200 text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    <span>{mobileValidationError}</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -798,27 +1157,53 @@ export default function VoiceFormScreen() {
 
             {formFields.map((field, idx) => {
               const isPhone = field.type === 'tel' || field.key?.includes('mobile') || field.key?.includes('phone');
+              const isBank = isBankField(field);
               const val = formData[field.key];
               return (
-                <div key={idx} className="flex items-center justify-between py-2.5 border-b border-slate-200/60 dark:border-slate-800 last:border-0 gap-2">
-                  <div className="flex-1">
-                    <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 block">
-                      {field.label_mr} {isPhone && <span className="text-xs text-saffron-600 font-semibold">(Mobile Number)</span>}:
-                    </span>
-                    <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">
-                      {val || 'उपलब्ध नाही'}
-                    </span>
+                <React.Fragment key={idx}>
+                  <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60 dark:border-slate-800 last:border-0 gap-2">
+                    <div className="flex-1">
+                      <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 block">
+                        {field.label_mr} {isPhone && <span className="text-xs text-saffron-600 font-semibold">(Mobile Number)</span>}:
+                      </span>
+                      <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">
+                        {val || 'उपलब्ध नाही'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleEditFieldFromSummary(idx)}
+                      className="px-3.5 py-1.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-xl text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
+                      aria-label={`${field.label_mr} दुरुस्त करा`}
+                      title="माहिती दुरुस्त करा"
+                    >
+                      <Edit3 className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                      <span>दुरुस्त करा (Edit)</span>
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleEditFieldFromSummary(idx)}
-                    className="px-3.5 py-1.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-xl text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
-                    aria-label={`${field.label_mr} दुरुस्त करा`}
-                    title="माहिती दुरुस्त करा"
-                  >
-                    <Edit3 className="w-4 h-4 text-amber-700 dark:text-amber-400" />
-                    <span>दुरुस्त करा (Edit)</span>
-                  </button>
-                </div>
+
+                  {/* If bank linking is yes, display bank name row below it */}
+                  {isBank && formData.bank_status === 'होय' && formData.bank_name && (
+                    <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60 dark:border-slate-800 last:border-0 gap-2 pl-3 bg-amber-50/70 dark:bg-slate-800/60 rounded-xl">
+                      <div className="flex-1">
+                        <span className="text-xs sm:text-sm font-bold text-amber-950 dark:text-amber-300 block">
+                          लिंक असलेले बँक नाव (Bank Name):
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">
+                          {formData.bank_name}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleEditBankNameFromSummary(idx)}
+                        className="px-3.5 py-1.5 bg-white hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[#1F2937] dark:text-slate-100 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 rounded-xl text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[38px]"
+                        aria-label="बँकेचे नाव दुरुस्त करा"
+                        title="बँकेचे नाव दुरुस्त करा"
+                      >
+                        <Edit3 className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+                        <span>दुरुस्त करा (Edit)</span>
+                      </button>
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })}
           </div>

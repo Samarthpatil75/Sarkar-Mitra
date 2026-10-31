@@ -51,14 +51,16 @@ export async function generateApplicationPDF({ scheme, formData, verificationDat
   printContainer.style.padding = '20px 24px';
 
   // Construct structured Intake Summary HTML
-  const fieldsRows = fields.map((field, idx) => {
+  let rowCount = 0;
+  const fieldsRows = fields.map((field) => {
+    rowCount++;
     let val = normalizedData[field.key];
     if (!val || val === 'undefined') val = '— (नोंदवलेले नाही)';
-    const isOdd = idx % 2 === 1;
+    const isOdd = rowCount % 2 === 1;
 
-    return `
+    let rowsHtml = `
       <tr style="background-color: ${isOdd ? '#f8fafc' : '#ffffff'}; border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 8px 10px; font-weight: 800; color: #475569; width: 40px; text-align: center; font-size: 12.5px;">${idx + 1}</td>
+        <td style="padding: 8px 10px; font-weight: 800; color: #475569; width: 40px; text-align: center; font-size: 12.5px;">${rowCount}</td>
         <td style="padding: 8px 10px; font-weight: 700; color: #1e293b; width: 250px; font-size: 13px;">
           <div>${field.label_mr}</div>
           <div style="font-size: 10.5px; color: #64748b; font-weight: 500;">(${field.key})</div>
@@ -68,6 +70,26 @@ export async function generateApplicationPDF({ scheme, formData, verificationDat
         </td>
       </tr>
     `;
+
+    // If bank_status, also show bank_name if entered
+    if ((field.key === 'bank_status' || field.key.includes('bank')) && normalizedData.bank_name) {
+      rowCount++;
+      const isBankOdd = rowCount % 2 === 1;
+      rowsHtml += `
+        <tr style="background-color: ${isBankOdd ? '#f8fafc' : '#ffffff'}; border-bottom: 1px solid #e2e8f0;">
+          <td style="padding: 8px 10px; font-weight: 800; color: #475569; width: 40px; text-align: center; font-size: 12.5px;">${rowCount}</td>
+          <td style="padding: 8px 10px; font-weight: 700; color: #1e293b; width: 250px; font-size: 13px;">
+            <div>लिंक असलेले बँक नाव</div>
+            <div style="font-size: 10.5px; color: #64748b; font-weight: 500;">(bank_name)</div>
+          </td>
+          <td style="padding: 8px 10px; font-weight: 900; color: #1e3a8a; font-size: 14px;">
+            ${normalizedData.bank_name}
+          </td>
+        </tr>
+      `;
+    }
+
+    return rowsHtml;
   }).join('');
 
   const documentsRows = (scheme?.documents_mr || []).map((doc, idx) => {
