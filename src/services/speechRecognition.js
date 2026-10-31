@@ -25,6 +25,7 @@ class SpeechRecognitionService {
     this.onErrorCallback = null;
     this.onEndCallback = null;
     this.lastInterim = '';
+    this.lastFinal = '';
 
     this.init();
   }
@@ -38,7 +39,8 @@ class SpeechRecognitionService {
 
     try {
       this.recognition = new SpeechRecognition();
-      this.recognition.continuous = false; // Capture discrete utterances for conversational UX
+      // Enable continuous listening so the engine does not abort after recognizing the first word!
+      this.recognition.continuous = true;
       this.recognition.interimResults = true;
       this.recognition.lang = 'mr-IN'; // Marathi (India)
       this.recognition.maxAlternatives = 1;
@@ -47,42 +49,48 @@ class SpeechRecognitionService {
         this.isListening = true;
         this.hasDispatchedFinal = false;
         this.lastInterim = '';
+        this.lastFinal = '';
         if (this.onStartCallback) this.onStartCallback();
       };
 
       this.recognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+        let accumulatedFinal = '';
+        let currentInterim = '';
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const item = event.results[i];
-          const transcript = item[0] ? item[0].transcript : '';
-          if (item.isFinal) {
-            finalTranscript += transcript;
+        // Accumulate full sentence / phrase across all result items in this continuous session
+        for (let i = 0; i < event.results.length; ++i) {
+          const res = event.results[i];
+          if (!res || !res[0]) continue;
+          const transcript = res[0].transcript;
+          if (res.isFinal) {
+            accumulatedFinal += (accumulatedFinal ? ' ' : '') + transcript.trim();
           } else {
-            interimTranscript += transcript;
+            currentInterim += (currentInterim ? ' ' : '') + transcript.trim();
           }
         }
 
-        this.lastInterim = interimTranscript;
+        this.lastFinal = accumulatedFinal;
+        this.lastInterim = currentInterim;
 
-        if (finalTranscript.trim()) {
-          this.hasDispatchedFinal = true;
-          this.lastInterim = ''; // Clear interim so onend does not re-process
-        }
+        const liveText = (accumulatedFinal + (currentInterim ? ' ' + currentInterim : '')).trim();
 
         if (this.onResultCallback) {
           this.onResultCallback({
-            interim: interimTranscript,
-            final: finalTranscript.trim(),
-            confidence: event.results[0] && event.results[0][0] ? event.results[0][0].confidence : 0.85
+            interim: currentInterim,
+            final: accumulatedFinal,
+            liveTranscript: liveText,
+            confidence: event.results[event.results.length - 1] && event.results[event.results.length - 1][0] 
+              ? event.results[event.results.length - 1][0].confidence 
+              : 0.85
           });
         }
       };
 
       this.recognition.onerror = (event) => {
         console.warn('Speech recognition error:', event.error);
-        this.isListening = false;
+        if (event.error !== 'no-speech') {
+          this.isListening = false;
+        }
         if (this.onErrorCallback) {
           this.onErrorCallback(event.error);
         }
@@ -90,13 +98,11 @@ class SpeechRecognitionService {
 
       this.recognition.onend = () => {
         this.isListening = false;
-        const pendingInterim = (!this.hasDispatchedFinal && this.lastInterim.trim().length > 1) 
-          ? this.lastInterim.trim() 
-          : '';
+        const completeTranscript = (this.lastFinal || this.lastInterim || '').trim();
         this.lastInterim = '';
         
         if (this.onEndCallback) {
-          this.onEndCallback(pendingInterim);
+          this.onEndCallback(completeTranscript);
         }
       };
     } catch (err) {
@@ -123,6 +129,7 @@ class SpeechRecognitionService {
     this.onEndCallback = onEnd;
     this.hasDispatchedFinal = false;
     this.lastInterim = '';
+    this.lastFinal = '';
 
     try {
       if (this.isListening) {
@@ -171,6 +178,7 @@ class SpeechRecognitionService {
     this.isListening = false;
     this.hasDispatchedFinal = false;
     this.lastInterim = '';
+    this.lastFinal = '';
   }
 }
 

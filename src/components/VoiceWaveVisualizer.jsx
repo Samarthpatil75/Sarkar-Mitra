@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mic, Volume2, Square, RotateCcw } from 'lucide-react';
+import { Mic, Volume2, Square, RotateCcw, Check, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useSpeech } from '../context/SpeechContext';
 
@@ -11,7 +11,9 @@ export default function VoiceWaveVisualizer({ isListening: propIsListening, isSp
     stopSpeaking,
     wasStoppedByUser,
     lastSpoken,
-    replayLastAudio
+    replayLastAudio,
+    finishListening,
+    cancelListening
   } = useSpeech();
 
   const isListening = propIsListening !== undefined ? propIsListening : ctxIsListening;
@@ -82,6 +84,30 @@ export default function VoiceWaveVisualizer({ isListening: propIsListening, isSp
           <p className="text-lg font-black text-[#1F2937] dark:text-white">
             "{interimText}"
           </p>
+        </div>
+      )}
+
+      {/* Live Done & Cancel Controls */}
+      {isListening && (
+        <div className="flex items-center justify-center gap-3 mt-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+          <button
+            type="button"
+            onClick={() => finishListening()}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-md flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer min-h-[40px]"
+            aria-label="बोलणे पूर्ण झाले (Done)"
+          >
+            <Check className="w-4 h-4" />
+            <span>बोलणे पूर्ण झाले (Done)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => cancelListening()}
+            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-black text-sm rounded-xl flex items-center gap-1.5 transition-transform active:scale-95 cursor-pointer min-h-[40px]"
+            aria-label="रद्द करा (Cancel)"
+          >
+            <X className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <span>रद्द करा (Cancel)</span>
+          </button>
         </div>
       )}
     </div>

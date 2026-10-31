@@ -120,6 +120,9 @@ export function SpeechProvider({ children }) {
   const lastProcessedTextRef = useRef('');
   const lastProcessedTimeRef = useRef(0);
   const cooldownTimerRef = useRef(null);
+  const silenceTimerRef = useRef(null);
+  const accumulatedSpeechRef = useRef('');
+  const SILENCE_TIMEOUT_MS = 1800; // Wait 1.8 seconds of silence to capture full speech
 
   // Speech support flags
   const isSpeechSupported = speechRecognizer.isSupported();
@@ -171,6 +174,11 @@ export function SpeechProvider({ children }) {
     }
 
     // Immediately stop listening so mic doesn't hear the speaker output (echo guard)
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    accumulatedSpeechRef.current = '';
     speechRecognizer.abort();
     setIsListening(false);
     setMicStatus('idle');
@@ -309,6 +317,53 @@ export function SpeechProvider({ children }) {
     setMicStatus('idle');
   }, [selectedScheme, addMessage, speak, stopSpeaking, setActiveScreen, activeScreen, setSelectedScheme, autoSpeakAnswers]);
 
+  // Finalize current speech accumulation and process input
+  const finalizeCurrentSpeech = useCallback((explicitText) => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    const textToSubmit = (explicitText !== undefined ? explicitText : (accumulatedSpeechRef.current || '')).trim();
+    if (!textToSubmit) {
+      speechRecognizer.stop();
+      setIsListening(false);
+      setMicStatus('idle');
+      return;
+    }
+
+    if (hasProcessedFinalInSessionRef.current) return;
+    hasProcessedFinalInSessionRef.current = true;
+
+    speechRecognizer.stop();
+    setIsListening(false);
+    setMicStatus('processing');
+    setFinalTranscript(textToSubmit);
+    setInterimTranscript('');
+    accumulatedSpeechRef.current = '';
+
+    processInput(textToSubmit);
+  }, [processInput]);
+
+  // User manually finishes speaking ("Done" / "Confirm" button)
+  const finishListening = useCallback(() => {
+    finalizeCurrentSpeech();
+  }, [finalizeCurrentSpeech]);
+
+  // User cancels current speech recognition
+  const cancelListening = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    hasProcessedFinalInSessionRef.current = true;
+    speechRecognizer.abort();
+    setIsListening(false);
+    setMicStatus('idle');
+    setInterimTranscript('');
+    accumulatedSpeechRef.current = '';
+  }, []);
+
   const startListening = useCallback(() => {
     // Keep voice recognition requiring a connection, and fall back to tap mode when offline
     if (isOffline || (typeof navigator !== 'undefined' && !navigator.onLine)) {
@@ -327,9 +382,15 @@ export function SpeechProvider({ children }) {
     // Stop speaking immediately before starting to listen to prevent echo
     stopSpeaking();
 
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
     setInterimTranscript('');
     setFinalTranscript('');
     setErrorMessage(null);
+    accumulatedSpeechRef.current = '';
     hasProcessedFinalInSessionRef.current = false;
 
     const started = speechRecognizer.start({
@@ -337,19 +398,44 @@ export function SpeechProvider({ children }) {
         setIsListening(true);
         setMicStatus('listening');
         hasProcessedFinalInSessionRef.current = false;
+        accumulatedSpeechRef.current = '';
       },
-      onResult: ({ interim, final }) => {
-        setInterimTranscript(interim);
-        if (final && final.trim()) {
-          hasProcessedFinalInSessionRef.current = true;
-          setFinalTranscript(final);
-          setInterimTranscript('');
+      onResult: ({ interim, final, liveTranscript }) => {
+        const currentLive = (liveTranscript || (final + ' ' + interim)).trim();
+        if (!currentLive) return;
+
+        accumulatedSpeechRef.current = currentLive;
+        setInterimTranscript(currentLive);
+
+        // Immediate stop command check ("थांबा", "थांब", "stop", "बंद कर")
+        if (isStopIntent(currentLive)) {
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+          speechRecognizer.stop();
           setIsListening(false);
-          setMicStatus('processing');
-          processInput(final);
+          setMicStatus('idle');
+          setInterimTranscript('');
+          accumulatedSpeechRef.current = '';
+          stopSpeaking({ userInitiated: true, reason: 'spoken_command' });
+          return;
         }
+
+        // Reset silence timer on every chunk of speech
+        // Wait 1.8 seconds of silence to ensure user has finished speaking completely
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+        silenceTimerRef.current = setTimeout(() => {
+          finalizeCurrentSpeech();
+        }, SILENCE_TIMEOUT_MS);
       },
       onError: (error) => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
         setIsListening(false);
         if (error === 'network') {
           setMicStatus('offline');
@@ -360,21 +446,29 @@ export function SpeechProvider({ children }) {
           setErrorMessage(t('mic_denied_warning'));
           showToast(t('mic_denied_warning'), 'error');
         } else if (error === 'no-speech') {
-          setMicStatus('idle');
+          if (accumulatedSpeechRef.current && accumulatedSpeechRef.current.trim()) {
+            finalizeCurrentSpeech();
+          } else {
+            setMicStatus('idle');
+          }
         } else {
           setMicStatus('idle');
           console.warn('Speech recognition warning:', error);
         }
       },
-      onEnd: (lastInterim) => {
+      onEnd: (lastRecognized) => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
         setIsListening(false);
         if (micStatus === 'listening') {
           setMicStatus('idle');
         }
-        // ONLY process interim if no final result was dispatched during this recognition session
-        if (!hasProcessedFinalInSessionRef.current && lastInterim && lastInterim.trim().length > 1) {
-          hasProcessedFinalInSessionRef.current = true;
-          processInput(lastInterim.trim());
+        // If recognition ended and accumulated speech has not been submitted yet
+        const pending = (accumulatedSpeechRef.current || lastRecognized || '').trim();
+        if (!hasProcessedFinalInSessionRef.current && pending.length > 0) {
+          finalizeCurrentSpeech(pending);
         }
       }
     });
@@ -383,13 +477,15 @@ export function SpeechProvider({ children }) {
       setIsListening(false);
       setMicStatus('idle');
     }
-  }, [isSpeechSupported, showToast, t, stopSpeaking, processInput, micStatus]);
+  }, [isSpeechSupported, showToast, t, stopSpeaking, finalizeCurrentSpeech, isOffline, micStatus]);
 
   const stopListening = useCallback(() => {
-    speechRecognizer.stop();
-    setIsListening(false);
-    setMicStatus('idle');
-  }, []);
+    if (accumulatedSpeechRef.current && accumulatedSpeechRef.current.trim()) {
+      finalizeCurrentSpeech();
+    } else {
+      cancelListening();
+    }
+  }, [finalizeCurrentSpeech, cancelListening]);
 
   // Mic tap handler:
   // If assistant is speaking -> stop immediately, and turn on mic after 350ms cooldown
@@ -428,6 +524,8 @@ export function SpeechProvider({ children }) {
         isTtsSupported,
         startListening,
         stopListening,
+        finishListening,
+        cancelListening,
         toggleListening,
         speak,
         stopSpeaking,

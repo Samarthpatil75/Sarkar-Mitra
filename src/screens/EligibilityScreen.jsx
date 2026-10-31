@@ -14,7 +14,8 @@ import {
   FileText,
   AlertCircle,
   ShieldCheck,
-  Square
+  Square,
+  Mic
 } from 'lucide-react';
 import VoiceWaveVisualizer from '../components/VoiceWaveVisualizer';
 import { useApp } from '../context/AppContext';
@@ -60,7 +61,9 @@ export default function EligibilityScreen() {
     registerVoiceHandler,
     isSpeechSupported,
     micStatus,
-    startListening 
+    startListening,
+    finishListening,
+    cancelListening
   } = useSpeech();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -647,6 +650,65 @@ export default function EligibilityScreen() {
                   : (bankSubStep === 'other_bank_name' ? OTHER_BANK_PROMPT : BANK_STATUS_PROMPT))
               : currentQuestion.question_mr}
           </h3>
+
+          {/* Spoken Voice Input Controls for Eligibility Wizard */}
+          <div className="mb-6">
+            {isListening ? (
+              <div className="p-4 bg-amber-50 dark:bg-slate-700/80 rounded-2xl border-2 border-saffron-500 shadow-md animate-fadeIn space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-saffron-700 dark:text-saffron-400 font-extrabold text-base sm:text-lg">
+                    <span className="relative flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-saffron-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-saffron-600"></span>
+                    </span>
+                    <Mic className="w-5 h-5 animate-pulse" />
+                    <span>ऐकत आहे... आपले उत्तर बोला</span>
+                  </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-bold hidden sm:inline">
+                    (शांत राहिल्यावर आपोआप किंवा Done दाबा)
+                  </span>
+                </div>
+
+                {interimTranscript && (
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-amber-300 dark:border-slate-600">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">आवाज समजला:</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-white">"{interimTranscript}"</p>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={finishListening}
+                    className="flex-1 py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[16px] rounded-xl shadow-md flex items-center justify-center gap-2 min-h-[48px] transition-transform active:scale-95 cursor-pointer"
+                    aria-label="बोलणे पूर्ण झाले (Done)"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>बोलणे पूर्ण झाले (Done)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelListening}
+                    className="py-3 px-5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-slate-800 dark:text-white font-bold text-[16px] rounded-xl flex items-center justify-center gap-2 min-h-[48px] transition-transform active:scale-95 cursor-pointer"
+                    aria-label="रद्द करा (Cancel)"
+                  >
+                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span>रद्द करा (Cancel)</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={startListening}
+                className="w-full py-3.5 px-6 bg-gradient-to-r from-saffron-500 to-saffron-600 hover:from-saffron-600 hover:to-saffron-700 text-white font-black text-lg rounded-2xl shadow-md flex items-center justify-center gap-2.5 min-h-[52px] active:scale-95 transition-transform cursor-pointer"
+                aria-label="उत्तर बोलण्यासाठी दाबा"
+              >
+                <Mic className="w-6 h-6" />
+                <span>उत्तर बोलण्यासाठी दाबा (उदा. "होय", "नाही", "वय")</span>
+              </button>
+            )}
+          </div>
 
           {/* Options / Input Form */}
           <div className="space-y-3">

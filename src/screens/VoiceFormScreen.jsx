@@ -63,6 +63,9 @@ export default function VoiceFormScreen() {
     replayLastAudio,
     interimTranscript, 
     startListening, 
+    stopListening,
+    finishListening,
+    cancelListening,
     registerVoiceHandler,
     isSpeechSupported,
     micStatus 
@@ -93,6 +96,13 @@ export default function VoiceFormScreen() {
     const k = (field.key || '').toLowerCase();
     const l = (field.label_mr || '').toLowerCase();
     return k.includes('bank') || l.includes('बँक');
+  }, []);
+
+  const isFullNameField = useCallback((field) => {
+    if (!field) return false;
+    const k = (field.key || '').toLowerCase();
+    const l = (field.label_mr || '').toLowerCase();
+    return (k.includes('name') || l.includes('नाव')) && !k.includes('bank') && !l.includes('बँक');
   }, []);
 
   // Auto-switch to tap & type mode if speech is unsupported or denied
@@ -294,6 +304,22 @@ export default function VoiceFormScreen() {
     );
     const isDistrictField = currentField && (currentField.key?.includes('district') || currentField.label_mr?.includes('जिल्हा'));
     const isTalukaField = currentField && (currentField.key?.includes('taluka') || currentField.label_mr?.includes('तालुका'));
+    const isNameField = isFullNameField(currentField);
+
+    // 0. Full name handling: ensure voice input captures multi-word answers (first name, middle name, surname).
+    // Example: "समर्थ अश्विन पाटील" should be recognized as a single input.
+    // Do not validate or submit the name after recognizing only 1 word via voice.
+    if (isNameField && !options.isManual) {
+      const words = cleanAnswer.split(/\s+/).filter(Boolean);
+      if (words.length < 2) {
+        setSpeechFeedback({
+          text: `आपण फक्त "${cleanAnswer}" सांगितले आहे. कृपया आपले पूर्ण नाव (उदा. पहिले नाव, मधले नाव, आडनाव) सांगा.`,
+          type: 'warning'
+        });
+        speak('कृपया आपले पूर्ण नाव सांगा, जसे की पहिले नाव, वडिलांचे किंवा पतीचे नाव आणि आडनाव.');
+        return;
+      }
+    }
 
     // 1. Mobile number validation: accept only valid 10-digit Indian mobile numbers
     if (isPhoneField) {
@@ -403,7 +429,7 @@ export default function VoiceFormScreen() {
     } else {
       speak(`तुम्ही सांगितले: ${cleanAnswer}. हे बरोबर आहे का?`);
     }
-  }, [speak, currentField, formData, isBankField]);
+  }, [speak, currentField, formData, isBankField, isFullNameField]);
 
   // Tap-to-answer handler for bank status and bank names
   const handleBankChoice = useCallback((choice) => {
@@ -919,23 +945,71 @@ export default function VoiceFormScreen() {
 
           {/* Spoken Mic Input or Typing Input */}
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={startListening}
-                className="flex-1 py-4 px-6 bg-gradient-to-r from-saffron-600 to-saffron-700 hover:from-saffron-700 hover:to-saffron-800 text-white font-extrabold text-xl rounded-2xl shadow-lg flex items-center justify-center gap-3 min-h-[58px] active:scale-95 transition-transform"
-              >
-                <Mic className="w-7 h-7" />
-                <span>उत्तर बोलण्यासाठी दाबा</span>
-              </button>
+            {isListening ? (
+              <div className="p-4 bg-amber-50 dark:bg-slate-700/80 rounded-2xl border-2 border-saffron-500 shadow-md animate-fadeIn space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-saffron-700 dark:text-saffron-400 font-extrabold text-base sm:text-lg">
+                    <span className="relative flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-saffron-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-saffron-600"></span>
+                    </span>
+                    <Mic className="w-6 h-6 animate-pulse" />
+                    <span>ऐकत आहे... कृपया पूर्ण बोला</span>
+                  </div>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-bold hidden sm:inline">
+                    (शांत राहिल्यावर आपोआप किंवा खालील बटणाने नोंदवा)
+                  </span>
+                </div>
 
-              <button
-                onClick={() => setIsEditingManually(prev => !prev)}
-                className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-[#1F2937] dark:text-slate-100 font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px] text-[16px]"
-              >
-                <Edit3 className="w-5 h-5 text-saffron-600" />
-                <span>{isEditingManually ? 'माईक वापरा' : 'टाईप करा'}</span>
-              </button>
-            </div>
+                {interimTranscript && (
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-amber-300 dark:border-slate-600">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">आवाज समजला:</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-white">"{interimTranscript}"</p>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={finishListening}
+                    className="flex-1 py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[16px] rounded-xl shadow-md flex items-center justify-center gap-2 min-h-[48px] transition-transform active:scale-95 cursor-pointer"
+                    aria-label="बोलणे पूर्ण झाले, नोंदवा"
+                  >
+                    <Check className="w-5 h-5" />
+                    <span>बोलणे पूर्ण झाले / नोंदवा (Done)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelListening}
+                    className="py-3 px-5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-slate-800 dark:text-white font-bold text-[16px] rounded-xl flex items-center justify-center gap-2 min-h-[48px] transition-transform active:scale-95 cursor-pointer"
+                    aria-label="रद्द करा"
+                  >
+                    <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <span>रद्द करा (Cancel)</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={startListening}
+                  className="flex-1 py-4 px-6 bg-gradient-to-r from-saffron-600 to-saffron-700 hover:from-saffron-700 hover:to-saffron-800 text-white font-extrabold text-xl rounded-2xl shadow-lg flex items-center justify-center gap-3 min-h-[58px] active:scale-95 transition-transform cursor-pointer"
+                >
+                  <Mic className="w-7 h-7" />
+                  <span>उत्तर बोलण्यासाठी दाबा</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditingManually(prev => !prev)}
+                  className="py-3 px-5 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-[#1F2937] dark:text-slate-100 font-bold rounded-2xl flex items-center justify-center gap-2 min-h-[48px] text-[16px] cursor-pointer"
+                >
+                  <Edit3 className="w-5 h-5 text-saffron-600" />
+                  <span>{isEditingManually ? 'माईक वापरा' : 'टाईप करा'}</span>
+                </button>
+              </div>
+            )}
 
             {/* Always Visible Tap-to-Answer Buttons (beside / below the mic) */}
             {(() => {
